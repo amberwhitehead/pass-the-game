@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/room/prop.gd" id="1"]
+
+[sub_resource type="SphereShape3D" id="1"]
+radius = 1.0
+
+[sub_resource type="CylinderMesh" id="2"]
+top_radius = 0.4
+bottom_radius = 0.5
+height = 0.8
+
+[sub_resource type="StandardMaterial3D" id="3"]
+albedo_color = Color(0.15, 0.12, 0.25, 1)
+roughness = 0.6
+
+[sub_resource type="SphereMesh" id="4"]
+
+[node name="Prop" type="Area3D"]
+script = ExtResource("1")
+prompt = "Examine"
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("1")
+
+[node name="Pedestal" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+mesh = SubResource("2")
+surface_material_override/0 = SubResource("3")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+mesh = SubResource("4")
+
+[node name="Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+omni_range = 4.0
+
+[node name="Label" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+billboard = 1
+pixel_size = 0.006
+outline_size = 8
+font_size = 48

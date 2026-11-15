@@ -1,0 +1,180 @@
+[gd_scene load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scenes/room/room.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/room/player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/room/npc.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/room/prop.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/room/door.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/room/door_industrial.tscn" id="5b"]
+[ext_resource type="Script" path="res://scenes/room/hex_floor.gd" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/room/platform.tscn" id="p_platform"]
+[ext_resource type="PackedScene" path="res://assets/props/newton_platform.glb" id="m_newton_platform"]
+[ext_resource type="PackedScene" path="res://assets/props/turing_platform.glb" id="m_turing_platform"]
+[ext_resource type="PackedScene" path="res://assets/props/mainframe_platform.glb" id="m_mainframe_platform"]
+[ext_resource type="PackedScene" path="res://assets/characters/engineer.glb" id="m_engineer"]
+[ext_resource type="PackedScene" path="res://assets/characters/metric_a.glb" id="m_metric_a"]
+[ext_resource type="PackedScene" path="res://assets/characters/metric_b.glb" id="m_metric_b"]
+[ext_resource type="PackedScene" path="res://assets/characters/augmented.glb" id="m_augmented"]
+[ext_resource type="PackedScene" path="res://assets/characters/roman.glb" id="m_roman"]
+[ext_resource type="PackedScene" path="res://assets/characters/mayan.glb" id="m_mayan"]
+[ext_resource type="PackedScene" path="res://assets/characters/officer.glb" id="m_officer"]
+[ext_resource type="PackedScene" path="res://assets/characters/officer_colonel.glb" id="m_officer_colonel"]
+[ext_resource type="PackedScene" path="res://assets/characters/egyptian.glb" id="m_egyptian"]
+
+[sub_resource type="Environment" id="1"]
+background_mode = 1
+background_color = Color(0.01, 0.015, 0.03, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.4, 0.5, 0.65, 1)
+ambient_light_energy = 0.7
+
+[node name="Room" type="Node3D"]
+script = ExtResource("1")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707, 0.707, 0, -0.707, 0.707, 0, 6, 0)
+light_color = Color(0.7, 0.8, 1, 1)
+light_energy = 0.5
+
+[node name="HexFloor" type="Node3D" parent="."]
+script = ExtResource("6")
+columns = 7
+rows = 10
+
+[node name="DoorWest" parent="." instance=ExtResource("5b")]
+door_label = "Exit"
+locked_speaker = "Officer"
+locked_message = "I'm afraid I can't let you back to your time machine until you've passed the tests."
+accent = Color(0.25, 0.85, 1, 1)
+
+[node name="DoorEast" parent="." instance=ExtResource("5")]
+door_label = "East Doors"
+locked_message = "Locked. No handle, no keyhole."
+accent = Color(1, 0.6, 0.25, 1)
+
+[node name="Player" parent="." instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, 0, 0)
+
+; --- west door officers (positioned by room.gd) ---
+[node name="Major" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+npc_name = "Major"
+lines = Array[String](["I'm afraid I can't let you back to your time machine until you've passed the tests."])
+model = ExtResource("m_officer")
+talked_flag = "met_officer"
+
+[node name="Colonel" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+npc_name = "Colonel"
+lines = Array[String](["Why 1963? Who knows."])
+lines_repeat = Array[String](["The Major is being polite. I am not. Six tests, then the door."])
+model = ExtResource("m_officer_colonel")
+
+[node name="Egyptian" parent="." instance=ExtResource("3")]
+transform = Transform3D(0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, 0.94386, -5.15, 0.0, -3.6)
+npc_name = "Egyptian"
+lines = Array[String](["Four thousand years of waiting, and you arrive on a Tuesday. Typical."])
+lines_repeat = Array[String](["If you want to meet my people, you have to pass our test."])
+model = ExtResource("m_egyptian")
+label_height = 2.4
+
+[node name="Challenge1" parent="." instance=ExtResource("4")]
+transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, -3.6, 0.0, 3.6)
+prompt = "Examine"
+label_text = "Challenge 1"
+color = Color(1, 0.55, 0.2, 1)
+shape = 1
+
+[node name="Platform" parent="Challenge1" instance=ExtResource("p_platform")]
+model = ExtResource("m_mainframe_platform")
+
+[node name="Engineer" parent="." instance=ExtResource("3")]
+transform = Transform3D(-0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, -0.94386, -5.15, 0.0, 3.6)
+npc_name = "50s Engineer"
+lines = Array[String](["Don't touch the panels without a slide rule. Nobody respects slide rules anymore."])
+lines_repeat = Array[String](["Slide rule. Remember that."])
+model = ExtResource("m_engineer")
+
+[node name="Challenge2" parent="." instance=ExtResource("4")]
+transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, 0.0, 0.0, 3.6)
+prompt = "Examine"
+label_text = "Challenge 2"
+color = Color(0.4, 1, 0.5, 1)
+shape = 2
+
+[node name="MetricA" parent="." instance=ExtResource("3")]
+transform = Transform3D(0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, 0.94386, 2.6, 0.0, -3.6)
+npc_name = "Metric A"
+lines = Array[String](["Linear algebra rules the universe."])
+lines_repeat = Array[String](["Let's delve into some matrix multiplication."])
+model = ExtResource("m_metric_a")
+
+[node name="Challenge3" parent="." instance=ExtResource("4")]
+transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, 3.6, 0.0, 3.6)
+prompt = "Examine"
+label_text = "Challenge 3"
+color = Color(1, 0.9, 0.4, 1)
+
+[node name="Augmented" parent="." instance=ExtResource("3")]
+transform = Transform3D(-0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, -0.94386, 2.6, 0.0, 3.6)
+npc_name = "Posthuman"
+lines = Array[String](["Hello, unmodified human. Yes, the arm is real. Mostly. Hold on, I'm still updating."])
+lines_repeat = Array[String](["Update {n} of 3,005. Please don't touch anything."])
+repeat_counter_start = 3004
+model = ExtResource("m_augmented")
+
+[node name="Challenge4" parent="." instance=ExtResource("4")]
+transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, -3.6, 0.0, -3.6)
+prompt = "Play"
+minigame_id = "newton"
+label_text = "Egypt Fractal"
+color = Color(0.7, 0.45, 1, 1)
+shape = 3
+
+[node name="Platform" parent="Challenge4" instance=ExtResource("p_platform")]
+model = ExtResource("m_newton_platform")
+
+; (positioned by room.gd: stands against the east wall)
+[node name="MetricB" parent="." instance=ExtResource("3")]
+transform = Transform3D(-0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, -0.94386, -1.8, 0.0, 3.6)
+npc_name = "Metric B"
+lines = Array[String](["The tiles are meant to be 2m wide."])
+lines_repeat = Array[String](["The tiles are only 1.9997m wide. The seams are the difference. Seams matter."])
+model = ExtResource("m_metric_b")
+
+[node name="Challenge5" parent="." instance=ExtResource("4")]
+transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, 0.0, 0.0, -3.6)
+prompt = "Play"
+minigame_id = "turing"
+label_text = "Roman Flow"
+color = Color(0.3, 0.85, 1, 1)
+shape = 1
+
+[node name="Platform" parent="Challenge5" instance=ExtResource("p_platform")]
+model = ExtResource("m_turing_platform")
+
+[node name="Roman" parent="." instance=ExtResource("3")]
+transform = Transform3D(0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, 0.94386, -1.55, 0.0, -3.6)
+npc_name = "Roman"
+lines = Array[String](["Salve, traveler. I have seen empires fall. Yours is wobbling."])
+lines_repeat = Array[String](["Rome wasn't passed in a day. Neither are these tests."])
+model = ExtResource("m_roman")
+label_height = 2.25
+
+[node name="Challenge6" parent="." instance=ExtResource("4")]
+transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, 3.6, 0.0, -3.6)
+prompt = "Examine"
+label_text = "Challenge 6"
+color = Color(1, 0.45, 0.7, 1)
+
+[node name="Mayan" parent="." instance=ExtResource("3")]
+transform = Transform3D(-0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, -0.94386, -1.0, 0.0, 3.6)
+npc_name = "Mayan"
+lines = Array[String](["Our power source always failed before we could get past 2012."])
+lines_repeat = Array[String](["We count the days. The count says today is unremarkable. The count is rarely wrong."])
+model = ExtResource("m_mayan")
+label_height = 2.5
+
