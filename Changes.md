@@ -1,18 +1,21 @@
 # Changes
 
-A record of each contribution to Pass The Game, oldest first. Each turn's
-[handoff notes](docs/HANDOFF.md) describe the current state in more depth; this
-file keeps the history of who added what.
+A record of each contribution to Pass The Game, oldest first. Each day is a
+different contributor's turn, so commits are grouped by contributor and day.
+Each turn's [handoff notes](docs/HANDOFF.md) describe the current state in more
+depth; this file keeps the history of who added what.
 
-## `dea8946` — Amber Whitehead, November 15, 2026
+## Amber Whitehead — November 15, 2026
 
-**Repository created.** A one-line `README.md` started the project.
+### `dea8946` — Repository created
 
-## `dea473d` — rmurrish, November 15, 2026
+A one-line `README.md` started the project.
 
-**The foundation: a Godot Web/mobile project with an intro, a first-person room
-and two puzzles.** Built with Claude Sonnet 5.5; the commit squashes about
-seventeen smaller steps.
+## rmurrish — November 15, 2026
+
+### `dea473d` — Godot Web/mobile project with an intro, a first-person room and two puzzles
+
+Built with Claude Sonnet 5.5; the commit squashes about seventeen smaller steps.
 
 - **Framework.** A 2D story intro with shader backgrounds and procedural art; a
   first-person 3D hex-tile room with double doors, NPCs and interactable props;
@@ -40,11 +43,12 @@ seventeen smaller steps.
 - **Fixes and tools.** NPC dialogue now survives Web exports (every NPC had said
   "Hello there."). Room benchmark, minigame screenshot and fake-result dev tools.
 
-## `82d6510` — cee.wtf (committed by Amber Whitehead), November 16, 2026
+## cee.wtf — November 16, 2026
 
-**Refraction Hall, the prism connector, the Brothers' card game, sound and
-tests.** The commit message is brief; [the handoff](docs/HANDOFF.md) written in
-this turn describes it in full.
+### `82d6510` — Refraction Hall, the prism connector, the Brothers' card game, sound and tests
+
+Committed by Amber Whitehead. The commit message is brief;
+[the handoff](docs/HANDOFF.md) written in this turn describes it in full.
 
 - **Refraction Hall.** The room became a main hall with six square side
   chambers. Egypt Fractal and Roman Flow keep their rooms; rooms 04–06
@@ -65,10 +69,12 @@ this turn describes it in full.
   twenty-four headless test suites; module guides; `docs/HANDOFF.md` and
   `AGENTS.md`.
 
-## `bda8047` — tesseract, November 17, 2026
+## tesseract — November 17, 2026
 
-**Test fixes found by running the suite on Windows.** On a clean checkout with
-Godot 4.7.2, three suites failed and one silently skipped checks.
+### `bda8047` — Test fixes found by running the suite on Windows
+
+On a clean checkout with Godot 4.7.2, three suites failed and one silently
+skipped checks.
 
 - `cards_motion_test`: wait out the slow first frames before timing the
   intercept animation. A timer created during a long startup frame expired
@@ -81,13 +87,16 @@ Godot 4.7.2, three suites failed and one silently skipped checks.
   macOS-only `/private/tmp`. On Windows the error skipped nine checks while the
   suite still reported no failures (68 → 77 checks).
 
-## `61fb59d` — tesseract, November 17, 2026
+### `61fb59d` — UTF-8 file handling in the Python tools
 
-**UTF-8 file handling in the Python tools.** Python defaults to the locale
-encoding (cp1252 on Windows), which failed to read the card progression report
-template. All 22 `read_text`/`write_text` calls in `tools/*.py` now pass
-`encoding="utf-8"`.
+Python defaults to the locale encoding (cp1252 on Windows), which failed to read
+the card progression report template. All 22 `read_text`/`write_text` calls in
+`tools/*.py` now pass `encoding="utf-8"`.
 
 After both commits, all 23 headless Godot suites and 24 Python tests pass on
 Windows. `cards_transition_render_test` needs a graphical renderer and was not
 run headless.
+
+### `a50ee6f` — Changes.md
+
+This file, recording each contribution grouped by contributor and day.
