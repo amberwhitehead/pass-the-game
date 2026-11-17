@@ -111,3 +111,24 @@ builds kept working, but the editor's debugger stopped the game there and it
 looked like a crash. The callback now uses an ordinary `if`/`else` statement.
 The hall tests drive the optics controller directly, which is why they never
 pressed a real handle and missed it.
+
+### `5e270cb` — Saved games
+
+Progress now survives quitting and reloading, the handoff's planned "persistent
+saves".
+
+- **What is saved.** Everything in `Game`'s flags, completed minigames and found
+  cards: wins and trophies, the prism rewards, the optics layout, the carried
+  item, Door 2, found cards and which NPCs you've talked to. The player starts
+  at the hall entrance as before.
+- **When.** Autosave half a second after changes settle (so turning a prism
+  wheel is one write), and when the window closes or loses focus. The file is
+  `user://savegame.cfg`, stored in the browser on the Web. A new
+  `autoload/save_game.gd` owns the versioned file format.
+- **Intro.** With a save, "Skip intro" becomes **Continue** and a **New game**
+  button appears; it asks for a second press before erasing progress. Skipping
+  or finishing the story continues the save.
+- **Tests stay isolated.** Autosave turns on only when the intro starts or
+  continues a game, so tests and F6 scene runs never touch the real save. The
+  new `save_game_test` (15 checks) covers the file format, version mismatch,
+  autosave gating and batching, and Continue / New game.
