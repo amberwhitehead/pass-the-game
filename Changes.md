@@ -100,3 +100,14 @@ run headless.
 ### `a50ee6f` — Changes.md
 
 This file, recording each contribution grouped by contributor and day.
+
+### `4ff33f0` — Optics handles no longer raise a script error
+
+Pressing a prism's TURN or LIFT / PLACE control in the hall raised "Trying to get
+a return value of a method that returns void" from `optics_device.gd`. The
+handle chose between two signal emits with a one-line `if`/`else` expression,
+which uses `emit()`'s missing return value. The signal still fired, so exported
+builds kept working, but the editor's debugger stopped the game there and it
+looked like a crash. The callback now uses an ordinary `if`/`else` statement.
+The hall tests drive the optics controller directly, which is why they never
+pressed a real handle and missed it.
