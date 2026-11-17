@@ -55,7 +55,8 @@ After edits, leave the existing server running and rebuild in a second terminal:
 GODOT="/path/to/Godot" ./godot/build_web.sh
 ```
 
-Then refresh the browser. Rebuilding resets gameplay when the page is reloaded.
+Then refresh the browser. Saved progress survives rebuilds; choose **New game**
+in the intro to start fresh.
 Both scripts honor `GODOT`; omit it when the default executable discovery works.
 They import/export headlessly with Dummy audio, so they do not open a game window.
 
@@ -106,9 +107,11 @@ use the shared export preset; this handoff's visual QA was performed on macOS.
   standalone test scripts. The first cache-free import can initially report a
   missing imported default font; the import generates that resource. If it is
   still missing on the next launch, investigate the import log.
-- **Progress disappears after refresh:** expected for now. Puzzle state, wins, and
-  collected cards survive minigame visits during the current session, but there
-  is no disk/browser gameplay save. Sound preferences are saved separately.
+- **Saved progress:** wins, puzzle state, the carried item and found cards save
+  automatically to `user://savegame.cfg` (browser storage on the Web). Skipping or
+  finishing the intro continues a save; **New game** erases it after a second
+  press. Sound preferences are saved separately in `user://sound.cfg`. Tests and
+  scenes run directly with F6 never read or write the save.
 
 ## Controls and a first playthrough
 
@@ -141,7 +144,7 @@ Flow: `scenes/intro/intro.tscn` → `scenes/room/room.tscn` → minigame overlay
 
 | Area | Responsibility |
 | --- | --- |
-| `autoload/` | `Game` session state/input, `Sound` playback/settings, `SceneManager` scene fades, `TouchControls`, `Dialogue`, and the `MiniGames` registry/launcher |
+| `autoload/` | `Game` progress/autosave/input (file format in `save_game.gd`), `Sound` playback/settings, `SceneManager` scene fades, `TouchControls`, `Dialogue`, and the `MiniGames` registry/launcher |
 | `scenes/room/` | Player, NPCs, interactable props, and hub composition. `room.tscn` retains station nodes; the architecture relocates them at runtime. |
 | `scenes/escape/` | Six side chambers, main-hall geometry/server details, prism optics, one-item carry system, reward reveal, and the Brothers' walnut/felt parlor. See the [module guide](scenes/escape/README.md). |
 | `minigames/newton/` | Egypt Fractal: park three pyramids on different fractal colors. `newton_math.gd` is the shader's CPU twin; keep them in sync. |

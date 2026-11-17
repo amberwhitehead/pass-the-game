@@ -137,6 +137,7 @@ godot --headless --audio-driver Dummy --path godot --script res://tests/optics_s
 godot --headless --audio-driver Dummy --path godot --script res://tests/optics_aiming_test.gd
 godot --headless --audio-driver Dummy --path godot --script res://tests/carry_inventory_test.gd
 godot --headless --audio-driver Dummy --path godot --script res://tests/escape_hub_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/save_game_test.gd
 ```
 
 The pure optical model enumerates 3,465 source/rotation/lens/socket configurations.
@@ -156,6 +157,11 @@ result; it does not solve Egypt Fractal's mathematical puzzle.
 The Egypt skip suite sends the actual Shift+L keyboard shortcut through the scene
 input path. It checks lit pyramids/crystals, a single celebration, normal trophy
 and reward delivery, interruption guards, and replay without duplicated rewards.
+
+The save suite round-trips nested flags, colors, vectors and routes through the
+save file, rejects other format versions, and checks that autosave stays off until
+a game starts, batches rapid changes, and that Continue and New game restore or
+erase progress. It writes its own `user://savegame_test.cfg`, never the real save.
 
 Use `--audio-driver Dummy` for automated native tests and keep them headless.
 Browser visual checks should run in a background tab at

@@ -52,6 +52,6 @@ All game sounds are included in the checkout. After a Web build, the
 [audition page](http://localhost:8060/audio/) lets you compare sound choices.
 
 Walk with **W/S**, turn with **A/D**, drag to look, and press **E** to interact.
-**Escape** backs out of a puzzle. Progress and collected cards last for the
-current session; reloading starts a fresh game. There is no final escape sequence
+**Escape** backs out of a puzzle. Progress saves automatically; the intro offers
+**Continue** or **New game** when a save exists. There is no final escape sequence
 yet.

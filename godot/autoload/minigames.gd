@@ -107,7 +107,7 @@ func play(id: String) -> Dictionary:
 	else:
 		get_tree().paused = false
 	if result.get("won", false):
-		Game.completed_minigames[id] = result
+		Game.record_win(id, result)
 	ended.emit(id, result)
 	return result
 

@@ -3,13 +3,20 @@ extends Node
 ## Actions are registered in code so the on-screen buttons, keyboard and
 ## (later) gamepad all drive the same names.
 const DeckProgression := preload("res://minigames/cards/deck_progression.gd")
+const SaveGame := preload("res://autoload/save_game.gd")
+const SAVE_DELAY := 0.5  # Batches rapid changes, such as turning a prism wheel, into one write.
 
 signal flag_changed(flag: String, value: Variant)
 signal card_collected(id: String)
 
 var flags: Dictionary = {}
 var completed_minigames: Dictionary = {}  # id -> best result Dictionary
-var collected_cards: Array[String] = []  # Session discoveries; independent of carried puzzle items.
+var collected_cards: Array[String] = []  # Discoveries; independent of carried puzzle items.
+## Off until the intro starts or continues a game, so tests and single-scene runs
+## never read or overwrite the player's save.
+var autosave := false
+var save_path := SaveGame.PATH
+var _save_timer: Timer
 
 
 func collect_card(id: String) -> bool:
@@ -17,10 +24,64 @@ func collect_card(id: String) -> bool:
 		return false
 	collected_cards.append(id)
 	card_collected.emit(id)
+	_queue_save()
 	return true
 
 
+func record_win(id: String, result: Dictionary) -> void:
+	completed_minigames[id] = result
+	_queue_save()
+
+
+func has_save() -> bool:
+	return SaveGame.exists(save_path)
+
+
+## Restores saved progress and turns on autosave. Returns false if there is no usable save.
+func continue_saved() -> bool:
+	var state := SaveGame.read(save_path)
+	if state.is_empty():
+		return false
+	flags = (state.get("flags", {}) as Dictionary).duplicate(true)
+	completed_minigames = (state.get("completed_minigames", {}) as Dictionary).duplicate(true)
+	collected_cards.assign(state.get("collected_cards", []))
+	autosave = true
+	return true
+
+
+## Clears progress, erases the save and turns on autosave.
+func start_new() -> void:
+	flags.clear()
+	completed_minigames.clear()
+	collected_cards.clear()
+	SaveGame.erase(save_path)
+	autosave = true
+
+
+func save_now() -> void:
+	_save_timer.stop()
+	if autosave:
+		SaveGame.write({"flags": flags, "completed_minigames": completed_minigames,
+			"collected_cards": collected_cards}, save_path)
+
+
+func _queue_save() -> void:
+	if autosave:
+		_save_timer.start(SAVE_DELAY)
+
+
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED] \
+			and _save_timer != null and not _save_timer.is_stopped():
+		save_now()
+
+
 func _ready() -> void:
+	_save_timer = Timer.new()
+	_save_timer.one_shot = true
+	_save_timer.process_mode = Node.PROCESS_MODE_ALWAYS  # Minigames pause the tree.
+	_save_timer.timeout.connect(save_now)
+	add_child(_save_timer)
 	# The built-in font lacks arrows, ▲▼◀▶, ✕, minus and superscripts (and web builds have no
 	# system fonts to fall back on), so ship DejaVu Sans as the default and the fallback.
 	ThemeDB.fallback_font = load("res://assets/fonts/DejaVuSans.ttf")
@@ -33,6 +94,7 @@ func _ready() -> void:
 func set_flag(flag: String, value: Variant = true) -> void:
 	flags[flag] = value
 	flag_changed.emit(flag, value)
+	_queue_save()
 
 
 func get_flag(flag: String, default: Variant = false) -> Variant:
