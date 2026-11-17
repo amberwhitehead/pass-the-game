@@ -51,9 +51,9 @@ def main():
     args = parser.parse_args()
     try:
         target = AUDIO / "cues.json"
-        config = json.loads(target.read_text())
-        selection = json.loads(args.choices.read_text())
-        manifest = json.loads((AUDIO / "cc0_manifest.json").read_text())
+        config = json.loads(target.read_text(encoding="utf-8"))
+        selection = json.loads(args.choices.read_text(encoding="utf-8"))
+        manifest = json.loads((AUDIO / "cc0_manifest.json").read_text(encoding="utf-8"))
         if not isinstance(selection, dict):
             raise ValueError("Expected a JSON object")
         result = apply_choices(config, selection, manifest)
@@ -62,7 +62,7 @@ def main():
             print(f"Valid export: {len(result['cues'])} cues, {changes} changes; no files written.")
         else:
             temporary = target.with_suffix(".json.tmp")
-            temporary.write_text(json.dumps(result, indent=2) + "\n")
+            temporary.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
             temporary.replace(target)
             print(f"Applied {changes} changes to {target}")
             print("Restart Godot or rebuild Web and refresh to hear the changes.")

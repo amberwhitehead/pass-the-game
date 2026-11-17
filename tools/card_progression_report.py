@@ -189,7 +189,7 @@ def generate_report(data: dict, output_dir: Path) -> Path:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     summary = summarize(data)
-    (output_dir / "progression-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    (output_dir / "progression-summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     groups = []
     for group in summary["groups"]:
         note = "" if group["complete"] else " · INCOMPLETE"
@@ -209,13 +209,13 @@ def generate_report(data: dict, output_dir: Path) -> Path:
     legend = ''.join(f'<span style="--accent:{COLORS[i % len(COLORS)]}">{escape(policy)}</span>' for i, policy in enumerate(summary["policies"]))
     metadata = summary["metadata"]
     stamp = f'{metadata.get("total_matches",len(data["matches"])):,} matches · revision {metadata.get("git_commit","unrecorded")[:10]}'
-    template = Path(__file__).with_suffix(".html").read_text()
+    template = Path(__file__).with_suffix(".html").read_text(encoding="utf-8")
     values = {"__CHART__": chart(summary), "__GROUPS__": ''.join(groups), "__EDGES__": ''.join(edges),
               "__TOTALS__": totals, "__LEGEND__": legend, "__METADATA__": escape(stamp)}
     for key, value in values.items():
         template = template.replace(key, value)
     destination = output_dir / "curve.html"
-    destination.write_text(template)
+    destination.write_text(template, encoding="utf-8")
     return destination
 
 
@@ -224,7 +224,7 @@ def main() -> None:
     parser.add_argument("results", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    data = json.loads(args.results.read_text())
+    data = json.loads(args.results.read_text(encoding="utf-8"))
     print(generate_report(data, args.output or args.results.parent))
 
 

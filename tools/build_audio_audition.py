@@ -13,8 +13,8 @@ PREFIX = "res://assets/audio/cc0/"
 
 
 def build(output):
-    manifest = json.loads((AUDIO / "cc0_manifest.json").read_text())
-    cue_data = json.loads((AUDIO / "cues.json").read_text())
+    manifest = json.loads((AUDIO / "cc0_manifest.json").read_text(encoding="utf-8"))
+    cue_data = json.loads((AUDIO / "cues.json").read_text(encoding="utf-8"))
     if manifest.get("license") != "CC0-1.0":
         raise ValueError("The audition library must declare CC0-1.0")
     assets, copies, ids = [], [], set()
@@ -58,7 +58,7 @@ def build(output):
         shutil.copy2(ROOT / "godot/assets/fonts" / source, fonts / name)
     data = {"version": 1, "license": manifest["license"], "packs": manifest["packs"],
             "assets": assets, "cues": cue_data["cues"]}
-    (output / "data.json").write_text(json.dumps(data, indent=2) + "\n")
+    (output / "data.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     print(f"Audio audition: {len(cue_data['cues'])} targets, {len(assets)} clips -> {output}")
 
 

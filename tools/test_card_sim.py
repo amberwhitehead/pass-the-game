@@ -17,18 +17,18 @@ class WorkflowTests(unittest.TestCase):
             root = Path(directory)
             config = root / "input.json"
             original = {"scenarios": [{"id": "test", "opponent": "older_brother", "overrides": {}}]}
-            config.write_text(json.dumps(original))
+            config.write_text(json.dumps(original), encoding="utf-8")
             captured = {}
 
             def run(command, **_kwargs):
                 captured["command"] = command
                 frozen = Path(command[command.index("--config") + 1])
-                captured["frozen"] = json.loads(frozen.read_text())
+                captured["frozen"] = json.loads(frozen.read_text(encoding="utf-8"))
                 self.assertNotEqual(frozen, config)
                 if mutate_config:
-                    config.write_text('{"scenarios": []}')
+                    config.write_text('{"scenarios": []}', encoding="utf-8")
                 output = Path(command[command.index("--output") + 1])
-                output.write_text(json.dumps({"matches": [{"winner": "player"}], "metadata": {}}))
+                output.write_text(json.dumps({"matches": [{"winner": "player"}], "metadata": {}}), encoding="utf-8")
                 return SimpleNamespace(returncode=0, stdout="", stderr="")
 
             def report(data, output):

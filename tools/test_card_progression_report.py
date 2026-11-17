@@ -83,11 +83,11 @@ class ProgressionReportTests(unittest.TestCase):
     def test_outputs_are_self_contained_and_include_baseline(self):
         with tempfile.TemporaryDirectory() as directory:
             output = generate_report(study(), Path(directory))
-            html = output.read_text()
+            html = output.read_text(encoding="utf-8")
             self.assertIn("<svg", html)
             self.assertIn("Base deck", html)
             self.assertNotIn("__GROUPS__", html)
-            summary = json.loads((Path(directory) / "progression-summary.json").read_text())
+            summary = json.loads((Path(directory) / "progression-summary.json").read_text(encoding="utf-8"))
             self.assertEqual(len(summary["groups"]), 6)
 
 
