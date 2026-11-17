@@ -31,6 +31,16 @@ static func build(parent: Node3D, hw: float, h: float, bays: Array) -> int:
 	return g._emit(parent)
 
 
+## Doorway-aware bays. Each section specifies side (-1 north / +1 south),
+## wall distance, x limits and vertical limits. All sections share two batches.
+static func build_sections(parent: Node3D, sections: Array) -> int:
+	var g := Greebles.new()
+	g._rng.seed = 7
+	for section: Dictionary in sections:
+		g._bay(section.side, section.wall, section.x0, section.x1, section.y0, section.y1)
+	return g._emit(parent)
+
+
 func _bay(side: float, hw: float, x0: float, x1: float, y0: float, y1: float) -> void:
 	_side = side
 	_z0 = side * hw

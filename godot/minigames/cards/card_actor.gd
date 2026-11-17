@@ -1,0 +1,158 @@
+extends Node3D
+## Physical card with a cached face texture and a raycast target.
+
+signal pressed
+
+const CardFace := preload("res://minigames/cards/card_face.gd")
+const UI := preload("res://minigames/cards/card_ui.gd")
+const CARD_SIZE := Vector2(0.95, 1.28)
+const FACE_SIZE := Vector2i(384, 512)
+
+var disabled := false
+var card_data: Dictionary = {}
+var is_empty := true
+var collider: StaticBody3D
+var _selected := false
+var _available := true
+var _hovered := false
+var _empty_text := "Empty lane"
+var _side := "player"
+var _viewport: SubViewport
+var _face: Control
+var _body: MeshInstance3D
+var _edge_material: StandardMaterial3D
+var _face_material: StandardMaterial3D
+var _pulse_tween: Tween
+var _pulse_color := Color.BLACK
+var _built := false
+
+
+func _ready() -> void:
+	_build()
+	_refresh_face()
+	_refresh_edge()
+
+
+func _build() -> void:
+	if _built:
+		return
+	_built = true
+	_viewport = SubViewport.new()
+	_viewport.size = FACE_SIZE
+	_viewport.transparent_bg = true
+	_viewport.disable_3d = true
+	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	_viewport.gui_disable_input = true
+	add_child(_viewport)
+	_face = CardFace.new()
+	_face.size = Vector2(FACE_SIZE)
+	_viewport.add_child(_face)
+	_edge_material = StandardMaterial3D.new()
+	_edge_material.albedo_color = Color("b8ad91")
+	_edge_material.roughness = 0.8
+	_edge_material.emission_enabled = true
+	var body := MeshInstance3D.new()
+	_body = body
+	var box := BoxMesh.new()
+	box.size = Vector3(CARD_SIZE.x + 0.025, 0.025, CARD_SIZE.y + 0.025)
+	body.mesh = box
+	body.material_override = _edge_material
+	add_child(body)
+	var top := MeshInstance3D.new()
+	var plane := QuadMesh.new()
+	plane.size = CARD_SIZE
+	top.mesh = plane
+	top.rotation.x = -PI / 2.0
+	top.position.y = 0.014
+	_face_material = StandardMaterial3D.new()
+	_face_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_face_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_face_material.albedo_texture = _viewport.get_texture()
+	_face_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	top.material_override = _face_material
+	add_child(top)
+	collider = StaticBody3D.new()
+	collider.collision_layer = 1
+	collider.collision_mask = 0
+	collider.set_meta("card_actor", self)
+	var shape := CollisionShape3D.new()
+	var bounds := BoxShape3D.new()
+	bounds.size = Vector3(CARD_SIZE.x, 0.08, CARD_SIZE.y)
+	shape.shape = bounds
+	collider.add_child(shape)
+	add_child(collider)
+
+
+func configure(card: Dictionary, _compact: bool = false) -> void:
+	if not is_empty and card_data == card:
+		return
+	card_data = card.duplicate(true)
+	is_empty = card.is_empty()
+	_refresh_face()
+	_refresh_edge()
+
+
+func set_empty(value: String, side: String = "player") -> void:
+	if is_empty and _empty_text == value and _side == side:
+		return
+	is_empty = true
+	card_data = {}
+	_empty_text = value
+	_side = side
+	_refresh_face()
+	_refresh_edge()
+
+
+func set_selected(value: bool) -> void:
+	if _selected == value:
+		return
+	_selected = value
+	_refresh_edge()
+
+
+func set_available(value: bool) -> void:
+	if _available == value:
+		return
+	_available = value
+	_refresh_edge()
+
+
+func set_hovered(value: bool) -> void:
+	if _hovered == value:
+		return
+	_hovered = value
+	_refresh_edge()
+
+
+func pulse(color: Color) -> void:
+	if _pulse_tween:
+		_pulse_tween.kill()
+	_pulse_color = color
+	_refresh_edge()
+	_pulse_tween = create_tween()
+	_pulse_tween.tween_method(func(weight: float):
+		_pulse_color = color * weight
+		_refresh_edge(), 1.0, 0.0, 0.35)
+
+
+func _refresh_face() -> void:
+	if not _built:
+		return
+	_face.configure(card_data, _empty_text, _side)
+	_body.visible = not is_empty
+	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+
+
+func _refresh_edge() -> void:
+	if not _built:
+		return
+	if _face.set_highlight(_selected or _hovered):
+		_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	var base := Color("b8ad91") if not is_empty else Color("34575c")
+	var glow := Color.BLACK
+	if _selected or _hovered:
+		base = UI.GOLD if _selected else Color("9cdbd0")
+		glow = base * (0.75 if _selected else 0.35)
+	_edge_material.albedo_color = base
+	_edge_material.emission = glow + _pulse_color
+	_face_material.albedo_color = Color.WHITE if _available else Color(0.65, 0.65, 0.65)

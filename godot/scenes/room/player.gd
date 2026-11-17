@@ -23,6 +23,8 @@ signal focus_changed(target: Interactable)
 
 var target: Interactable = null
 var _look_finger := -1
+var cinematic_locked := false
+var interaction_locked := false
 
 
 func _ready() -> void:
@@ -30,7 +32,7 @@ func _ready() -> void:
 
 
 func _frozen() -> bool:
-	return Dialogue.active or MiniGames.is_running()
+	return cinematic_locked or interaction_locked or Sound.settings_open or Dialogue.active or MiniGames.is_running()
 
 
 func _physics_process(delta: float) -> void:
@@ -80,18 +82,20 @@ func forward_flat() -> Vector3:
 func _update_target() -> void:
 	var best: Interactable = null
 	var best_score := -INF
-	var fwd := forward_flat()
+	var fwd := -camera.global_basis.z
 	for area in _reach.get_overlapping_areas():
-		if area is Interactable:
-			var to: Vector3 = area.global_position - global_position
-			to.y = 0.0
+		if area is Interactable and area.is_visible_in_tree() and not _frozen():
+			var point: Vector3 = area.get_focus_position()
+			var to: Vector3 = point - camera.global_position
 			var dist := to.length()
 			if dist > reach:
 				continue
-			var facing := fwd.dot(to / maxf(dist, 0.001)) if dist > 0.5 else 1.0
+			var facing := fwd.dot(to / maxf(dist, 0.001))
 			if facing < reach_cone:
 				continue
-			var score := facing - dist * 0.15
+			if not _can_see(area, point):
+				continue
+			var score := facing - dist * 0.025
 			if score > best_score:
 				best = area
 				best_score = score
@@ -104,8 +108,19 @@ func _update_target() -> void:
 		focus_changed.emit(target)
 
 
+func _can_see(area: Interactable, point: Vector3) -> bool:
+	var ray := PhysicsRayQueryParameters3D.create(camera.global_position, point, 1, [get_rid()])
+	ray.collide_with_areas = false
+	var hit := get_world_3d().direct_space_state.intersect_ray(ray)
+	if hit.is_empty():
+		return true
+	var collider: Node = hit.collider
+	return area.is_ancestor_of(collider) or collider == area \
+		or camera.global_position.distance_to(hit.position) + 0.18 >= camera.global_position.distance_to(point)
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("interact"):
+	if not event.is_action_pressed("interact") or event.is_echo():
 		return
 	if _frozen() or target == null:
 		return

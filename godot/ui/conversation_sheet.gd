@@ -1,0 +1,58 @@
+extends PanelContainer
+## Shared dialogue typography and frame; callers retain their story/typewriter logic.
+const Style := preload("res://ui/game_style.gd")
+var speaker: Label
+var copy: RichTextLabel
+var hint: Label
+var _arrival: Tween
+var _key := "E"
+
+func _init() -> void:
+	theme = Style.theme()
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_theme_stylebox_override("panel", Style.panel(Style.PANEL, Style.GOLD.darkened(.42), 24))
+	var column := VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", 12)
+	add_child(column)
+	var header := HBoxContainer.new()
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(header)
+	speaker = Label.new()
+	speaker.add_theme_font_override("font", Style.font(true))
+	speaker.add_theme_font_size_override("font_size", 28)
+	speaker.add_theme_color_override("font_color", Style.GOLD)
+	speaker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(speaker)
+	hint = Label.new()
+	hint.text = "E  /  CONTINUE"
+	hint.add_theme_font_size_override("font_size", 12)
+	hint.add_theme_color_override("font_color", Style.MUTED)
+	header.add_child(hint)
+	var rule := HSeparator.new()
+	column.add_child(rule)
+	copy = RichTextLabel.new()
+	copy.bbcode_enabled = true
+	copy.fit_content = true
+	copy.scroll_active = false
+	copy.custom_minimum_size.y = 58
+	copy.add_theme_font_size_override("normal_font_size", 22)
+	copy.add_theme_color_override("default_color", Style.PAPER)
+	copy.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(copy)
+
+func arrive() -> void:
+	if _arrival:
+		_arrival.kill()
+	modulate.a = 0.0
+	_arrival = create_tween()
+	_arrival.tween_property(self, "modulate:a", 1.0, .18).set_trans(Tween.TRANS_SINE)
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		_key = "E"
+	elif event is InputEventJoypadButton or event is InputEventJoypadMotion:
+		_key = "A"
+	elif event is InputEventScreenTouch and event.device != -1:
+		_key = "TAP"
+	hint.text = _key + "  /  CONTINUE"

@@ -7,7 +7,9 @@ enum Shape { SPHERE, BOX, PRISM, PYRAMID }
 @export var label_text := "Mystery"
 @export var color := Color(1.0, 0.6, 0.2)
 @export var shape: Shape = Shape.SPHERE
+@export var retain_marker_on_win := false  ## Replayable tables without a replacement trophy.
 
+const Sign := preload("res://ui/world_sign.gd")
 const CRYSTAL := preload("res://shaders/crystal.gdshader")
 
 @onready var _mesh: MeshInstance3D = $Mesh
@@ -38,7 +40,14 @@ func _ready() -> void:
 	_mat.set_shader_parameter("color", color)
 	_mesh.material_override = _mat
 	_light.light_color = color
-	_label.text = label_text
+	_label.visible = false
+	var title := label_text.split(" · ")[0]
+	if minigame_id == "cards":
+		title = "Little Brother"
+	var subtitle := "CHALLENGE AWAITS" if not minigame_id.is_empty() else "AN EXHIBIT YET TO COME"
+	Sign.plaque(self, title, subtitle, Vector3(0, .66, 1.1), Vector2(1.65, .40), color)
+	for x in [-.56, .56]:
+		Sign.box(self, Vector3(.045, .5, .045), Vector3(x, .25, 1.1), Color("74654c"), true)
 	_refresh_completed()
 
 
@@ -89,8 +98,8 @@ func _pyramid_mesh(half: float, height: float) -> ArrayMesh:
 func _refresh_completed() -> void:
 	if minigame_id == "" or not Game.completed_minigames.has(minigame_id):
 		return
-	_mesh.visible = false
-	_light.visible = false
+	_mesh.visible = retain_marker_on_win
+	_light.visible = retain_marker_on_win
 	if _trophy != null:
 		return
 	var path: String = MiniGames.REGISTRY.get(minigame_id, {}).get("trophy", "")

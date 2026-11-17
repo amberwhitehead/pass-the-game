@@ -1,0 +1,13 @@
+{
+  "scenarios": [
+    {"id": "little_baseline", "label": "Little Brother · current game", "opponent": "little_brother", "overrides": {}},
+    {"id": "older_baseline", "label": "Older Brother · current game", "opponent": "older_brother", "overrides": {}},
+    {"id": "older_goal18", "label": "Older Brother · goal 18 instead of 12", "opponent": "older_brother", "baseline": "older_baseline", "overrides": {"goal": 18}},
+    {"id": "older_attention", "label": "Older Brother · Attention 2 → 4", "opponent": "older_brother", "baseline": "older_baseline", "overrides": {"starting_attention": 2, "attention_cap": 4}},
+    {"id": "older_enemy_veteran", "label": "Older Brother · enemy Veteran power 4", "opponent": "older_brother", "baseline": "older_baseline", "overrides": {"enemy_cards": {"veteran": {"power": 4}}}},
+    {"id": "older_opening_left", "label": "Older Brother · opening Bulwark on left", "opponent": "older_brother", "baseline": "older_baseline", "overrides": {"opening_lanes": [0]}},
+    {"id": "older_no_intercept", "label": "Older Brother · player interception removed", "opponent": "older_brother", "baseline": "older_baseline", "overrides": {"player_cards": {"sentinel": {"ability": ""}}}},
+    {"id": "older_no_diagonal", "label": "Older Brother · player Forkshot attacks straight", "opponent": "older_brother", "baseline": "older_baseline", "overrides": {"player_cards": {"forkshot": {"ability": ""}}}},
+    {"id": "older_support_opening", "label": "Older Brother · support-heavy fixed prefix, same twelve-card counts", "opponent": "older_brother", "baseline": "older_baseline", "overrides": {"deck": ["patch", "sentinel", "defender", "bruiser", "bruiser", "bruiser", "forkshot", "forkshot", "bolt", "bolt", "patch", "switcheroo"]}}
+  ]
+}

@@ -17,6 +17,7 @@ extends MiniGame
 const FRACTAL_SHADER := preload("res://shaders/newton_fractal.gdshader")
 const NewtonMath := preload("res://minigames/newton/newton_math.gd")
 const PLATFORM_MODEL := preload("res://assets/props/newton_platform.glb")
+const PlaytestSkip := preload("res://minigames/newton/newton_skip.gd")
 
 const TABLE_R := 2.2
 const APRON_R := 3.3
@@ -75,7 +76,7 @@ var _table_mat: ShaderMaterial
 var _model: Node3D             ## the instanced platform .glb
 var _camera: Camera3D
 var _hud_values: Label
-var _hud_hint: Label
+var _hud: Control
 var _pyramids := []            ## per pyramid: {"ring": StandardMaterial3D, "root": Variant, "ok": bool}
 var _hold := 0.0               ## how long the current solution has held
 var _grab_hold := 0.0          ## how long the grabbed knob has been turned continuously
@@ -277,7 +278,7 @@ func _shard_mesh(rng: RandomNumberGenerator, radius: float, height: float) -> Ar
 func _build_inscription(parent: Node3D) -> void:
 	var font_size := 48
 	var pixel := INSCRIPTION_PIXEL
-	var font := ThemeDB.fallback_font
+	var font := Style.font(true)
 	var widths := []
 	var total := 0.0
 	for i in INSCRIPTION.length():
@@ -292,6 +293,7 @@ func _build_inscription(parent: Node3D) -> void:
 			continue
 		var l := Label3D.new()
 		l.text = INSCRIPTION[i]
+		l.font = font
 		l.font_size = font_size
 		l.pixel_size = pixel
 		l.shaded = false
@@ -324,8 +326,10 @@ func _build_control(parent: Node3D, i: int) -> void:
 	var label := Label3D.new()
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.pixel_size = 0.0028
+	label.font = Style.font()
 	label.font_size = 64
-	label.outline_size = 12
+	label.outline_size = 3
+	label.outline_modulate = Style.INK
 	label.position = Vector3(0.0, 0.55, 0.0)
 	label.no_depth_test = true
 	root.add_child(label)
@@ -361,28 +365,18 @@ func _std_mat(color: Color, emit: float, rough: float, metal: float) -> Standard
 # --- HUD ---------------------------------------------------------------------------
 
 func _build_hud() -> void:
-	var title := make_title("Egypt Fractal")
-	title.add_theme_font_size_override("font_size", 30)
-	_hud_values = Label.new()
-	_hud_values.position = Vector2(20, 64)
-	_hud_values.add_theme_font_size_override("font_size", 24)
-	_hud_values.add_theme_constant_override("outline_size", 8)
-	_hud_values.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	add_child(_hud_values)
-	_hud_hint = Label.new()
-	_hud_hint.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_hud_hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_hud_hint.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_hud_hint.offset_top = -250
-	_hud_hint.add_theme_font_size_override("font_size", 26)
-	_hud_hint.add_theme_constant_override("outline_size", 8)
-	_hud_hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	add_child(_hud_hint)
+	var hud := preload("res://ui/puzzle_hud.gd").new()
+	add_child(hud)
+	hud.setup("01", "Egypt Fractal", "Bring the three crystals into alignment.")
+	_hud_values = hud.values
+	_hud = hud
 
 
 # --- loop --------------------------------------------------------------------------
 
 func _process(delta: float) -> void:
+	if Sound.settings_open:
+		return
 	_time += delta
 	var steer := Input.get_axis("move_left", "move_right")   # +1 = right
 	if _grabbed >= 0:
@@ -421,6 +415,11 @@ func _update_focus() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if Sound.settings_open:
+		return
+	if PlaytestSkip.try_activate(self, event):
+		get_viewport().set_input_as_handled()
+		return
 	super(event)
 	if not event.is_action_pressed("interact"):
 		return
@@ -428,8 +427,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _solved:
 		finish({"won": true})
 	elif _grabbed >= 0:
+		Sound.play("confirm", self)
 		_grabbed = -1
 	elif _focus >= 0:
+		Sound.play("dial_grab", self)
 		if _controls[_focus].id == "reset":
 			_reset()
 		else:
@@ -453,6 +454,7 @@ func _pyramid_data() -> Array:
 
 ## Solved: glowing ribbons stretch between the three pyramid tips, one pair after another.
 func _celebrate() -> void:
+	Sound.play("victory", self)
 	var ribbons := NewtonTrophy.new()
 	ribbons.setup(_pyramid_data(), false)
 	_model.get_parent().add_child(ribbons)
@@ -550,7 +552,7 @@ func _refresh_visuals() -> void:
 			(c.roller as Node3D).rotation.x = -t * TAU * ROLLER_TURNS
 		else:
 			label.text = c.label
-		label.modulate = Color(1, 0.85, 0.4) if lit else Color(1, 1, 1, 0.75)
+		label.modulate = Style.GOLD if lit else Color(Style.PAPER, .78)
 
 	for st in _pyramids:
 		var m: StandardMaterial3D = st.ring
@@ -585,13 +587,13 @@ func _refresh_visuals() -> void:
 		p.x, "+" if p.y >= 0.0 else "−", absf(p.y), _value("a"), _value("rot")] \
 		+ "\nCrystals lit: %d/3" % settled
 	if _solved:
-		_hud_hint.text = "Aligned!   A or B to continue"
+		_hud.set_hint("Aligned!   {continue} to continue")
 	elif _all_lit():
-		_hud_hint.text = "Almost… hold still" if not _moving else "That's it! Let go and hold still"
+		_hud.set_hint("Almost… hold still" if not _moving else "That's it! Let go and hold still")
 	elif _grabbed >= 0:
-		_hud_hint.text = "◀ ▶ turn %s     A release" % _controls[_grabbed].label
+		_hud.set_hint("◀ ▶ turn %s     {interact} release" % _controls[_grabbed].label)
 	elif _focus >= 0:
-		_hud_hint.text = "A %s %s" % ["press" if _controls[_focus].id == "reset" else "grab",
-			_controls[_focus].label]
+		_hud.set_hint("{interact} %s %s" % ["press" if _controls[_focus].id == "reset" else "grab",
+			_controls[_focus].label])
 	else:
-		_hud_hint.text = "◀ ▶ walk round the table"
+		_hud.set_hint("◀ ▶ walk round the table")

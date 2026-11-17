@@ -1,6 +1,7 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scenes/room/room.gd" id="1"]
+[ext_resource type="Script" path="res://scenes/room/brothers_station.gd" id="s_cards_station"]
 [ext_resource type="PackedScene" path="res://scenes/room/player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/room/npc.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/room/prop.tscn" id="4"]
@@ -84,7 +85,7 @@ label_height = 2.4
 [node name="Challenge1" parent="." instance=ExtResource("4")]
 transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, -3.6, 0.0, 3.6)
 prompt = "Examine"
-label_text = "Challenge 1"
+label_text = "Workshop · coming soon"
 color = Color(1, 0.55, 0.2, 1)
 shape = 1
 
@@ -101,7 +102,7 @@ model = ExtResource("m_engineer")
 [node name="Challenge2" parent="." instance=ExtResource("4")]
 transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, 0.0, 0.0, 3.6)
 prompt = "Examine"
-label_text = "Challenge 2"
+label_text = "Calendar · coming soon"
 color = Color(0.4, 1, 0.5, 1)
 shape = 2
 
@@ -113,17 +114,30 @@ lines_repeat = Array[String](["Let's delve into some matrix multiplication."])
 model = ExtResource("m_metric_a")
 
 [node name="Challenge3" parent="." instance=ExtResource("4")]
+script = ExtResource("s_cards_station")
 transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, 3.6, 0.0, 3.6)
-prompt = "Examine"
-label_text = "Challenge 3"
+prompt = "Play cards"
+minigame_id = "cards"
+label_text = "Challenge 3 — Cards"
+retain_marker_on_win = true
 color = Color(1, 0.9, 0.4, 1)
 
 [node name="Augmented" parent="." instance=ExtResource("3")]
 transform = Transform3D(-0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, -0.94386, 2.6, 0.0, 3.6)
-npc_name = "Posthuman"
-lines = Array[String](["Hello, unmodified human. Yes, the arm is real. Mostly. Hold on, I'm still updating."])
-lines_repeat = Array[String](["Update {n} of 3,005. Please don't touch anything."])
-repeat_counter_start = 3004
+npc_name = "Little Brother"
+lines = Array[String](["A challenger! Sit down. Three lanes, a handful of creatures, and absolutely no chance you'll beat me.", "Fine. I'll explain the rules first. My older brother says I have to."])
+lines_repeat = Array[String](["Back for another practice victory? The table is ready."])
+minigame_id = "cards"
+model = ExtResource("m_augmented")
+
+[node name="OlderBrother" parent="." instance=ExtResource("3")]
+position = Vector3(8.85, 0, 11.8)
+rotation = Vector3(0, 3.141593, 0)
+scale = Vector3(1.08, 1.08, 1.08)
+npc_name = "Older Brother"
+lines = Array[String](["My brother taught you to play a card. I'll teach you to watch the whole table. Four lanes. Take this deck and sit down."])
+lines_repeat = Array[String](["Watch where my Sentinel moves. There is always a space it leaves behind."])
+minigame_id = "cards_older"
 model = ExtResource("m_augmented")
 
 [node name="Challenge4" parent="." instance=ExtResource("4")]
@@ -167,7 +181,7 @@ label_height = 2.25
 [node name="Challenge6" parent="." instance=ExtResource("4")]
 transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, 3.6, 0.0, -3.6)
 prompt = "Examine"
-label_text = "Challenge 6"
+label_text = "Observatory · coming soon"
 color = Color(1, 0.45, 0.7, 1)
 
 [node name="Mayan" parent="." instance=ExtResource("3")]

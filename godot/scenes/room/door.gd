@@ -18,6 +18,7 @@ extends Interactable
 @onready var _leaf_r: Node3D = $LeafR
 @onready var _gap: Node3D = $Gap
 
+const Sign := preload("res://ui/world_sign.gd")
 const LEAF_X := 0.72     # closed offset of each leaf from centre
 const LEAF_SLIDE := 1.4  # how far each leaf slides when open
 const SWING_DEGREES := 100.0
@@ -28,7 +29,8 @@ var _slide: Tween
 func _ready() -> void:
 	super()
 	prompt = "Open"
-	_label.text = door_label
+	_label.visible = false
+	Sign.plaque(self, door_label, "REFRACTION HALL", Vector3(0, 4.25, .42), Vector2(3.1, .64), accent)
 	_light.light_color = accent
 	var glow := StandardMaterial3D.new()
 	glow.albedo_color = accent

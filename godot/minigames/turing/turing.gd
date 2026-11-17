@@ -116,7 +116,7 @@ var _held: Variant = null      ## the piece being carried, or null
 var _cursor: MeshInstance3D
 var _cursor_mat: StandardMaterial3D
 var _hud_values: Label
-var _hud_hint: Label
+var _hud: Control
 var _viz_mode := 1               ## index into VIZ_NAMES; also the shader's viz_mode
 var _solved := false
 var _task_id := -1             ## worker-thread solver job, or -1
@@ -321,8 +321,10 @@ func _build_control(parent: Node3D, i: int) -> void:
 	var label := Label3D.new()
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.pixel_size = 0.0028
+	label.font = Style.font()
 	label.font_size = 64
-	label.outline_size = 12
+	label.outline_size = 3
+	label.outline_modulate = Style.INK
 	label.position = Vector3(0.0, 0.6 if c.kind != "tray" else 0.8, 0.0)
 	label.no_depth_test = true
 	root.add_child(label)
@@ -377,7 +379,7 @@ func _build_point_markers(parent: Node3D) -> void:
 ## table, and it reads clockwise seen from above (left to right for a player on the rim).
 func _build_inscription(parent: Node3D) -> void:
 	var font_size := 48
-	var font := ThemeDB.fallback_font
+	var font := Style.font(true)
 	var widths := []
 	var total := 0.0
 	for i in INSCRIPTION.length():
@@ -392,6 +394,7 @@ func _build_inscription(parent: Node3D) -> void:
 			continue
 		var l := Label3D.new()
 		l.text = INSCRIPTION[i]
+		l.font = font
 		l.font_size = font_size
 		l.pixel_size = INSCRIPTION_PIXEL
 		l.shaded = false
@@ -455,28 +458,18 @@ func _make_piece_node(kind: int) -> Node3D:
 # --- HUD ---------------------------------------------------------------------------
 
 func _build_hud() -> void:
-	var title := make_title("Roman Flow")
-	title.add_theme_font_size_override("font_size", 30)
-	_hud_values = Label.new()
-	_hud_values.position = Vector2(20, 64)
-	_hud_values.add_theme_font_size_override("font_size", 24)
-	_hud_values.add_theme_constant_override("outline_size", 8)
-	_hud_values.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	add_child(_hud_values)
-	_hud_hint = Label.new()
-	_hud_hint.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_hud_hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_hud_hint.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_hud_hint.offset_top = -250
-	_hud_hint.add_theme_font_size_override("font_size", 26)
-	_hud_hint.add_theme_constant_override("outline_size", 8)
-	_hud_hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	add_child(_hud_hint)
+	var hud := preload("res://ui/puzzle_hud.gd").new()
+	add_child(hud)
+	hud.setup("02", "Roman Flow", "Connect the three routes through the living pattern.")
+	_hud_values = hud.values
+	_hud = hud
 
 
 # --- loop --------------------------------------------------------------------------
 
 func _process(delta: float) -> void:
+	if Sound.settings_open:
+		return
 	_time += delta
 	_run_reset_flag()
 	var steer := Input.get_axis("move_left", "move_right")   # +1 = right
@@ -573,6 +566,8 @@ func _available(kind: int) -> int:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if Sound.settings_open:
+		return
 	super(event)
 	if not event.is_action_pressed("interact"):
 		return
@@ -592,6 +587,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _use_control(i: int) -> void:
+	Sound.play("confirm", self)
 	var c: Dictionary = _controls[i]
 	match c.kind:
 		"roller":
@@ -621,6 +617,7 @@ func _place_node(pc: Dictionary) -> void:
 
 
 func _pick_up(pc: Dictionary) -> void:
+	Sound.play("pickup", self)
 	pc.placed = false
 	_held = pc
 	_push_pins()
@@ -634,6 +631,7 @@ func _put_down() -> void:
 		(pc.node as Node3D).queue_free()
 		_held = null
 	elif not _blocked():
+		Sound.play("place", self)
 		pc.pos = _cursor_pos()
 		pc.placed = true
 		_place_node(pc)
@@ -733,6 +731,7 @@ func _win() -> void:
 ## Solved: a Roman aqueduct rises along the winning teal path (bay by bay), then the water runs through it.
 ## The route also goes into the result, so the room can show the aqueduct after you leave (RomanAqueduct).
 func _celebrate() -> void:
+	Sound.play("victory", self)
 	_route = RomanAqueduct.route_from_cells(_route_cells, _solve_n, TABLE_R)
 	var aq := RomanAqueduct.new()
 	aq.setup(_route)
@@ -844,7 +843,7 @@ func _refresh_visuals() -> void:
 					(c.stack[s] as Node3D).visible = s < left
 			_:
 				label.text = c.label
-		label.modulate = Color(1, 0.85, 0.4) if lit else Color(1, 1, 1, 0.75)
+		label.modulate = Style.GOLD if lit else Color(Style.PAPER, .78)
 
 	# reach marker
 	var cp := _cursor_pos()
@@ -869,27 +868,27 @@ func _refresh_visuals() -> void:
 	for pm in _point_rings:
 		pm.emission_energy_multiplier = (2.2 + 1.2 * sin(_time * 5.0)) if _solved else (2.0 if all_ok else 1.4)
 	if _solved:
-		_hud_hint.text = "Connected!   A or B to continue"
+		_hud.set_hint("Connected!   {continue} to continue")
 	elif all_ok:
-		_hud_hint.text = "Connected… hold it   %.1f s" % maxf(HOLD_TO_WIN - (_time - _conn_since), 0.0)
+		_hud.set_hint("Connected… hold it   %.1f s" % maxf(HOLD_TO_WIN - (_time - _conn_since), 0.0))
 	elif _grabbed >= 0:
-		_hud_hint.text = "◀ ▶ turn %s     A release" % _controls[_grabbed].label
+		_hud.set_hint("◀ ▶ turn %s     {interact} release" % _controls[_grabbed].label)
 	elif _held != null:
 		if _off_table():
-			_hud_hint.text = "A return to tray     ◀ ▶ walk   ▲ ▼ reach"
+			_hud.set_hint("{interact} return to tray     ◀ ▶ walk   ▲ ▼ reach")
 		elif _blocked():
-			_hud_hint.text = "Too close to another cylinder     ◀ ▶ walk   ▲ ▼ reach"
+			_hud.set_hint("Too close to another cylinder     ◀ ▶ walk   ▲ ▼ reach")
 		else:
-			_hud_hint.text = "A put down     ◀ ▶ walk   ▲ ▼ reach"
+			_hud.set_hint("{interact} put down     ◀ ▶ walk   ▲ ▼ reach")
 	elif _cursor_visible() and _nearest_placed() != null:
-		_hud_hint.text = "A pick up"
+		_hud.set_hint("{interact} pick up")
 	elif _focus >= 0:
 		var c: Dictionary = _controls[_focus]
 		match c.kind:
-			"roller": _hud_hint.text = "A grab %s" % c.label
-			"button": _hud_hint.text = ("A change visualization (now: %s)" % VIZ_NAMES[_viz_mode]) if c.id == "viz" \
-				else "A press: restart the pattern and put everything back"
-			_: _hud_hint.text = "A take a %s cylinder" % COLOR_NAMES[c.color] if _available(c.color) > 0 \
-				else "The %s tray is empty" % COLOR_NAMES[c.color]
+			"roller": _hud.set_hint("{interact} grab %s" % c.label)
+			"button": _hud.set_hint(("{interact} change visualization (now: %s)" % VIZ_NAMES[_viz_mode]) if c.id == "viz" \
+				else "{interact} press: restart the pattern and put everything back")
+			_: _hud.set_hint("{interact} take a %s cylinder" % COLOR_NAMES[c.color] if _available(c.color) > 0 \
+				else "The %s tray is empty" % COLOR_NAMES[c.color])
 	else:
-		_hud_hint.text = "◀ ▶ walk round the table     ▲ ▼ move the reach marker"
+		_hud.set_hint("◀ ▶ walk round the table     ▲ ▼ move the reach marker")

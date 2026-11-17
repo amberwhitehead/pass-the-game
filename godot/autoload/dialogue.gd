@@ -20,40 +20,17 @@ var _tween: Tween
 func _ready() -> void:
 	layer = 50
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_panel = PanelContainer.new()
-	_panel.anchor_left = 0.05
-	_panel.anchor_right = 0.95
-	_panel.anchor_top = 0.08
-	_panel.anchor_bottom = 0.08
+	_panel = preload("res://ui/conversation_sheet.gd").new()
+	_panel.anchor_left = .12
+	_panel.anchor_right = .88
+	_panel.anchor_top = .07
+	_panel.anchor_bottom = .07
 	_panel.grow_vertical = Control.GROW_DIRECTION_END
 	_panel.visible = false
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.05, 0.04, 0.1, 0.9)
-	style.set_corner_radius_all(14)
-	style.set_content_margin_all(16)
-	style.border_color = Color(0.6, 0.5, 1.0)
-	style.set_border_width_all(2)
-	_panel.add_theme_stylebox_override("panel", style)
 	add_child(_panel)
-
-	var vb := VBoxContainer.new()
-	_panel.add_child(vb)
-	_name = Label.new()
-	_name.add_theme_color_override("font_color", Color(0.8, 0.7, 1.0))
-	_name.add_theme_font_size_override("font_size", 26)
-	vb.add_child(_name)
-	_text = RichTextLabel.new()
-	_text.bbcode_enabled = true
-	_text.fit_content = true
-	_text.custom_minimum_size.y = 70
-	_text.scroll_active = false
-	_text.add_theme_font_size_override("normal_font_size", 28)
-	vb.add_child(_text)
-	_hint = Label.new()
-	_hint.text = "A ▸"
-	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_hint.modulate = Color(1, 1, 1, 0.6)
-	vb.add_child(_hint)
+	_name = _panel.speaker
+	_text = _panel.copy
+	_hint = _panel.hint
 
 
 func say(speaker: String, lines: Array) -> void:
@@ -64,6 +41,7 @@ func say(speaker: String, lines: Array) -> void:
 	_index = 0
 	_name.text = speaker
 	_panel.visible = true
+	_panel.arrive()
 	_show_line()
 	await finished
 
@@ -78,7 +56,7 @@ func _show_line() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not active:
+	if not active or Sound.settings_open:
 		return
 	var advance := event.is_action_pressed("interact")
 	# Tapping the dialogue panel itself also advances.

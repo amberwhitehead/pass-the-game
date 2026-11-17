@@ -1,0 +1,970 @@
+{
+  "version": 1,
+  "cues": {
+    "step": {
+      "files": [
+        "impact/footstep_concrete_000",
+        "impact/footstep_concrete_001",
+        "impact/footstep_concrete_002",
+        "impact/footstep_concrete_003",
+        "impact/footstep_concrete_004"
+      ],
+      "db": -12.0,
+      "pitch": 0.055,
+      "gap": 140,
+      "label": "Footsteps",
+      "group": "Hall",
+      "description": "Alternating steps while walking. Keep these soft enough to repeat.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Footstep Concrete 000 + Footstep Concrete 001 + Footstep Concrete 002 + Footstep Concrete 003 + Footstep Concrete 004",
+          "files": [
+            "impact/footstep_concrete_000",
+            "impact/footstep_concrete_001",
+            "impact/footstep_concrete_002",
+            "impact/footstep_concrete_003",
+            "impact/footstep_concrete_004"
+          ]
+        },
+        {
+          "label": "Footstep Wood 000 + Footstep Wood 001",
+          "files": [
+            "impact/footstep_wood_000",
+            "impact/footstep_wood_001"
+          ]
+        }
+      ]
+    },
+    "pickup": {
+      "files": [
+        "impact/impactGlass_light_000",
+        "impact/impactGlass_light_001"
+      ],
+      "db": -10.0,
+      "pitch": 0.04,
+      "gap": 90,
+      "label": "Lift glass or prism",
+      "group": "Optics",
+      "description": "Picking up a lens or prism: a light glass contact.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Impact Glass Light 000 + Impact Glass Light 001",
+          "files": [
+            "impact/impactGlass_light_000",
+            "impact/impactGlass_light_001"
+          ]
+        },
+        {
+          "label": "Glass 001",
+          "files": [
+            "interface/glass_001"
+          ]
+        },
+        {
+          "label": "Glass 005",
+          "files": [
+            "interface/glass_005"
+          ]
+        }
+      ]
+    },
+    "place": {
+      "files": [
+        "rpg/metalLatch"
+      ],
+      "db": -12.0,
+      "pitch": 0.03,
+      "gap": 120,
+      "label": "Seat an item",
+      "group": "Optics",
+      "description": "A prism or lens settles into its socket.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Metal Latch",
+          "files": [
+            "rpg/metalLatch"
+          ]
+        },
+        {
+          "label": "Chips Stack 1",
+          "files": [
+            "casino/chips-stack-1"
+          ]
+        },
+        {
+          "label": "Metal Click",
+          "files": [
+            "rpg/metalClick"
+          ]
+        }
+      ]
+    },
+    "dial_grab": {
+      "files": [
+        "interface/switch_001"
+      ],
+      "db": -13.0,
+      "pitch": 0.025,
+      "gap": 90,
+      "label": "Grab handwheel",
+      "group": "Optics",
+      "description": "Begin rotating a mounted prism.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Switch 001",
+          "files": [
+            "interface/switch_001"
+          ]
+        },
+        {
+          "label": "Metal Click",
+          "files": [
+            "rpg/metalClick"
+          ]
+        },
+        {
+          "label": "Click 001",
+          "files": [
+            "interface/click_001"
+          ]
+        }
+      ]
+    },
+    "dial_turn": {
+      "files": [
+        "interface/tick_001",
+        "interface/tick_002"
+      ],
+      "db": -24.0,
+      "pitch": 0.07,
+      "gap": 100,
+      "label": "Turn handwheel",
+      "group": "Optics",
+      "description": "Small mechanical movement repeated as the wheel rotates.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Tick 001 + Tick 002",
+          "files": [
+            "interface/tick_001",
+            "interface/tick_002"
+          ]
+        },
+        {
+          "label": "Impact Metal Light 001",
+          "files": [
+            "impact/impactMetal_light_001"
+          ]
+        },
+        {
+          "label": "Metal Click",
+          "files": [
+            "rpg/metalClick"
+          ]
+        }
+      ]
+    },
+    "dial_snap": {
+      "files": [
+        "interface/switch_002",
+        "interface/switch_003"
+      ],
+      "db": -10.0,
+      "pitch": 0.025,
+      "gap": 100,
+      "label": "Aim snaps into place",
+      "group": "Optics",
+      "description": "A clear detent when the prism aligns to a target.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Switch 002 + Switch 003",
+          "files": [
+            "interface/switch_002",
+            "interface/switch_003"
+          ]
+        },
+        {
+          "label": "Metal Latch",
+          "files": [
+            "rpg/metalLatch"
+          ]
+        },
+        {
+          "label": "Click 001",
+          "files": [
+            "interface/click_001"
+          ]
+        }
+      ]
+    },
+    "lens_light": {
+      "files": [
+        "interface/glass_001"
+      ],
+      "db": -20.0,
+      "pitch": 0.02,
+      "gap": 250,
+      "label": "Beam changes color",
+      "group": "Optics",
+      "description": "Quiet feedback as the beam crosses a colored lens.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Glass 001",
+          "files": [
+            "interface/glass_001"
+          ]
+        },
+        {
+          "label": "Glass 004",
+          "files": [
+            "interface/glass_004"
+          ]
+        },
+        {
+          "label": "Impact Glass Light 001",
+          "files": [
+            "impact/impactGlass_light_001"
+          ]
+        }
+      ]
+    },
+    "receiver": {
+      "files": [
+        "interface/confirmation_002"
+      ],
+      "db": -13.0,
+      "pitch": 0.0,
+      "gap": 1000,
+      "label": "Door receiver accepts beam",
+      "group": "Optics",
+      "description": "The green beam reaches its target and opens the route.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Confirmation 002",
+          "files": [
+            "interface/confirmation_002"
+          ]
+        },
+        {
+          "label": "Impact Bell Heavy 000",
+          "files": [
+            "impact/impactBell_heavy_000"
+          ]
+        },
+        {
+          "label": "Confirmation 003",
+          "files": [
+            "interface/confirmation_003"
+          ]
+        }
+      ]
+    },
+    "door": {
+      "files": [
+        "scifi/doorOpen_000"
+      ],
+      "db": -9.0,
+      "pitch": 0.0,
+      "gap": 1000,
+      "label": "Door slides open",
+      "group": "Hall",
+      "description": "The Roman Flow doorway opens after solving the optical route.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Door Open 000",
+          "files": [
+            "scifi/doorOpen_000"
+          ]
+        },
+        {
+          "label": "Door Open 001",
+          "files": [
+            "scifi/doorOpen_001"
+          ]
+        },
+        {
+          "label": "Door Open 1",
+          "files": [
+            "rpg/doorOpen_1"
+          ]
+        }
+      ]
+    },
+    "reward_rise": {
+      "files": [
+        "rpg/creak2"
+      ],
+      "db": -9.0,
+      "pitch": 0.0,
+      "gap": 1000,
+      "label": "Reward pedestal rises",
+      "group": "Hall",
+      "description": "A low mechanical movement during the prism reward reveal.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Creak2",
+          "files": [
+            "rpg/creak2"
+          ]
+        },
+        {
+          "label": "Creak1",
+          "files": [
+            "rpg/creak1"
+          ]
+        },
+        {
+          "label": "Door Open 001",
+          "files": [
+            "scifi/doorOpen_001"
+          ]
+        }
+      ]
+    },
+    "discovery": {
+      "files": [
+        "interface/confirmation_002"
+      ],
+      "db": -11.0,
+      "pitch": 0.0,
+      "gap": 700,
+      "label": "Find a card",
+      "group": "Hall",
+      "description": "Collect an upgrade card from a hall display.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Confirmation 002",
+          "files": [
+            "interface/confirmation_002"
+          ]
+        },
+        {
+          "label": "Confirmation 001",
+          "files": [
+            "interface/confirmation_001"
+          ]
+        },
+        {
+          "label": "Impact Bell Heavy 002",
+          "files": [
+            "impact/impactBell_heavy_002"
+          ]
+        }
+      ]
+    },
+    "card_draw": {
+      "files": [
+        "casino/card-slide-1",
+        "casino/card-slide-2"
+      ],
+      "db": -7.0,
+      "pitch": 0.05,
+      "gap": 45,
+      "label": "Draw a card",
+      "group": "Cards",
+      "description": "One card slides into the player hand.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Card Slide 1 + Card Slide 2",
+          "files": [
+            "casino/card-slide-1",
+            "casino/card-slide-2"
+          ]
+        },
+        {
+          "label": "Card Slide 3 + Card Slide 4",
+          "files": [
+            "casino/card-slide-3",
+            "casino/card-slide-4"
+          ]
+        },
+        {
+          "label": "Book Flip2",
+          "files": [
+            "rpg/bookFlip2"
+          ]
+        }
+      ]
+    },
+    "card_place": {
+      "files": [
+        "casino/card-place-1",
+        "casino/card-place-2"
+      ],
+      "db": -4.0,
+      "pitch": 0.04,
+      "gap": 45,
+      "label": "Play a card",
+      "group": "Cards",
+      "description": "A card lands on the felt table.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Card Place 1 + Card Place 2",
+          "files": [
+            "casino/card-place-1",
+            "casino/card-place-2"
+          ]
+        },
+        {
+          "label": "Card Place 3 + Card Place 4",
+          "files": [
+            "casino/card-place-3",
+            "casino/card-place-4"
+          ]
+        },
+        {
+          "label": "Chip Lay 1",
+          "files": [
+            "casino/chip-lay-1"
+          ]
+        }
+      ]
+    },
+    "card_hand": {
+      "files": [
+        "casino/card-fan-1",
+        "casino/card-fan-2"
+      ],
+      "db": -12.0,
+      "pitch": 0.03,
+      "gap": 250,
+      "label": "Raise your hand",
+      "group": "Cards",
+      "description": "A short paper fan as the hand rises.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Card Fan 1 + Card Fan 2",
+          "files": [
+            "casino/card-fan-1",
+            "casino/card-fan-2"
+          ]
+        },
+        {
+          "label": "Card Shove 1 + Card Shove 2",
+          "files": [
+            "casino/card-shove-1",
+            "casino/card-shove-2"
+          ]
+        },
+        {
+          "label": "Cloth2",
+          "files": [
+            "rpg/cloth2"
+          ]
+        }
+      ]
+    },
+    "card_deal": {
+      "files": [
+        "casino/card-shuffle"
+      ],
+      "db": -14.0,
+      "pitch": 0.02,
+      "gap": 500,
+      "label": "Opening deal",
+      "group": "Cards",
+      "description": "The first hand is dealt at the start of a match.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Card Shuffle",
+          "files": [
+            "casino/card-shuffle"
+          ]
+        },
+        {
+          "label": "Card Fan 2",
+          "files": [
+            "casino/card-fan-2"
+          ]
+        },
+        {
+          "label": "Book Flip1",
+          "files": [
+            "rpg/bookFlip1"
+          ]
+        }
+      ]
+    },
+    "card_hit": {
+      "files": [
+        "impact/impactWood_light_000",
+        "impact/impactWood_light_001"
+      ],
+      "db": -10.0,
+      "pitch": 0.07,
+      "gap": 70,
+      "label": "Creature attack",
+      "group": "Cards",
+      "description": "A small wooden impact at contact with a blocking card.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Impact Wood Light 000 + Impact Wood Light 001",
+          "files": [
+            "impact/impactWood_light_000",
+            "impact/impactWood_light_001"
+          ]
+        },
+        {
+          "label": "Impact Wood Medium 000",
+          "files": [
+            "impact/impactWood_medium_000"
+          ]
+        },
+        {
+          "label": "Impact Soft Medium 000",
+          "files": [
+            "impact/impactSoft_medium_000"
+          ]
+        }
+      ]
+    },
+    "card_direct": {
+      "files": [
+        "impact/impactWood_heavy_000",
+        "impact/impactWood_heavy_001"
+      ],
+      "db": -9.0,
+      "pitch": 0.04,
+      "gap": 70,
+      "label": "Unblocked attack",
+      "group": "Cards",
+      "description": "A heavier impact when an attack pushes the score.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Impact Wood Heavy 000 + Impact Wood Heavy 001",
+          "files": [
+            "impact/impactWood_heavy_000",
+            "impact/impactWood_heavy_001"
+          ]
+        },
+        {
+          "label": "Impact Wood Medium 000",
+          "files": [
+            "impact/impactWood_medium_000"
+          ]
+        },
+        {
+          "label": "Book Close",
+          "files": [
+            "rpg/bookClose"
+          ]
+        }
+      ]
+    },
+    "card_death": {
+      "files": [
+        "casino/cards-pack-open-1"
+      ],
+      "db": -14.0,
+      "pitch": 0.06,
+      "gap": 70,
+      "label": "Card defeated",
+      "group": "Cards",
+      "description": "Paper movement as a defeated card leaves play.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Cards Pack Open 1",
+          "files": [
+            "casino/cards-pack-open-1"
+          ]
+        },
+        {
+          "label": "Cards Pack Open 2",
+          "files": [
+            "casino/cards-pack-open-2"
+          ]
+        },
+        {
+          "label": "Book Flip1",
+          "files": [
+            "rpg/bookFlip1"
+          ]
+        },
+        {
+          "label": "Cloth1",
+          "files": [
+            "rpg/cloth1"
+          ]
+        }
+      ]
+    },
+    "bolt": {
+      "files": [
+        "scifi/laserLarge_000"
+      ],
+      "db": -13.0,
+      "pitch": 0.04,
+      "gap": 100,
+      "label": "Damage spell",
+      "group": "Spells & results",
+      "description": "Bolt or Thunderbolt strikes a creature.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Laser Large 000",
+          "files": [
+            "scifi/laserLarge_000"
+          ]
+        },
+        {
+          "label": "Laser Small 000 + Laser Small 001",
+          "files": [
+            "scifi/laserSmall_000",
+            "scifi/laserSmall_001"
+          ]
+        },
+        {
+          "label": "Force Field 001",
+          "files": [
+            "scifi/forceField_001"
+          ]
+        }
+      ]
+    },
+    "heal": {
+      "files": [
+        "interface/maximize_005"
+      ],
+      "db": -16.0,
+      "pitch": 0.025,
+      "gap": 200,
+      "label": "Healing spell",
+      "group": "Spells & results",
+      "description": "Patch or Renewal restores health.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Maximize 005",
+          "files": [
+            "interface/maximize_005"
+          ]
+        },
+        {
+          "label": "Force Field 000",
+          "files": [
+            "scifi/forceField_000"
+          ]
+        },
+        {
+          "label": "Force Field 001",
+          "files": [
+            "scifi/forceField_001"
+          ]
+        },
+        {
+          "label": "Confirmation 003",
+          "files": [
+            "interface/confirmation_003"
+          ]
+        }
+      ]
+    },
+    "end_turn": {
+      "files": [
+        "impact/impactBell_heavy_002"
+      ],
+      "db": -14.0,
+      "pitch": 0.0,
+      "gap": 200,
+      "label": "Ring the turn bell",
+      "group": "Cards",
+      "description": "The brass bell commits the turn. A short, distinct ring.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Impact Bell Heavy 002",
+          "files": [
+            "impact/impactBell_heavy_002"
+          ]
+        },
+        {
+          "label": "Impact Bell Heavy 000",
+          "files": [
+            "impact/impactBell_heavy_000"
+          ]
+        },
+        {
+          "label": "Glass 004",
+          "files": [
+            "interface/glass_004"
+          ]
+        }
+      ]
+    },
+    "intent": {
+      "files": [
+        "impact/impactSoft_heavy_000"
+      ],
+      "db": -22.0,
+      "pitch": 0.0,
+      "gap": 500,
+      "label": "Opponent lane glow",
+      "group": "Cards",
+      "description": "A restrained sound introducing the next enemy lane.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Impact Soft Heavy 000",
+          "files": [
+            "impact/impactSoft_heavy_000"
+          ]
+        },
+        {
+          "label": "Chip Lay 1",
+          "files": [
+            "casino/chip-lay-1"
+          ]
+        },
+        {
+          "label": "Tick 002",
+          "files": [
+            "interface/tick_002"
+          ]
+        }
+      ]
+    },
+    "transition": {
+      "files": [
+        "rpg/knifeSlice2"
+      ],
+      "db": -16.0,
+      "pitch": 0.0,
+      "gap": 500,
+      "label": "Approach the table",
+      "group": "Cards",
+      "description": "A short air movement accompanying the table entrance.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Knife Slice2",
+          "files": [
+            "rpg/knifeSlice2"
+          ]
+        },
+        {
+          "label": "Knife Slice",
+          "files": [
+            "rpg/knifeSlice"
+          ]
+        },
+        {
+          "label": "Force Field 002",
+          "files": [
+            "scifi/forceField_002"
+          ]
+        },
+        {
+          "label": "Maximize 004",
+          "files": [
+            "interface/maximize_004"
+          ]
+        }
+      ]
+    },
+    "victory": {
+      "files": [
+        "interface/confirmation_002"
+      ],
+      "db": -10.0,
+      "pitch": 0.0,
+      "gap": 700,
+      "label": "Win a match",
+      "group": "Spells & results",
+      "description": "A small celebratory flourish at victory.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Confirmation 002",
+          "files": [
+            "interface/confirmation_002"
+          ]
+        },
+        {
+          "label": "Confirmation 003",
+          "files": [
+            "interface/confirmation_003"
+          ]
+        },
+        {
+          "label": "Impact Bell Heavy 000",
+          "files": [
+            "impact/impactBell_heavy_000"
+          ]
+        }
+      ]
+    },
+    "defeat": {
+      "files": [
+        "interface/minimize_005"
+      ],
+      "db": -13.0,
+      "pitch": 0.0,
+      "gap": 700,
+      "label": "Lose a match",
+      "group": "Spells & results",
+      "description": "A gentle negative cue, not an alarm.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Minimize 005",
+          "files": [
+            "interface/minimize_005"
+          ]
+        },
+        {
+          "label": "Error 004",
+          "files": [
+            "interface/error_004"
+          ]
+        },
+        {
+          "label": "Impact Soft Heavy 000",
+          "files": [
+            "impact/impactSoft_heavy_000"
+          ]
+        }
+      ]
+    },
+    "confirm": {
+      "files": [
+        "interface/click_001"
+      ],
+      "db": -15.0,
+      "pitch": 0.025,
+      "gap": 90,
+      "label": "Confirm or choose",
+      "group": "Interface",
+      "description": "Small positive button feedback.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Click 001",
+          "files": [
+            "interface/click_001"
+          ]
+        },
+        {
+          "label": "Click 002",
+          "files": [
+            "interface/click_002"
+          ]
+        },
+        {
+          "label": "Metal Click",
+          "files": [
+            "rpg/metalClick"
+          ]
+        }
+      ]
+    },
+    "unavailable": {
+      "files": [
+        "interface/error_001"
+      ],
+      "db": -18.0,
+      "pitch": 0.0,
+      "gap": 220,
+      "label": "Action unavailable",
+      "group": "Interface",
+      "description": "A restrained click for an action that cannot happen.",
+      "loop": false,
+      "review": false,
+      "options": [
+        {
+          "label": "Error 001",
+          "files": [
+            "interface/error_001"
+          ]
+        },
+        {
+          "label": "Error 004",
+          "files": [
+            "interface/error_004"
+          ]
+        },
+        {
+          "label": "Click 003",
+          "files": [
+            "interface/click_003"
+          ]
+        }
+      ]
+    },
+    "server_hum": {
+      "label": "Server room ambience",
+      "group": "Hall",
+      "description": "A quiet loop under exploration; ducks during card matches. Preview loops until stopped.",
+      "files": [
+        "scifi/spaceEngineSmall_001-loop"
+      ],
+      "db": -22.0,
+      "pitch": 0.0,
+      "gap": 0,
+      "loop": true,
+      "review": true,
+      "options": [
+        {
+          "label": "Small engine 001 loop",
+          "files": [
+            "scifi/spaceEngineSmall_001-loop"
+          ]
+        },
+        {
+          "label": "Circular engine 000 loop",
+          "files": [
+            "scifi/engineCircular_000-loop"
+          ]
+        },
+        {
+          "label": "Low engine 000 loop",
+          "files": [
+            "scifi/spaceEngineLow_000-loop"
+          ]
+        }
+      ]
+    }
+  }
+}

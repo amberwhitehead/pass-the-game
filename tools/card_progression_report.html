@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Card Table · Discovery Curve</title>
+<style>
+:root{color-scheme:dark;--ink:#f2ead8;--muted:#aabbb7;--gold:#d9b77a;--line:#355054}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#243b3b,transparent 60%),#101e21;color:var(--ink);font:14px/1.6 system-ui,sans-serif}main{max-width:1440px;padding:44px 36px 70px;margin:auto}h1,h2{font-family:Georgia,serif;font-weight:400;line-height:1.2}h1{font-size:44px;margin:8px 0 14px}h2{font-size:27px;margin:38px 0 12px}.eyebrow{font-size:11px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}p{color:var(--muted);max-width:1050px;margin:0 0 18px}a{color:var(--gold);text-underline-offset:3px}.meta{font-size:11px;color:var(--muted);margin:16px 0}.nav{display:flex;gap:24px;flex-wrap:wrap}.chart{border:1px solid var(--line);border-radius:12px;padding:18px 22px;background:#17292c;margin-top:24px}.chart svg{width:100%;max-height:420px;display:block}.chart text{font:12px system-ui;fill:var(--muted)}.grid{stroke:#355054;stroke-width:1}.legend{display:flex;gap:24px;flex-wrap:wrap;margin:8px 20px}.legend span{color:var(--accent)}.legend span::before{content:'●';margin-right:8px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:9px}table{border-collapse:collapse;width:100%;font-size:12px;background:#17292c;white-space:nowrap}td,th{text-align:left;padding:13px 15px;border-bottom:1px solid #2a4346}th{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:#1e3336}tr:last-child td{border-bottom:0}small{display:block;font-size:10px;color:var(--muted);margin-top:3px}b{font-size:16px;color:var(--gold);font-weight:500}.note{margin-top:30px;padding:24px;border:1px solid var(--line);border-radius:10px;background:#142529}.note h2{margin:0 0 14px}.note ul{color:var(--muted);padding-left:20px;margin:0;columns:2;column-gap:40px}.note li{break-inside:avoid;margin-bottom:12px}@media(max-width:800px){main{padding:25px 16px}h1{font-size:34px}.note ul{columns:1}.chart{padding:10px 5px}.legend{gap:12px}}
+</style>
+<main>
+<div class="eyebrow">Pass the Game / Deck progression study</div>
+<h1>Five discoveries. One difficulty curve.</h1>
+<p>The opponent stays the same. Each found card adds an option to the player's deck. This study checks every card combination, including discoveries found in an unexpected order.</p>
+<nav class="nav"><a href="report.html">Full balance lab</a><a href="progression-summary.json" download>Progression data</a><a href="results.json" download>Raw matches</a></nav>
+<div class="meta">__METADATA__</div>
+<div class="chart">__CHART__<div class="legend">__LEGEND__</div></div>
+<p style="margin-top:14px">Win rates average equally over the tested card sets at each count. Whiskers show 95% seed-cluster bootstrap intervals: all card-set outcomes from one seed move together. Zero means the base deck; five means every discovery.</p>
+
+<h2>Does each discovery help?</h2>
+<p>Coverage should be 1, 5, 10, 10, 5, and 1 card sets for counts zero through five. Averages use common resolved seeds across the tested sets; missing coverage is flagged. The range exposes good and bad discovery orders that an average can hide.</p>
+<div class="table-wrap"><table><thead><tr><th>Policy</th><th>Found</th><th>Win rate · 95% interval</th><th>Median rounds</th><th>Observed set range</th><th>Weakest observed set</th><th>Coverage</th></tr></thead><tbody>__GROUPS__</tbody></table></div>
+
+<h2>Every one-card upgrade, paired</h2>
+<p>There are 80 possible one-card additions across the five-card collection. For each policy, the same seed is compared before and after each addition. A gained win was a loss before; a lost win was a win before. The same match participates in several edges, so these totals are not unique matches.</p>
+<div class="table-wrap"><table><thead><tr><th>Policy</th><th>Edges tested</th><th>Gained wins</th><th>Lost wins</th><th>Edges with negative observed delta</th></tr></thead><tbody>__TOTALS__</tbody></table></div>
+
+<h2>The weakest marginal changes</h2>
+<p>These twelve additions have the lowest observed win-rate change. Their intervals use paired seed differences. They are diagnostic candidates, not claims of statistical significance; selecting the worst of many comparisons itself adds uncertainty.</p>
+<div class="table-wrap"><table><thead><tr><th>Policy</th><th>Before</th><th>Added card</th><th>Win change · paired 95% interval</th><th>Gained / lost wins</th><th>Resolved seed pairs</th></tr></thead><tbody>__EDGES__</tbody></table></div>
+
+<section class="note"><h2>What this curve can tell us</h2><ul>
+<li>These are heuristic bots, not estimated human win rates. Compare several policies and use human playtests to choose the desired difficulty targets.</li>
+<li>Card-set averages assume every tested set at that count is equally likely. Actual exploration order can be very different; inspect the weakest sets as well as the curve.</li>
+<li>Per-set uncertainty uses Wilson intervals. Count-level uncertainty resamples seeds in clusters so repeated outcomes across card sets are not mistaken for independent trials.</li>
+<li>Identical outcomes can produce a zero-width bootstrap interval. This does not establish a zero effect or guarantee wins outside the tested seeds.</li>
+<li>Timeouts are unresolved, not losses. A seed with a timeout in any tested set is excluded from that count's paired curve estimate; all timeout counts remain visible.</li>
+<li>Pacing is the median across resolved matches. Each marginal comparison changes only the collected set; opponent rules and tuning must remain constant throughout the study.</li>
+</ul></section>
+</main></html>

@@ -2,11 +2,22 @@ extends Node
 ## Global game state + input map registration.
 ## Actions are registered in code so the on-screen buttons, keyboard and
 ## (later) gamepad all drive the same names.
+const DeckProgression := preload("res://minigames/cards/deck_progression.gd")
 
 signal flag_changed(flag: String, value: Variant)
+signal card_collected(id: String)
 
 var flags: Dictionary = {}
 var completed_minigames: Dictionary = {}  # id -> best result Dictionary
+var collected_cards: Array[String] = []  # Session discoveries; independent of carried puzzle items.
+
+
+func collect_card(id: String) -> bool:
+	if id not in DeckProgression.COLLECTIBLES or id in collected_cards:
+		return false
+	collected_cards.append(id)
+	card_collected.emit(id)
+	return true
 
 
 func _ready() -> void:
@@ -14,6 +25,9 @@ func _ready() -> void:
 	# system fonts to fall back on), so ship DejaVu Sans as the default and the fallback.
 	ThemeDB.fallback_font = load("res://assets/fonts/DejaVuSans.ttf")
 	_register_actions()
+	# Background browser QA can mute this run without changing normal playtests.
+	if OS.has_feature("web") and bool(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('muted') === '1'")):
+		AudioServer.set_bus_mute(0, true)
 
 
 func set_flag(flag: String, value: Variant = true) -> void:

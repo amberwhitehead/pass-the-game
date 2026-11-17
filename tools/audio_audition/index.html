@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sound check · Refraction Hall</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header class="masthead">
+      <div><p class="eyebrow">REFRACTION HALL / AUDIO WORKSHOP</p>
+        <h1>Sound check<span aria-hidden="true"> ◇</span></h1>
+        <p class="intro">Pick a sound for each moment. Listen, leave a note, then export your choices.</p>
+      </div>
+      <a class="game-link" href="../">Return to the game ↗</a>
+    </header>
+    <section class="workbench" aria-label="Audition controls">
+      <div class="toolbar">
+        <label class="search-label">Find a moment<input id="search" type="search" placeholder="Cards, glass, footsteps…"></label>
+        <label>Show<select id="filter"><option value="all">All targets</option><option value="review">Needs a listen</option><option value="changed">My changes</option></select></label>
+        <label class="volume-label">Preview volume <output id="volume-value">75%</output><input id="volume" aria-label="Preview volume" type="range" min="0" max="100" value="75"></label>
+      </div>
+      <div class="action-row">
+        <p id="summary">Loading the sound library…</p>
+        <div class="actions"><button id="reset" class="quiet" disabled>Reset choices</button><button id="export" class="primary" disabled>Export choices ↓</button></div>
+      </div>
+      <p class="helper">Choices save in this browser. Export a JSON file and send it back to apply them to the game. Preview volume does not change your exported levels.</p>
+    </section>
+    <p id="error" class="error" role="alert" hidden></p>
+    <p id="empty" hidden>No targets match. Try another search or filter.</p>
+    <div id="groups"></div>
+    <details class="export-panel" id="export-panel">
+      <summary>View or copy the choices</summary>
+      <p>If a download is awkward, copy this JSON and send it back.</p>
+      <button id="copy" disabled>Copy JSON</button>
+      <textarea id="json" aria-label="Exported audio choices JSON" readonly spellcheck="false"></textarea>
+    </details>
+    <footer class="credits"><p>All audition clips are CC0. Source packs: <span id="sources"></span>.</p><p>The previews use each cue’s level. Distance, layering, and the game’s mixer can change the final feel.</p></footer>
+  </main>
+  <aside class="transport" aria-label="Preview playback">
+    <span id="playing-dot" class="playing-dot" aria-hidden="true"></span>
+    <div><strong id="playing-title">Ready to listen</strong><p id="playing-detail">Nothing plays until you press Play.</p></div>
+    <button id="stop" disabled>Stop</button>
+  </aside>
+  <p id="announcement" class="sr-only" aria-live="polite"></p>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

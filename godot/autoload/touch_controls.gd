@@ -21,11 +21,15 @@ var _btn: Dictionary = {}   # action -> TouchButton
 var _enabled := true   # scene-level switch (story/mini-games hide the pad)
 var _awake := true     # fades out while keyboard/gamepad is in use, back on touch
 var _fade: Tween
+## Carries the current keyboard-vs-button prompt choice across scene changes.
+var button_prompts := false
 
 
 func _ready() -> void:
 	layer = 100
 	process_mode = Node.PROCESS_MODE_ALWAYS  # keep working while a mini-game pauses the tree
+	_awake = DisplayServer.is_touchscreen_available()
+	button_prompts = _awake
 	_root = Control.new()
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_root)
@@ -41,6 +45,7 @@ func _ready() -> void:
 
 	get_viewport().size_changed.connect(_layout)
 	_layout()
+	_apply(false)
 
 
 func set_enabled(enabled: bool) -> void:
@@ -60,13 +65,15 @@ func is_over_button(pos: Vector2) -> bool:
 
 ## Fade the pad out when another device is used; bring it back on touch.
 func _input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+	if (event is InputEventScreenTouch or event is InputEventScreenDrag) and event.device != -1:
+		button_prompts = true
 		if not _awake:
 			_awake = true
 			_apply(true)
 	elif (event is InputEventKey and event.pressed and not event.echo) \
 			or event is InputEventJoypadButton \
 			or (event is InputEventJoypadMotion and absf(event.axis_value) > 0.5):
+		button_prompts = event is not InputEventKey
 		if _awake:
 			_awake = false
 			_apply(true)

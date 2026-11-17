@@ -1,0 +1,166 @@
+# Card rules checks
+
+The balance lab uses the actual card rules with seeded, public-information bots:
+
+```sh
+python3 tools/card_sim.py --seeds 200
+godot --headless --audio-driver Dummy --path godot --script res://tests/sim_config_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/sim_policies_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/sim_runner_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/sim_blindspots_test.gd
+python3 -m unittest discover -s tools -p 'test_card_sim*.py'
+```
+
+The simulator checks configuration isolation and validation, legal policies with no
+access to hidden incoming cards, exact replay determinism, bounded timeouts,
+telemetry reconciled against real combat, and statistically correct aggregation.
+Adversarial fixtures document deployment cancellation, full-board interception,
+first attack advantage, mirrored-board asymmetry, useful swaps, and defensive
+fatigue locks. These fixtures establish behavior rather than imposing balance
+targets. See `godot/simulation/cards/README.md` for experiments and report usage.
+
+From the repository root, using Godot 4.7.2:
+
+```sh
+godot --headless --audio-driver Dummy --path godot --script res://tests/cards_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/cards_scene_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/cards_table_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/cards_transition_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/card_face_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/older_rules_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/older_scene_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/cards_motion_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/card_progression_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/card_progression_scene_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/card_pickups_test.gd
+```
+
+Each script exits nonzero if a check fails. The rules suite runs without loading
+game scenes; the integration suite loads them headlessly. Neither renders or
+controls a running playtest.
+
+Coverage includes action legality and resource conservation, snapshot isolation,
+unit and spell effects, attack order and blocking, telegraphed enemy deployment,
+victory/loss, energy progression, deck exhaustion, and deterministic full matches.
+Hand-limit checks cover normal boundary draws and discarding an overflow draw.
+A simple starter-deck heuristic checks that winning is possible; its win count is
+a diagnostic, not a balance target or a substitute for human playtesting.
+
+Targeted fixtures use the rule engine's internal state to isolate a behavior.
+Actual actions run through its public `play_card` and `end_turn` methods.
+
+The scene smoke test loads the hub and launches the table through `MiniGames`.
+It checks the entrance lock and tutorial timing, exercises actual button signals
+through a full victory, checks the result and hub controls, then reopens the table
+and exits during combat and entrance animations. Entrance cancellation uses a real
+Escape action. It does not check rendered layout; use a graphical playtest for
+visual verification.
+
+The physical-table input suite launches through the actual hub/minigame overlay,
+projects 3D actors through the perspective camera, and raycasts their colliders at
+three window sizes. It checks empty/occupied lanes, all cards in a full raised hand,
+the end-turn control, and modal/animation input locks. Mouse and touch events pass
+through the full scene-tree input route (including emulation), reveal and tuck the
+hand, then deploy directly from a selected hand card to a friendly lane while the
+hand is retracting. Both mouse and touch finish this targeting flow, and the mouse
+flow completes a turn. Anonymous incoming glows are
+checked with single- and multiple-lane deployment plans. These checks do not
+substitute for checking card readability and composition in the rendered game.
+
+The card-face suite checks that starter titles and rules fit in full, future long
+copy remains bounded, damaged health stays consistent between table and inspector,
+artwork fallback is safe, and empty lanes retain their interaction targets.
+
+The older rules suite exercises intercept priority/readiness, diagonal targets,
+swap conservation, finite reserves/fatigue, and deterministic full-match pacing.
+The older scene suite launches from the real hub, raycasts all four lanes at three
+window sizes, uses the two-target swap flow including invalid/cancelled choices,
+plays through the Sentinel/Forkshot bait interaction, and verifies separate victory
+registration and return to the hall. The motion suite checks in-flight positions,
+transform restoration, directional attacks, and exit cancellation.
+
+The progression rules suite checks all 32 discovery subsets: a twelve-card base
+retains every copy, discoveries are added once, and every opening has five cards
+(three core creatures plus two random draws). It checks complete-deal conservation,
+seed determinism, discoveries appearing either in the opening or later in the
+deck, and the normal next-turn draw. Win rates are not correctness assertions.
+The progression scene suite verifies that actual controller deals match the
+simulator, rematches read new discoveries,
+in-progress duels remain isolated, collection counts/rules are current, and the
+tutorial is unchanged. It also checks positive healing feedback for the stronger
+spell. The pickup suite verifies accessible hall placements, duplicate-safe
+collection, room reconstruction, and independence from the carried puzzle item.
+
+For statistical progression reports, run the same seeds against every subset
+and inspect both the aggregate curve and individual single-card additions:
+
+```sh
+python3 tools/card_sim.py --config /path/to/progression-experiments.json --seeds 500 --output godot/build/web/progression
+python3 tools/card_progression_report.py godot/build/web/progression/results.json
+```
+
+The generated `curve.html` complements the normal match report. See the simulation
+guide for interpretation limits and validation using a separate seed range.
+
+The transition suite starts from the real hub camera. It checks launch reservation,
+the live destination viewport binding, multiple frames of source-camera movement,
+independent aperture coverage at handoff, and input/tutorial timing. Escape is
+exercised before opening, during the approach, and after crossing. Caller camera,
+HUD and touch state must return exactly, including an initially hidden HUD and a
+source camera with horizontal FOV, offsets and non-default clipping planes. The
+window also changes aspect ratio during the approach; the settled destination
+must regain its own original projection. These checks validate
+the lifecycle and projection contracts; graphical frame capture remains necessary
+to detect stale textures, color-conversion jumps or blank rendered frames.
+
+The pixel regression must run with a graphical renderer (it opens and closes its
+own game window):
+
+```sh
+godot --audio-driver Dummy --path godot --script res://tests/cards_transition_render_test.gd
+```
+
+It freezes the real transition at its covered handoff and compares the source
+portal with the full-screen destination at the same camera pose. Both paths must
+keep rendering while hidden or shown. Gameplay pixels must agree within one
+8-bit rounding level, with mean error at most 0.1; the top UI strip is excluded
+because close-button focus can differ. A brightness check prevents two blank
+buffers from passing. This catches both stale viewport textures and a second
+color-conversion pass that crushes shadows at the handoff.
+
+# Escape-room and carry checks
+
+```sh
+godot --headless --audio-driver Dummy --path godot --script res://tests/newton_skip_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/optics_model_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/optics_scene_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/optics_aiming_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/carry_inventory_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/escape_hub_test.gd
+```
+
+The pure optical model enumerates 3,465 source/rotation/lens/socket configurations.
+Only A/B with either L/M color order wins. Scene checks verify atomic exchanges,
+invalid-placement conservation, rotation controls and source-head orientation.
+The aiming suite checks capture/release hysteresis, wraparound, input ownership,
+absolute head angles, exact right-angle turns, persistence and render-pool reuse.
+
+The inventory/reward suite tests one-item ownership, hidden reward interaction,
+reconstruction without duplication, and camera restoration on normal completion,
+Escape and removal. The actual-hub suite checks all six chamber floors and
+passageways, locked/open door collision and line of sight, real reward triggers
+through `MiniGames.ended`, complete prism delivery, permanent unlock, and held and
+mounted item conservation across room recreation. It synthesizes the minigame win
+result; it does not solve Egypt Fractal's mathematical puzzle.
+
+The Egypt skip suite sends the actual Shift+L keyboard shortcut through the scene
+input path. It checks lit pyramids/crystals, a single celebration, normal trophy
+and reward delivery, interruption guards, and replay without duplicated rewards.
+
+Use `--audio-driver Dummy` for automated native tests and keep them headless.
+Browser visual checks should run in a background tab at
+`http://localhost:8060/?muted=1`; ordinary playtest links retain sound.
+
+Graphical QA separately exercises the actual minigame launch/return path, reward
+framing and camera pan, and browser navigation/interaction. The card scene, input
+and transition suites remain regression checks for the relocated card room.

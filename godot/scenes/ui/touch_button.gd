@@ -4,6 +4,8 @@ extends Control
 ## buttons can be held at once). Mouse is emulated to touch in project settings
 ## for desktop testing, and real mouse events are ignored here to avoid doubles.
 
+const Style := preload("res://ui/game_style.gd")
+
 @export var action := ""
 @export var text := ""
 
@@ -16,6 +18,10 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if Sound.settings_open:
+		_fingers.clear()
+		_set_pressed(false)
+		return
 	if not is_visible_in_tree():
 		return
 	if event is InputEventScreenTouch:
@@ -59,18 +65,18 @@ func _exit_tree() -> void:
 
 func _draw() -> void:
 	var r := Rect2(Vector2.ZERO, size).grow(-2)
-	var fill := Color(1, 1, 1, 0.38 if _pressed else 0.16)
+	var fill := Color(Style.GOLD, .8) if _pressed else Color(Style.INK, .65)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = fill
-	sb.set_corner_radius_all(int(minf(size.x, size.y) * 0.3))
-	sb.border_color = Color(1, 1, 1, 0.55)
-	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(8)
+	sb.border_color = Color(Style.GOLD, .75 if _pressed else .35)
+	sb.set_border_width_all(1)
 	draw_style_box(sb, r)
-	var font := ThemeDB.fallback_font
+	var font := Style.font()
 	var fs := int(minf(size.x, size.y) * 0.45)
 	var ts := font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, fs)
 	draw_string(font, Vector2((size.x - ts.x) / 2.0, (size.y + ts.y * 0.6) / 2.0), text,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, 0.9))
+		HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Style.INK if _pressed else Color(Style.PAPER, .8))
 
 
 func _notification(what: int) -> void:

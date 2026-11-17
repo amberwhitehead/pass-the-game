@@ -22,8 +22,11 @@ extends Interactable
 ## instead of the repeat ones. 0 = never.
 @export var replay_first_every := 5
 
+const Sign := preload("res://ui/world_sign.gd")
+
 @onready var _label: Label3D = $Name
 
+var _name_hint: Label3D
 var _model: Node3D
 var _body_anim: AnimationPlayer
 var _face_anim: AnimationPlayer
@@ -38,8 +41,16 @@ var _turn: Tween
 func _ready() -> void:
 	super()
 	prompt = "Talk"
+	Sign.style(_label, .14)
+	_label.font = Sign.Style.font(true)
+	_label.visibility_range_end = 4.0
+	_label.visibility_range_end_margin = .6
 	_label.text = npc_name
 	_label.position.y = label_height
+	_name_hint = Sign.text(self, "—  TALK  —", Vector3(0, label_height-.16, 0), .055, Sign.GOLD)
+	_name_hint.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_name_hint.visibility_range_end = 4.0
+	_name_hint.visible = false
 	_setup_model()
 	_blink_loop()
 
@@ -124,3 +135,10 @@ func interact(player: Node3D) -> void:
 	if talked_flag != "":
 		Game.set_flag(talked_flag)
 	await super(player)  # launches minigame if one is configured
+
+
+func _on_focus_changed(value: bool) -> void:
+	# The character stays unchanged; its quiet name becomes an invitation nearby.
+	_label.modulate = Sign.GOLD.lightened(.25) if value else Sign.PAPER
+	if _name_hint:
+		_name_hint.visible = value

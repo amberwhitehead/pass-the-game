@@ -5,6 +5,7 @@ extends Control
 ##   speaker: name shown above the text ("" for none)
 ##   text:    "" + auto=<seconds> makes a text-less beat that advances itself
 
+const Style := preload("res://ui/game_style.gd")
 const ROOM_SCENE := "res://scenes/room/room.tscn"
 const COLONEL_MODEL := preload("res://assets/characters/officer_colonel.glb")
 
@@ -36,6 +37,7 @@ var _starting := false
 
 
 func _ready() -> void:
+	theme = Style.theme()
 	TouchControls.set_enabled(false)  # story is tap-to-advance
 	set_anchors_preset(PRESET_FULL_RECT)
 	mouse_filter = MOUSE_FILTER_IGNORE  # let taps reach _unhandled_input
@@ -59,40 +61,23 @@ func _ready() -> void:
 		a.mouse_filter = MOUSE_FILTER_IGNORE
 		add_child(a)
 
-	_panel = PanelContainer.new()
-	_panel.anchor_left = 0.06
-	_panel.anchor_right = 0.94
-	_panel.anchor_top = 0.60
-	_panel.anchor_bottom = 0.94
-	_panel.mouse_filter = MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0, 0, 0, 0.62)
-	sb.set_corner_radius_all(16)
-	sb.set_content_margin_all(20)
-	_panel.add_theme_stylebox_override("panel", sb)
+	_panel = preload("res://ui/conversation_sheet.gd").new()
+	_panel.anchor_left = .08
+	_panel.anchor_right = .92
+	_panel.anchor_top = .65
+	_panel.anchor_bottom = .65
 	add_child(_panel)
-
-	var vb := VBoxContainer.new()
-	vb.mouse_filter = MOUSE_FILTER_IGNORE
-	_panel.add_child(vb)
-	_speaker = Label.new()
-	_speaker.add_theme_font_size_override("font_size", 26)
-	_speaker.add_theme_color_override("font_color", Color(0.75, 0.85, 0.55))
-	vb.add_child(_speaker)
-	_label = RichTextLabel.new()
-	_label.bbcode_enabled = true
-	_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_label.add_theme_font_size_override("normal_font_size", 28)
-	_label.mouse_filter = MOUSE_FILTER_IGNORE
-	vb.add_child(_label)
+	_speaker = _panel.speaker
+	_label = _panel.copy
 
 	var skip := Button.new()
-	skip.text = "Skip ▸▸"
-	skip.add_theme_font_size_override("font_size", 24)
+	skip.text = "Skip intro  ›"
+	skip.add_theme_font_size_override("font_size", 15)
 	skip.set_anchors_preset(PRESET_TOP_RIGHT)
 	skip.offset_left = -150
-	skip.offset_top = 12
-	skip.offset_right = -12
+	skip.offset_top = 18
+	skip.offset_bottom = 56
+	skip.offset_right = -24
 	skip.pressed.connect(_start_game)
 	add_child(skip)
 
@@ -109,6 +94,8 @@ func _next_page() -> void:
 
 	var has_text: bool = p.text != ""
 	_panel.visible = has_text
+	if has_text:
+		_panel.arrive()
 	_speaker.text = p.speaker
 	_speaker.visible = p.speaker != ""
 	_label.text = p.text
@@ -159,6 +146,8 @@ func _start_game() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if Sound.settings_open:
+		return
 	if event.is_action_pressed("interact") \
 			or (event is InputEventMouseButton and event.pressed):
 		_advance()

@@ -1,0 +1,402 @@
+{
+  "scenarios": [
+    {
+      "id": "found_00",
+      "label": "0 / 5 \u00b7 Base deck",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": []
+      }
+    },
+    {
+      "id": "found_01",
+      "label": "1 / 5 \u00b7 Champion",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_02",
+      "label": "1 / 5 \u00b7 Aegis",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "aegis"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_03",
+      "label": "2 / 5 \u00b7 Champion, Aegis",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "aegis"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_04",
+      "label": "1 / 5 \u00b7 Tempest",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "tempest"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_05",
+      "label": "2 / 5 \u00b7 Champion, Tempest",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "tempest"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_06",
+      "label": "2 / 5 \u00b7 Aegis, Tempest",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "aegis",
+          "tempest"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_07",
+      "label": "3 / 5 \u00b7 Champion, Aegis, Tempest",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "aegis",
+          "tempest"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_08",
+      "label": "1 / 5 \u00b7 Renewal",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "renewal"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_09",
+      "label": "2 / 5 \u00b7 Champion, Renewal",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "renewal"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_10",
+      "label": "2 / 5 \u00b7 Aegis, Renewal",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "aegis",
+          "renewal"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_11",
+      "label": "3 / 5 \u00b7 Champion, Aegis, Renewal",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "aegis",
+          "renewal"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_12",
+      "label": "2 / 5 \u00b7 Tempest, Renewal",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "tempest",
+          "renewal"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_13",
+      "label": "3 / 5 \u00b7 Champion, Tempest, Renewal",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "tempest",
+          "renewal"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_14",
+      "label": "3 / 5 \u00b7 Aegis, Tempest, Renewal",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "aegis",
+          "tempest",
+          "renewal"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_15",
+      "label": "4 / 5 \u00b7 Champion, Aegis, Tempest, Renewal",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "aegis",
+          "tempest",
+          "renewal"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_16",
+      "label": "1 / 5 \u00b7 Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_17",
+      "label": "2 / 5 \u00b7 Champion, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_18",
+      "label": "2 / 5 \u00b7 Aegis, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "aegis",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_19",
+      "label": "3 / 5 \u00b7 Champion, Aegis, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "aegis",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_20",
+      "label": "2 / 5 \u00b7 Tempest, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "tempest",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_21",
+      "label": "3 / 5 \u00b7 Champion, Tempest, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "tempest",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_22",
+      "label": "3 / 5 \u00b7 Aegis, Tempest, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "aegis",
+          "tempest",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_23",
+      "label": "4 / 5 \u00b7 Champion, Aegis, Tempest, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "aegis",
+          "tempest",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_24",
+      "label": "2 / 5 \u00b7 Renewal, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "renewal",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_25",
+      "label": "3 / 5 \u00b7 Champion, Renewal, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "renewal",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_26",
+      "label": "3 / 5 \u00b7 Aegis, Renewal, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "aegis",
+          "renewal",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_27",
+      "label": "4 / 5 \u00b7 Champion, Aegis, Renewal, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "aegis",
+          "renewal",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_28",
+      "label": "3 / 5 \u00b7 Tempest, Renewal, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "tempest",
+          "renewal",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_29",
+      "label": "4 / 5 \u00b7 Champion, Tempest, Renewal, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "tempest",
+          "renewal",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_30",
+      "label": "4 / 5 \u00b7 Aegis, Tempest, Renewal, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "aegis",
+          "tempest",
+          "renewal",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    },
+    {
+      "id": "found_31",
+      "label": "5 / 5 \u00b7 Champion, Aegis, Tempest, Renewal, Thunderbolt",
+      "opponent": "older_brother",
+      "overrides": {
+        "collected_cards": [
+          "champion",
+          "aegis",
+          "tempest",
+          "renewal",
+          "thunderbolt"
+        ]
+      },
+      "baseline": "found_00"
+    }
+  ]
+}

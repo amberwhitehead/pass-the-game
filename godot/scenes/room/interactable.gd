@@ -26,5 +26,12 @@ func set_focused(value: bool) -> void:
 	_on_focus_changed(value)
 
 
+func get_focus_position() -> Vector3:
+	for child: Node in get_children():
+		if child is CollisionShape3D:
+			return child.global_position
+	return global_position
+
+
 func _on_focus_changed(_value: bool) -> void:
 	pass

@@ -1,0 +1,24 @@
+{
+  "status": "Implemented in Refraction Hall at 1.35x scale; difficulty awaits playtesting",
+  "coordinate_system": "Top-down arbitrary units, positive y is north; all horizontal optics share a height",
+  "source": [0, 0],
+  "receiver": [10, 0],
+  "emitter": "Directly overhead; vertical input into the starting prism",
+  "portable_prism_count": 2,
+  "turn_degrees": 90,
+  "sockets": {"A": [2, 2], "B": [7, -3], "C": [4, 4], "D": [9, -1]},
+  "mounts": {"J": [5, 0], "K": [3, 3], "L": [1, 1], "M": [8.5, -1.5]},
+  "initial_lenses": {"yellow": "J", "blue": "K"},
+  "example_solution_lenses": {"yellow": "L", "blue": "M"},
+  "obstacle": {"min": [4.8, 0.6], "max": [7.2, 3.2]},
+  "solution_sockets": ["A", "B"],
+  "blocked_sockets": ["C", "D"],
+  "rules": [
+    "The starting prism rotates around its vertical incoming beam; every horizontal departure is a 90-degree bend.",
+    "Portable prisms rotate only in the horizontal plane and always turn by 90 degrees.",
+    "Empty sockets transmit straight through; inserted prisms intercept the beam.",
+    "Each lens mount holds at most one lens; unmounted lenses do not affect the beam.",
+    "Yellow plus blue makes green in either order, using an explicit magical color rule.",
+    "The receiver accepts a green beam from any horizontal direction; no directional hood is required."
+  ]
+}

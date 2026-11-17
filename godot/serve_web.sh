@@ -1,21 +1,29 @@
 #!/usr/bin/env bash
-# Export the Web build and serve it on your LAN so a phone can open it.
-# Needs Web export templates installed (Editor > Manage Export Templates).
+# Build and serve a local browser playtest on macOS or Linux.
 set -euo pipefail
-cd "$(dirname "$0")"
-GODOT="${GODOT:-$HOME/Downloads/Godot_v4.7.2-stable_linux.x86_64}"
-mkdir -p build/web
-"$GODOT" --headless --path . --export-release Web build/web/index.html
-echo "LAN (HTTP, desktop only): http://$(hostname -I | awk '{print $1}'):8060"
-# Godot's web loader refuses plain HTTP (needs a secure context), so phones on the
-# tailnet must use HTTPS. `tailscale serve` provides it; it needs Serve + HTTPS
-# enabled once for the tailnet (the command prints a link if not).
-if command -v tailscale >/dev/null; then
-  TS_NAME=$(tailscale status --json 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin)['Self']['DNSName'].rstrip('.'))" 2>/dev/null || true)
-  if timeout 20 tailscale serve --bg 8060 >/dev/null 2>&1; then
-    echo "Tailscale: https://$TS_NAME"
-  else
-    echo "Tailscale HTTPS not set up: run 'tailscale serve --bg 8060' once and follow its link."
-  fi
+
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+  echo "Usage: $0 [PORT] [OUTPUT_DIRECTORY]"
+  echo 'Defaults: port 8060, godot/build/web. Ctrl-C stops the server.'
+  exit 0
 fi
-python3 -m http.server 8060 --directory build/web
+if (( $# > 2 )); then
+  echo "Usage: $0 [PORT] [OUTPUT_DIRECTORY]" >&2
+  exit 1
+fi
+
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PORT="${1:-8060}"
+if [[ ! "$PORT" =~ ^[0-9]{1,5}$ ]] || (( 10#$PORT < 1 || 10#$PORT > 65535 )); then
+  echo 'PORT must be an integer from 1 to 65535.' >&2
+  exit 1
+fi
+PORT=$((10#$PORT))
+OUTPUT_DIR="${2:-$PROJECT_DIR/build/web}"
+if [[ "$OUTPUT_DIR" != /* ]]; then
+  OUTPUT_DIR="$PWD/$OUTPUT_DIR"
+fi
+"$PROJECT_DIR/build_web.sh" "$OUTPUT_DIR"
+echo "Playtest: http://localhost:$PORT/"
+echo 'Serving on this computer. Ctrl-C stops the server.'
+exec python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$OUTPUT_DIR"
