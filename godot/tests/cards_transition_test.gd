@@ -1,6 +1,7 @@
 extends SceneTree
 ## Continuous hub/table handoff, reservation and cancellation integration checks.
 
+const Layout := preload("res://minigames/cards/table_layout.gd")
 var _checks := 0
 var _failures := 0
 var _games: Node
@@ -185,7 +186,14 @@ func _run() -> void:
 			break
 		await process_frame
 	_expect(not game._entering, "Horizontal-FOV source reaches the table")
-	_expect(_projection(game.table.camera) == _destination_projection,
+	# The table refits its FOV to the resized window, so compare FOV against that fit.
+	var arrived := _projection(game.table.camera)
+	var fitted_fov := Layout.camera_fov(game.table.lane_count, Vector2(game.table.viewport.size))
+	var expected := _destination_projection.duplicate()
+	expected.erase("fov")
+	var arrived_fov: float = arrived.fov
+	arrived.erase("fov")
+	_expect(arrived == expected and is_equal_approx(arrived_fov, fitted_fov),
 		"Destination returns to its exact original projection after crossing")
 	_expect(_projection(_camera) == source_projection,
 		"Completed crossing restores every source projection setting")

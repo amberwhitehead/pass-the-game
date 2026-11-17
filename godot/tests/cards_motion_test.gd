@@ -13,7 +13,10 @@ func _run() -> void:
 	_effects = load("res://minigames/cards/table_effects.gd")
 	var table := Fixture.new()
 	root.add_child(table)
-	await process_frame
+	# Let the slow first frames pass. A timer created during a long startup frame
+	# expires within that frame, before the tween advances.
+	for frame in 5:
+		await process_frame
 	var guard: Node3D = table.slot("enemy", 1)
 	var destination: Node3D = table.slot("enemy", 0)
 	var origin := guard.position
