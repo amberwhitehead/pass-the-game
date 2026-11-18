@@ -618,9 +618,9 @@ func _refresh_visuals() -> void:
 	elif _all_lit():
 		_hud.set_hint("Almost… hold still" if not _moving else "That's it! Let go and hold still")
 	elif _grabbed >= 0:
-		_hud.set_hint("◀ ▶ turn %s     {interact} release" % _controls[_grabbed].label)
+		_hud.set_hint("{steer} turn %s     {interact} release" % _controls[_grabbed].label)
 	elif _focus >= 0:
 		_hud.set_hint("{interact} %s %s" % ["press" if _controls[_focus].id == "reset" else "grab",
 			_controls[_focus].label])
 	else:
-		_hud.set_hint("◀ ▶ walk round the table")
+		_hud.set_hint("{steer} walk round the table")

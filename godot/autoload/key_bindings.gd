@@ -121,7 +121,10 @@ static func valid_key(key: int) -> bool:
 
 ## What the key says on this keyboard (layout-aware), e.g. "W", "Space", "Escape".
 static func key_label(key: int) -> String:
-	var printed := DisplayServer.keyboard_get_label_from_physical(key as Key) if DisplayServer.get_name() != "headless" else KEY_NONE
+	# Only desktop display servers know the layout; the Web and headless ones log an
+	# error on every call, so they fall back to the physical key's own name.
+	var layout_aware := DisplayServer.get_name() in ["Windows", "macOS", "X11", "Wayland"]
+	var printed := DisplayServer.keyboard_get_label_from_physical(key as Key) if layout_aware else KEY_NONE
 	var text := OS.get_keycode_string(printed if printed != KEY_NONE else key as Key)
 	return text if not text.is_empty() else "Key %d" % key
 

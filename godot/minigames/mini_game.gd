@@ -29,8 +29,9 @@ func _ready() -> void:
 	# Always-available exit, even when the touch pad is hidden.
 	var close := Button.new()
 	close.text = "×"
-	close.tooltip_text = "Leave · %s (keyboard) / B (controller or touch) opens the menu" \
-		% preload("res://autoload/key_bindings.gd").label("back")
+	close.tooltip_text = _close_tooltip()
+	# Read on hover, so a key changed in Controls mid-game shows up here too.
+	close.mouse_entered.connect(func(): close.tooltip_text = _close_tooltip())
 	close.add_theme_font_size_override("font_size", 24)
 	close.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	close.offset_left = -68
@@ -39,6 +40,11 @@ func _ready() -> void:
 	close.offset_right = -24
 	close.pressed.connect(func(): finish({"won": false, "quit": true}))
 	add_child(close)
+
+
+static func _close_tooltip() -> String:
+	return "Leave · %s (keyboard) / B (controller or touch) opens the menu" \
+		% preload("res://autoload/key_bindings.gd").label("back")
 
 
 func _unhandled_input(event: InputEvent) -> void:

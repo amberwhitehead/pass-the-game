@@ -39,6 +39,7 @@ func _run() -> void:
 	await _apply_and_play()
 	await _use_escape_and_defaults()
 	await _from_minigame()
+	await _hints_follow_bindings()
 	_saved_files()
 	await _save_failure()
 	KeyBindings.apply(KeyBindings.defaults())
@@ -212,6 +213,63 @@ func _from_minigame() -> void:
 		await process_frame
 	await _frames(2)
 	_expect(_games.current == null and not _menu.is_open(), "Leave still exits the minigame")
+
+
+## Rebind inside a paused puzzle through the menu; every prompt then names the new keys.
+func _hints_follow_bindings() -> void:
+	var returned := [false]
+	var launch := func():
+		await _games.play("newton")
+		returned[0] = true
+	launch.call_deferred()
+	for frame in 600:
+		if _games.current != null:
+			break
+		await process_frame
+	await _frames(5)
+	var puzzle: Node = _games.current
+	var hint: Label = puzzle._hud.hint
+	_expect("A D" in hint.text or "E / Enter" in hint.text, "The puzzle hint starts with the default keys (%s)" % hint.text)
+	await _tap(KEY_ESCAPE)
+	await _click(_menu.controls_button)
+	await _click(_row("strafe_left", 0).change)
+	await _tap(KEY_J)
+	await _click(_row("interact", 0).change)
+	await _tap(KEY_G)
+	await _click(_row("back", 0).change)
+	await _tap(KEY_Q)
+	await _click(_controls.apply_button)
+	await _click(_controls.back_button)
+	await _click(_menu.resume_button)
+	await _frames(3)
+	_expect(("J D" in hint.text or "G / Enter" in hint.text) and not "A D" in hint.text and not "E / Enter" in hint.text,
+		"The puzzle hint names the new keys after resuming (%s)" % hint.text)
+	puzzle._hud.set_hint("Aligned!   {continue} to continue")
+	_expect(hint.text == "Aligned!   G / Enter or Q to continue", "Puzzle continue prompt uses the new keys (%s)" % hint.text)
+	puzzle._hud.set_hint("{steer} walk   {reach} reach")
+	_expect(hint.text == "J D walk   W S reach", "Puzzle movement prompt uses the current keys (%s)" % hint.text)
+	var close: Button = null
+	for child in puzzle.get_children():
+		if child is Button and child.text == "×":
+			close = child
+	close.mouse_entered.emit()
+	_expect(close.tooltip_text.begins_with("Leave · Q (keyboard)"), "The puzzle close tooltip names the new Back key")
+	var rules: String = load("res://minigames/cards/encounter_text.gd").rules(false)
+	_expect("Q opens the menu" in rules and not "Esc opens" in rules, "Card table rules name the new Back key")
+	var sheet: PanelContainer = load("res://ui/conversation_sheet.gd").new()
+	root.add_child(sheet)
+	sheet.arrive()
+	_expect(sheet.hint.text == "G  /  CONTINUE", "Dialogue names the new Interact key (%s)" % sheet.hint.text)
+	sheet.queue_free()
+	_expect("J" in _player.mouse_capture._hint_text() and "Q for the menu" in _player.mouse_capture._hint_text(),
+		"The click-to-look card names the new keys")
+	puzzle.finish({"won": false, "quit": true})
+	for frame in 300:
+		if returned[0]:
+			break
+		await process_frame
+	KeyBindings.apply(KeyBindings.defaults())
+	await _frames(2)
 
 
 func _saved_files() -> void:
