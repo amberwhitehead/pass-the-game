@@ -32,22 +32,22 @@ cd pass-the-game
 ```
 
 Import `godot/project.godot` in Godot, let its asset import finish, and press
-**F5** for the whole game. For the Web playtest on macOS/Linux, install the
-export templates through Godot's **Editor → Manage Export Templates**, then run
-from the repository root:
+**F5** for the whole game. For the Web playtest on any OS, install the export
+templates through Godot's **Editor → Manage Export Templates**, then run from the
+repository root (`py -3` instead of `python3` on Windows):
 
 ```sh
-./godot/serve_web.sh
+python3 tools/build_web.py --serve
 ```
 
-Open **[http://localhost:8060/](http://localhost:8060/)**. If Godot is not on PATH
-or installed at `/Applications/Godot.app`, set its executable explicitly:
+Open **[http://localhost:8060/](http://localhost:8060/)**. If Godot 4.7.2 is not
+on PATH or installed at `/Applications/Godot.app`, pass it explicitly:
 
 ```sh
-GODOT="/path/to/Godot" ./godot/serve_web.sh
+python3 tools/build_web.py --serve --godot /path/to/Godot
 ```
 
-See the [full setup guide](godot/README.md) for Windows commands and rebuilds.
+See the [full setup guide](godot/README.md) for rebuilds and options.
 All game sounds are included in the checkout. After a Web build, the
 [audition page](http://localhost:8060/audio/) lets you compare sound choices.
 

@@ -23,23 +23,24 @@ Generated `.godot/` data and `godot/build/` exports are ignored. The sound files
 in `assets/audio/cc0/`, their source records, and CC0 notices are tracked with the
 project. A clean checkout does not contain local exports or simulator reports.
 
-## Local Web playtest — macOS/Linux
+## Local Web playtest — Windows, macOS or Linux
 
 Install the **4.7.2 export templates** through **Editor → Manage Export
-Templates**. Install Python 3 for the audition-page build and local HTTP server.
-The build/server scripts use Bash; they do not require Node, npm, or Python packages.
-
-If `godot` is on PATH, or Godot is installed in `/Applications/Godot.app`:
+Templates**. Install Python 3 for the build script, audition page and local HTTP
+server; no Node, npm or Python packages are needed. From the repository root:
 
 ```sh
-./godot/serve_web.sh
+python3 tools/build_web.py --serve
 ```
 
-Otherwise set `GODOT` to the executable, for example on macOS:
+On Windows, use `py -3` in place of `python3`. The script finds Godot from
+`--godot PATH`, then `GODOT`, then `godot` on PATH, then `/Applications/Godot.app`,
+and stops if that executable is not 4.7.2 (an older Godot on PATH is a common
+trap). On Windows it uses the `_console.exe` beside the windowed `.exe`, so build
+output appears in the terminal. For example:
 
-```sh
-export GODOT="/path/to/Godot.app/Contents/MacOS/Godot"
-./godot/serve_web.sh
+```powershell
+py -3 tools/build_web.py --serve --godot "C:\Tools\Godot\Godot_v4.7.2-stable_win64.exe"
 ```
 
 Open **[http://localhost:8060/](http://localhost:8060/)**. The script imports
@@ -52,46 +53,25 @@ HTTP rather than opening `index.html` as a `file://` URL.
 After edits, leave the existing server running and rebuild in a second terminal:
 
 ```sh
-GODOT="/path/to/Godot" ./godot/build_web.sh
+python3 tools/build_web.py
 ```
 
 Then refresh the browser. Saved progress survives rebuilds; choose **New game**
-on the title screen to start fresh.
-Both scripts honor `GODOT`; omit it when the default executable discovery works.
-They import/export headlessly with Dummy audio, so they do not open a game window.
+on the title screen to start fresh. The script imports and exports headlessly
+with Dummy audio, so it does not open a game window. It also creates
+`godot/build/.gdignore`; without it, Godot imports the exported files and the
+audition page's sound copies as project assets and packs them into the next build.
 
-Optional arguments:
+Other options: `--output DIR` exports elsewhere, `--port 8061` serves on another
+port, and `--serve-only` serves an existing build without rebuilding. The server
+binds to `127.0.0.1`; these commands do not publish a hosted game. If port 8060 is
+already in use by this project's healthy server, rebuild only. Otherwise stop the
+old server or use another port.
 
-```sh
-./godot/build_web.sh /absolute/path/to/web-output
-./godot/serve_web.sh 8061 /absolute/path/to/web-output
-```
-
-The server binds to `127.0.0.1`; these commands do not publish a hosted game.
-If port 8060 is already in use by this project's healthy server, rebuild only.
-Otherwise stop the old server or use another port.
-
-## Local Web playtest — Windows PowerShell
-
-Use the same editor and matching templates. The Bash wrappers are optional;
-these direct commands provide the equivalent import, export, and local server.
-Replace the Godot executable path with your installation:
-
-```powershell
-$GodotExe = "C:\Tools\Godot\Godot_v4.7.2-stable_win64_console.exe"
-New-Item -ItemType Directory -Force "godot/build/web" | Out-Null
-$WebOutput = Join-Path (Get-Location) "godot/build/web/index.html"
-& $GodotExe --headless --audio-driver Dummy --path godot --import
-& $GodotExe --headless --audio-driver Dummy --path godot --export-release Web $WebOutput
-py -3 tools/build_audio_audition.py
-py -3 -m http.server 8060 --bind 127.0.0.1 --directory godot/build/web
-```
-
-Stop if a build command fails; the server should serve a successful export.
-If your Python installation uses `python` rather than `py`, substitute `python`
-for `py -3`. For later builds, rerun the import, export and audition-page commands
-in another terminal and refresh the browser. The Windows steps
-use the shared export preset; this handoff's visual QA was performed on macOS.
+On macOS or Linux the original Bash wrappers do the same and remain available:
+`./godot/serve_web.sh [PORT] [OUTPUT]` and `GODOT=/path/to/Godot ./godot/build_web.sh [OUTPUT]`.
+The handoff's visual QA was performed on macOS; the Python script was added and
+verified on Windows.
 
 ## Audio and common setup issues
 
