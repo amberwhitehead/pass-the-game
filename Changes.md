@@ -217,3 +217,21 @@ someone happened to open.
 A root `.gitignore` keeps `tools/__pycache__/` and `*.pyc` out of the repository.
 Compiled caches from running the tool tests had been committed by accident in
 `31b544d`; they were removed from every commit of this turn before the pull request.
+
+### `0c4ce0f` — Cross-platform Web build script
+
+`python3 tools/build_web.py --serve` (`py -3` on Windows) builds and serves the
+browser playtest on Windows, macOS or Linux, doing what `build_web.sh` and
+`serve_web.sh` do on macOS/Linux. Those Bash scripts remain.
+
+- It finds Godot from `--godot`, `GODOT`, PATH or `/Applications`, and stops
+  with a clear message unless that Godot is 4.7.2, since an older Godot on PATH
+  is easy to pick up by accident. On Windows it uses the `_console.exe` beside
+  the windowed one so build output shows in the terminal.
+- It creates `godot/build/.gdignore`, which the README's old PowerShell steps
+  left out. Without it, Godot imported 95 exported and sound-audition files as
+  project assets and packed them into the game: the Web build grew from 5.7 MB
+  to 7.8 MB. Builds are back to 5.7 MB.
+- Options: `--output`, `--port`, `--serve-only`. `tools/test_build_web.py` covers
+  version matching, the Windows console executable and the search order.
+- The READMEs and `AGENTS.md` now use the script; the PowerShell steps are gone.
