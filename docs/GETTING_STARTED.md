@@ -59,6 +59,14 @@ a new slot, and Load game lists every save.
    Brother's deck when found.
 5. **04 Workshop, 05 Calendar, 06 Observatory** are furnished but empty.
 
+**To reach later content quickly**, use the **Save editor**. In developer mode
+(running from the Godot editor, `?dev=1` on the Web build, or a `--dev` launch
+option) it appears on the title screen; with the scene open in the editor, **F6**
+opens it directly. Tick wins, found cards and hall progress, or edit anything in
+the raw JSON. It warns if hall items no longer add up (2 prisms, 1 yellow lens, 1
+blue lens across cradles, hand and mounts). **Play (unsaved)** tries the result in
+the hall without writing a save; **Save** or **Save as new slot** keeps it.
+
 The [setup and project guide](../godot/README.md) has controls, the project map
 and how to add a minigame; each area has its own guide linked from there.
 

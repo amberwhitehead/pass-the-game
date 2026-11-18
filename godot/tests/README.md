@@ -184,6 +184,7 @@ godot --headless --audio-driver Dummy --path godot --script res://tests/run_suit
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- save_game_test
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- pause_menu_test
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- minigame_resume_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- save_editor_test
 ```
 
 The pure optical model enumerates 3,465 source/rotation/lens/socket configurations.
@@ -225,6 +226,14 @@ each reopens where it was left; that a win clears saved progress; that Roman
 Flow's GPU simulation stops while paused; that a resumed card match equals the
 original exactly even after a new card is found; that a replay which no longer
 matches deals a fresh match; and that Quit to title from a minigame saves it.
+
+The save editor suite checks the edit rules (wins keep their details, cards keep
+the game's order, hall items are counted across cradles, hand and optics mounts,
+skipped progress is flagged), then drives the real screen: opening the latest
+save, ticking boxes, item warnings appearing and clearing, invalid and valid raw
+JSON, keeping flags it has no control for, clearing minigame progress, Save, Save
+as new slot, the blank save, Play (unsaved) writing nothing, and the title
+screen's developer-mode button. It uses its own `test_editor_slot_*` files.
 
 Use `--audio-driver Dummy` for automated native tests and keep them headless.
 Browser visual checks should run in a background tab at

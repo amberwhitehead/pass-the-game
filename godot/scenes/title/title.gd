@@ -7,11 +7,14 @@ const Style := preload("res://ui/game_style.gd")
 const SaveGame := preload("res://autoload/save_game.gd")
 const INTRO_SCENE := "res://scenes/intro/intro.tscn"
 const ROOM_SCENE := "res://scenes/room/room.tscn"
+const EDITOR_SCENE := "res://scenes/dev/save_editor.tscn"
+const DevMode := preload("res://autoload/dev_mode.gd")
 const MONTHS := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 var continue_button: Button
 var new_button: Button
 var load_button: Button
+var editor_button: Button  # Developer mode only.
 var slot_buttons: Array[Button] = []  # One row per save, newest first.
 var delete_buttons: Array[Button] = []
 var slot_order: Array[int] = []  # The slot each row shows.
@@ -57,6 +60,8 @@ func _ready() -> void:
 	continue_button = _button(_menu, "Continue", _continue)
 	new_button = _button(_menu, "New game", _new_game)
 	load_button = _button(_menu, "Load game", _show_slots)
+	if DevMode.enabled():
+		editor_button = _button(_menu, "Save editor", func(): _go(EDITOR_SCENE))
 
 	_slots = PanelContainer.new()
 	_slots.custom_minimum_size.x = 560

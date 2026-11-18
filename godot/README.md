@@ -101,6 +101,8 @@ verified on Windows.
   nothing but plain data can be stored or loaded. The title screen's **Continue** resumes the most
   recent slot, **New game** always starts a new slot, and **Load game** lists every save newest
   first with its progress and a **Delete** button (a second press confirms).
+  In developer mode the title screen also offers a **Save editor**; see
+  [Getting started](../docs/GETTING_STARTED.md#2-see-the-game).
   Unfinished minigames save too: leaving one, quitting to title or closing the
   game keeps its progress for the next visit until it is won.
   Older `.cfg` saves (the first save format) convert to JSON the first time the
@@ -148,6 +150,7 @@ to the room.
 | `minigames/newton/` | Egypt Fractal: park three pyramids on different fractal colors. `newton_math.gd` is the shader's CPU twin; keep them in sync. |
 | `minigames/turing/` | Roman Flow: Gray–Scott reaction-diffusion, adjustable rollers, and glass pins. A flood-fill worker evaluates paths from simulation snapshots. |
 | `minigames/cards/` | Both card encounters, shared rules/combat/AI, 3D cards/table, camera transition, and collection progression. See [rules and modules](minigames/cards/README.md). |
+| `scenes/dev/` | Developer tools, shown only in developer mode (`autoload/dev_mode.gd`: editor runs, `--dev`, or `?dev=1` on the Web). The save editor (`save_editor.tscn`) opens, edits, saves and plays saves; its edit rules and hall item checks are in `save_edits.gd`. |
 | `ui/` | Shared enamel panels, ivory typography, interaction prompts and physical signs; see the [UI guide](ui/README.md). |
 | `audio/` | Semantic cue mapping, scene-owned playback, mixer, ambience and settings; see the [audio guide](audio/README.md). |
 | `simulation/cards/` | Seeded matches using production rules and public-information policies; see the [simulator guide](simulation/cards/README.md). |

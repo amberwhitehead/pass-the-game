@@ -66,11 +66,27 @@ func continue_saved(path := save_path) -> bool:
 		return false
 	_flush_pending()
 	save_path = path
+	_apply(state)
+	autosave = true
+	return true
+
+
+## Plays progress without a save slot, so nothing is written (the save editor's Play).
+func play_unsaved(state: Dictionary) -> void:
+	_flush_pending()
+	save_path = ""
+	autosave = false
+	_apply(state)
+
+
+func snapshot() -> Dictionary:
+	return {"flags": flags, "completed_minigames": completed_minigames, "collected_cards": collected_cards}
+
+
+func _apply(state: Dictionary) -> void:
 	flags = (state.get("flags", {}) as Dictionary).duplicate(true)
 	completed_minigames = (state.get("completed_minigames", {}) as Dictionary).duplicate(true)
 	collected_cards.assign(state.get("collected_cards", []))
-	autosave = true
-	return true
 
 
 ## Clears progress and starts a fresh save at path, replacing anything there.
@@ -87,8 +103,7 @@ func start_new(path := save_path) -> void:
 func save_now() -> void:
 	_save_timer.stop()
 	if autosave and save_path != "":
-		SaveGame.write({"flags": flags, "completed_minigames": completed_minigames,
-			"collected_cards": collected_cards}, save_path)
+		SaveGame.write(snapshot(), save_path)
 
 
 func _queue_save() -> void:
