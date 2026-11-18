@@ -7,8 +7,10 @@ python3 tools/run_tests.py
 ```
 
 This imports the project, runs every Godot suite headless and muted, then the
-Python tool tests, and prints one PASS/FAIL line per suite with a total. It
-exits nonzero if anything fails; full logs are in `godot/build/test-logs/`. Pass
+Python tool tests, and prints one PASS/FAIL line per suite with a total. A
+`SCRIPT ERROR` fails a suite even if it reports no failures, because Godot exits
+normally after one and skips the rest of that suite. It exits nonzero if anything
+fails; full logs are in `godot/build/test-logs/`. Pass
 part of a name to run only some suites (`python3 tools/run_tests.py optics save`),
 `--no-import` to skip the import, and `--godot PATH` if Godot 4.7.2 is not found
 (it refuses other versions). `cards_transition_render_test` needs a real window,
@@ -179,11 +181,13 @@ input path. It checks lit pyramids/crystals, a single celebration, normal trophy
 and reward delivery, interruption guards, and replay without duplicated rewards.
 
 The save suite round-trips nested flags, colors, vectors and routes through a
-save file, rejects other format versions, and checks slot selection, autosave
-gating and batching, loading and replacing slots, and the title screen's
-Continue, New game, Load game and replace-confirmation paths. It points
-`SaveGame.slot_prefix` at its own `user://test_save_slot_*.cfg` files, never the
-player's saves.
+JSON save file exactly, checks that files stay readable JSON, that numbers compare
+with `same_data`, and that no file can build objects or load resources. It rejects
+other format versions and corrupt files, converts old `.cfg` saves (refusing ones
+with object syntax), and checks slot selection, autosave gating and batching,
+loading and replacing slots, and the title screen's Continue, New game, Load game
+and replace-confirmation paths. It points `SaveGame.slot_prefix` at its own
+`user://test_save_slot_*.json` files, never the player's saves.
 
 The pause menu suite sends real Escape events in the hall and in Egypt Fractal and
 Roman Flow. It checks that the menu pauses the hall or freezes the minigame, that

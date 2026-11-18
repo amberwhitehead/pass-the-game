@@ -40,17 +40,69 @@ func _file_format() -> void:
 			"turing": {"won": true, "route": PackedVector2Array([Vector2(1, 2), Vector2(3, 4)])}},
 		"collected_cards": ["champion", "aegis"]}
 	check(SaveGame.write(state, path) == OK, "Progress writes to disk")
-	check(SaveGame.read(path) == state, "Nested flags, colors, vectors and routes survive a round trip")
+	var loaded := SaveGame.read(path)
+	check(SaveGame.same_data(loaded, state), "Nested flags, colors, vectors and routes survive a round trip")
+	check(loaded.completed_minigames.newton.pyramids[0].pos is Vector2 and loaded.completed_minigames.newton.pyramids[0].color is Color \
+		and loaded.completed_minigames.turing.route is PackedVector2Array, "Godot types come back as real Godot types")
+	var odd := {"v": Vector2(0.1, 1.0 / 3.0), "c": Color(0.92, 0.28, 0.72, 0.5)}
+	SaveGame.write(odd, path)
+	var exact := SaveGame.read(path)
+	check(exact.v == odd.v and exact.c == odd.c and "0.92," in FileAccess.get_file_as_string(path),
+		"Vector and color components are written short yet come back exactly")
+	SaveGame.write(state, path)
+	SaveGame.write({"flags": {"turns": {"A": -1}, "angle": 0.25}}, path)
+	var numbers: Dictionary = SaveGame.read(path).flags
+	check(is_equal_approx(float(numbers.turns.A), -1.0) and numbers.angle == 0.25, "Numbers come back as plain JSON numbers")
+	check(SaveGame.same_data({"turn": 2}, {"turn": 2.0}) and not SaveGame.same_data({"turn": 2}, {"turn": 3}),
+		"same_data treats 2 and 2.0 alike but still tells values apart")
+	SaveGame.write(state, path)
 	check(absi(SaveGame.saved_at(path) - int(Time.get_unix_time_from_system())) < 5, "Saves record when they were written")
 	check(SaveGame.describe(state) == "Egypt ✓ · Roman Flow ✓ · 2/5 cards", "Slot summary lists wins and found cards")
 	check(SaveGame.describe({}) == "Just started", "An empty save has a summary")
-	var old := ConfigFile.new()
-	old.set_value("meta", "version", SaveGame.VERSION + 1)
-	old.set_value("progress", "flags", {"escape_prism_solved": true})
-	old.save(path)
+	var text := FileAccess.get_file_as_string(path)
+	check(JSON.parse_string(text) is Dictionary and "\"version\": 2" in text and "\"Vector2\": [" in text \
+		and "\"collected_cards\": [" in text and not "s:" in text, "Saves are readable JSON any tool can read")
+	_write_text(path, text.replace("\"version\": 2", "\"version\": 3"))
 	check(SaveGame.read(path).is_empty() and SaveGame.saved_at(path) == 0, "A save from another format version is ignored")
+	_write_text(path, "{ not json")
+	check(SaveGame.read(path).is_empty(), "A corrupt save reads as empty")
+	SaveGame.write({"flags": {}}, path)
+	var document: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+	document.progress = {"flags": {"probe": {"Object": ["RefCounted"]}, "res": {"Resource": ["res://icon.svg"]}}}
+	_write_text(path, JSON.stringify(document))
+	var probe: Dictionary = SaveGame.read(path).flags
+	check(probe.probe is Dictionary and probe.res is Dictionary, "Saves never build objects or load resources, even when a file names one")
+	check(SaveGame.encode({"node": RefCounted.new()}).node == null, "Objects cannot be written into a save")
 	SaveGame.erase(path)
 	check(not SaveGame.exists(path), "Erase removes the save")
+	_migration()
+
+
+## Version 1 saves were ConfigFiles; they convert once and keep their time.
+func _migration() -> void:
+	var cfg := "user://test_save_legacy.cfg"
+	var json := SaveGame.slot_path(0)
+	var state := {"flags": {"escape_prism_solved": true, "items": {"A": "prism"}}, "completed_minigames": {},
+		"collected_cards": ["aegis"]}
+	var config := ConfigFile.new()
+	config.set_value("meta", "version", 1)
+	config.set_value("meta", "saved_at", 1234)
+	for key: String in state:
+		config.set_value("progress", key, state[key])
+	config.save(cfg)
+	check(SaveGame.migrate_cfg(cfg, json), "A version 1 save converts")
+	check(SaveGame.same_data(SaveGame.read(json), state) and SaveGame.saved_at(json) == 1234 and not SaveGame.exists(cfg),
+		"Conversion keeps progress and save time and removes the old file")
+	SaveGame.erase(json)
+	_write_text(cfg, "[meta]\nversion=1\n[progress]\nflags={\"probe\": Object(RefCounted,\"script\":null)}\n")
+	check(not SaveGame.migrate_cfg(cfg, json) and SaveGame.exists(cfg) and not SaveGame.exists(json),
+		"An old save that could build objects is refused and left untouched")
+	SaveGame.erase(cfg)
+	_write_text("user://test_save_slot_1.cfg", "[meta]\nversion=1\n")
+	SaveGame.adopt_legacy()
+	check(SaveGame.exists("user://test_save_slot_1.cfg") and not SaveGame.exists(json),
+		"Automatic conversion never runs on test slots")
+	SaveGame.erase("user://test_save_slot_1.cfg")
 
 
 func _slots() -> void:
@@ -147,12 +199,12 @@ func _open_title() -> Control:
 
 
 func _write_at(slot: int, state: Dictionary, time: int) -> void:
-	var path := SaveGame.slot_path(slot)
-	SaveGame.write(state, path)
-	var config := ConfigFile.new()
-	config.load(path)
-	config.set_value("meta", "saved_at", time)
-	config.save(path)
+	SaveGame.write(state, SaveGame.slot_path(slot), time)
+
+
+func _write_text(path: String, text: String) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(text)
 
 
 func _save_wait() -> float:

@@ -11,6 +11,7 @@ const Entrance := preload("res://minigames/cards/table_entrance.gd")
 const Copy := preload("res://minigames/cards/encounter_text.gd")
 const Config := preload("res://minigames/cards/match_config.gd")
 const Progression := preload("res://minigames/cards/deck_progression.gd")
+const SaveGame := preload("res://autoload/save_game.gd")
 
 @export_enum("little_brother", "older_brother") var opponent_id := "little_brother"
 var match_state: RefCounted
@@ -326,7 +327,8 @@ func _resume_match(state: Dictionary) -> void:
 			rules.play_card(int(action.card), int(action.lane), int(action.other))
 		else:
 			return
-	if rules.snapshot() != state.get("snapshot", {}):
+	# Saved numbers come back as floats, so compare as saved data rather than with ==.
+	if not SaveGame.same_data(rules.snapshot(), state.get("snapshot", {})):
 		return
 	_found_cards = found
 	_encounter_settings = Config.resolve(opponent_id, overrides)

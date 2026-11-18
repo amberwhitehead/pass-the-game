@@ -95,13 +95,17 @@ verified on Windows.
   in `project.godot`, for new ones. If an editor version still rewrites `.import`
   files, revert them rather than committing them.
 - **Saved progress:** wins, puzzle state, the carried item and found cards save
-  automatically to one of three slots, `user://save_slot_1.cfg` to `_3.cfg`
-  (browser storage on the Web). The title screen's **Continue** resumes the most
+  automatically to one of three slots, `user://save_slot_1.json` to `_3.json`
+  (browser storage on the Web). Saves are readable JSON (format in
+  `autoload/save_game.gd`); Godot types appear as `{"Vector2": [x, y]}` and
+  nothing but plain data can be stored or loaded. The title screen's **Continue** resumes the most
   recent slot, **New game** uses the first empty slot (or asks which to replace,
   with a second press to confirm), and **Load game** lists every slot's progress.
   Unfinished minigames save too: leaving one, quitting to title or closing the
   game keeps its progress for the next visit until it is won.
-  A pre-slot `user://savegame.cfg` moves into an empty slot 1. Sound preferences
+  Older `.cfg` saves (the first save format) convert to JSON the first time the
+  title screen opens; one containing object syntax is refused and left alone.
+  Sound preferences
   are saved separately in `user://sound.cfg`. Tests and scenes run directly with
   F6 never read or write the saves.
 
@@ -181,7 +185,10 @@ Escape opens the pause menu (Resume, Leave, Sound, Quit to title) unless your
 game handles `back` first. Override `_back_leaves()` to leave directly instead,
 for example once solved. To let players resume where they left off, return plain
 data from `save_state()` and apply `resume_state` in `_ready()`; it is saved with
-the game and cleared after a win. Games without it simply start fresh. If your
+the game and cleared after a win. Games without it simply start fresh. Saved
+values come back as plain data: numbers may return as decimals (`2` as `2.0`), so
+convert what you read with `int()` / `float()`, and compare whole saved structures
+with `SaveGame.same_data()` rather than `==`. If your
 game renders with GPU viewports that update on their own, stop them on
 `NOTIFICATION_DISABLED` so the pause menu really pauses it (see `turing.gd`).
 
