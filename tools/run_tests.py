@@ -40,9 +40,14 @@ def run_suite(godot: Path, name: str, graphical: bool) -> dict:
     (LOGS / f"{name}.log").write_text(output, encoding="utf-8")
     counts = SUMMARY.findall(output)
     checks = int(counts[-1][0]) if counts else 0
-    problems = [line.strip() for line in output.splitlines()
-                if line.startswith(("ERROR:", "SCRIPT ERROR:")) and "resources still in use" not in line]
-    return {"name": name, "passed": code == 0, "checks": checks, "seconds": time.monotonic() - started, "problems": problems}
+    lines = output.splitlines()
+    script_errors = [line.strip() for line in lines if line.startswith("SCRIPT ERROR:")]
+    problems = script_errors + [line.strip() for line in lines
+                                if line.startswith("ERROR:") and "resources still in use" not in line]
+    # Godot exits normally after a script error, which silently skips the rest of the
+    # suite, so a script error is a failure even when the suite reports none.
+    passed = code == 0 and not script_errors
+    return {"name": name, "passed": passed, "checks": checks, "seconds": time.monotonic() - started, "problems": problems}
 
 
 def run_python() -> dict:
