@@ -342,3 +342,9 @@ row of actions.
 The floating **Sound** button, which sat over every screen, is gone. The mixer
 opens from the title screen's new **Sound** item and from the pause menu, as
 before; the mixer panel itself is unchanged.
+
+### `7b65be3` — Handoff for this turn
+
+`docs/HANDOFF.md` now describes the game at the end of this turn, including a
+"What changed for you" section for each returning contributor. cee.wtf's handoff
+is kept in `docs/handoffs/2026-11-16-cee.wtf.md`.
