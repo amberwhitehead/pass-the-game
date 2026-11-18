@@ -101,7 +101,7 @@ static func decode(value: Variant) -> Variant:
 	if value.size() == 1:
 		var tag: String = value.keys()[0]
 		var numbers: Variant = value[tag]
-		if numbers is Array and tag in TAGGED.values():
+		if tag in TAGGED.values():
 			var made: Variant = _tagged(tag, numbers)
 			if made != null:
 				return made
@@ -111,20 +111,32 @@ static func decode(value: Variant) -> Variant:
 	return out
 
 
-static func _tagged(tag: String, n: Array) -> Variant:
+## Builds an allow-listed type, or returns null (the caller keeps plain data) when the
+## numbers are missing, the wrong count or not numbers, as in a hand-edited file.
+static func _tagged(tag: String, n: Variant) -> Variant:
+	var element: String = {"PackedVector2Array": "Vector2", "PackedVector3Array": "Vector3",
+		"PackedColorArray": "Color"}.get(tag, "")
+	if not n is Array:
+		return null
+	if element != "":
+		var items := []
+		for item: Variant in n:
+			var made: Variant = _tagged(element, item)
+			if made == null:
+				return null
+			items.append(made)
+		match tag:
+			"PackedVector2Array": return PackedVector2Array(items)
+			"PackedVector3Array": return PackedVector3Array(items)
+			"PackedColorArray": return PackedColorArray(items)
+	if not n.all(func(x): return x is float or x is int):
+		return null
 	match [tag, n.size()]:
 		["Vector2", 2]: return Vector2(n[0], n[1])
 		["Vector2i", 2]: return Vector2i(int(n[0]), int(n[1]))
 		["Vector3", 3]: return Vector3(n[0], n[1], n[2])
 		["Vector3i", 3]: return Vector3i(int(n[0]), int(n[1]), int(n[2]))
 		["Color", 4]: return Color(n[0], n[1], n[2], n[3])
-	match tag:
-		"PackedVector2Array":
-			return PackedVector2Array(n.map(func(p): return _tagged("Vector2", p)))
-		"PackedVector3Array":
-			return PackedVector3Array(n.map(func(p): return _tagged("Vector3", p)))
-		"PackedColorArray":
-			return PackedColorArray(n.map(func(p): return _tagged("Color", p)))
 	return null
 
 

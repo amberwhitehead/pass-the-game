@@ -73,6 +73,12 @@ func _file_format() -> void:
 	var probe: Dictionary = SaveGame.read(path).flags
 	check(probe.probe is Dictionary and probe.res is Dictionary, "Saves never build objects or load resources, even when a file names one")
 	check(SaveGame.encode({"node": RefCounted.new()}).node == null, "Objects cannot be written into a save")
+	var damaged := [{"Vector2": ["a", 1]}, {"Vector2": [1]}, {"Color": "red"}, {"Vector2i": [1, null]},
+		{"PackedVector2Array": [[1, 2], ["x", 2]]}, {"PackedColorArray": [3]}]
+	check(damaged.all(func(tag): return SaveGame.decode(tag) is Dictionary),
+		"Damaged type tags load as plain data instead of stopping the loader")
+	check(SaveGame.decode({"PackedVector2Array": [[1, 2], [3, 4]]}) == PackedVector2Array([Vector2(1, 2), Vector2(3, 4)]),
+		"Well-formed packed arrays still load")
 	SaveGame.erase(path)
 	check(not SaveGame.exists(path), "Erase removes the save")
 	_migration()
