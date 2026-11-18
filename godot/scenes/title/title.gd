@@ -9,12 +9,15 @@ const INTRO_SCENE := "res://scenes/intro/intro.tscn"
 const ROOM_SCENE := "res://scenes/room/room.tscn"
 const EDITOR_SCENE := "res://scenes/dev/save_editor.tscn"
 const DevMode := preload("res://autoload/dev_mode.gd")
+const CreditsScreen := preload("res://ui/credits_screen.gd")
 const MONTHS := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 var continue_button: Button
 var new_button: Button
 var load_button: Button
 var sound_button: Button
+var credits_button: Button
+var credits: CanvasLayer  # The shared Credits screen (ui/credits_screen.gd).
 var editor_button: Button  # Developer mode only.
 var slot_buttons: Array[Button] = []  # One row per save, newest first.
 var delete_buttons: Array[Button] = []
@@ -62,6 +65,11 @@ func _ready() -> void:
 	new_button = _button(_menu, "New game", _new_game)
 	load_button = _button(_menu, "Load game", _show_slots)
 	sound_button = _button(_menu, "Sound", func(): Sound.get_node("SoundSettings").open())
+	credits_button = _button(_menu, "Credits", func(): credits.open())
+	credits = CreditsScreen.new()
+	credits.name = "Credits"
+	add_child(credits)
+	credits.closed.connect(func(): credits_button.grab_focus())
 	if DevMode.enabled():
 		editor_button = _button(_menu, "Save editor", func(): _go(EDITOR_SCENE))
 

@@ -131,6 +131,10 @@ from a menu do nothing until released. Touch and gamepad play never need capture
 Tuning (`scenes/room/player.gd`): walk 3.5 m/s in any direction, mouse 0.005 rad per
 pixel, jump 0.55 m with 20 m/s² gravity, 8 m/s² air steering.
 
+**Credits** (title screen and pause menu) lists who made what and the third-party
+assets. Entries live in `ui/credits.gd`; read the note there before adding one: ask
+the contributor how they want to be credited rather than guessing.
+
 **Controls** (pause menu, hall or minigame) lists every keyboard key, alternates
 included, with a Change button each. Change waits for one key; Escape cancels, and the
 Back / pause row has **Use Escape** to choose Escape itself. A key another action uses is
