@@ -87,7 +87,7 @@ skipped checks.
   macOS-only `/private/tmp`. On Windows the error skipped nine checks while the
   suite still reported no failures (68 → 77 checks).
 
-### `61fb59d` — UTF-8 file handling in the Python tools
+### `31b544d` — UTF-8 file handling in the Python tools
 
 Python defaults to the locale encoding (cp1252 on Windows), which failed to read
 the card progression report template. All 22 `read_text`/`write_text` calls in
@@ -97,11 +97,11 @@ After both commits, all 23 headless Godot suites and 24 Python tests pass on
 Windows. `cards_transition_render_test` needs a graphical renderer and was not
 run headless.
 
-### `a50ee6f` — Changes.md
+### `f655096` — Changes.md
 
 This file, recording each contribution grouped by contributor and day.
 
-### `4ff33f0` — Optics handles no longer raise a script error
+### `90d2771` — Optics handles no longer raise a script error
 
 Pressing a prism's TURN or LIFT / PLACE control in the hall raised "Trying to get
 a return value of a method that returns void" from `optics_device.gd`. The
@@ -112,7 +112,7 @@ looked like a crash. The callback now uses an ordinary `if`/`else` statement.
 The hall tests drive the optics controller directly, which is why they never
 pressed a real handle and missed it.
 
-### `5e270cb` — Saved games
+### `70c3680` — Saved games
 
 Progress now survives quitting and reloading, the handoff's planned "persistent
 saves".
@@ -133,7 +133,7 @@ saves".
   new `save_game_test` (15 checks) covers the file format, version mismatch,
   autosave gating and batching, and Continue / New game.
 
-### `927c495` — Title screen with three save slots
+### `415fb4d` — Title screen with three save slots
 
 The game now opens on a title screen instead of the intro story.
 
@@ -154,7 +154,7 @@ The game now opens on a title screen instead of the intro story.
 - `save_game_test` now has 32 checks, covering slots and the title screen with
   its own test slot files.
 
-### `5fa6d03` — Escape pause menu
+### `1d2455b` — Escape pause menu
 
 Escape (or gamepad/touch B) opens a pause menu whenever it has nothing else to
 do. Before this, Escape did nothing in the hall and left minigames immediately.
@@ -173,7 +173,7 @@ do. Before this, Escape did nothing in the hall and left minigames immediately.
   `_back_leaves()` to keep leaving directly. `pause_menu_test` (21 checks) drives
   real Escape presses through the hall, Egypt Fractal and Roman Flow.
 
-### `3ca816d` — Resume minigames, Quit to title from them, and a real Roman Flow pause
+### `357935e` — Resume minigames, Quit to title from them, and a real Roman Flow pause
 
 Leaving a minigame unsolved now keeps your progress for the next visit, including
 across quitting and reloading. Winning clears it, so a solved puzzle starts fresh.
@@ -196,7 +196,7 @@ across quitting and reloading. Winning clears it, so a solved puzzle starts fres
   minigame explains how. `minigame_resume_test` (27 checks) covers all three
   games through the real menu and a reload from disk.
 
-### `db66fe1` — Texture imports no longer change when the editor opens
+### `a0c4c25` — Texture imports no longer change when the editor opens
 
 Opening the project in the Godot editor rewrote texture `.import` files, so every
 contributor would see unexplained diffs. Godot's "Detect 3D" option switches a
@@ -211,3 +211,9 @@ someone happened to open.
 - The setup guide explains that `.import` files are committed source (settings and
   stable asset IDs) while `.godot/` is the cache, and to revert any further
   editor rewrites rather than commit them.
+
+### `4f54893` — Ignore Python bytecode
+
+A root `.gitignore` keeps `tools/__pycache__/` and `*.pyc` out of the repository.
+Compiled caches from running the tool tests had been committed by accident in
+`31b544d`; they were removed from every commit of this turn before the pull request.
