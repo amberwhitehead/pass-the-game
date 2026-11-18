@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 const Runner := preload("res://simulation/cards/run.gd")
 const Metrics := preload("res://simulation/cards/metrics.gd")
 const Options := preload("res://simulation/cards/run_options.gd")
@@ -116,7 +116,7 @@ func _options() -> void:
 		"Valid options preserve explicit sampling and policy selections")
 
 func _config_document(document: Variant) -> Dictionary:
-	var path := "/private/tmp/cards_sim_runner_config_fixture.json"
+	var path := OS.get_user_data_dir().path_join("cards_sim_runner_config_fixture.json")
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(document))
 	file.close()
@@ -126,7 +126,7 @@ func _config_document(document: Variant) -> Dictionary:
 
 func _configs() -> void:
 	check(Options.read_experiments("res://simulation/cards/experiments.json").errors.is_empty(), "Bundled experiment suite validates")
-	check(not Options.read_experiments("/private/tmp/cards_sim_missing_config_fixture.json").errors.is_empty(), "Missing config fails with an error")
+	check(not Options.read_experiments(OS.get_user_data_dir().path_join("cards_sim_missing_config_fixture.json")).errors.is_empty(), "Missing config fails with an error")
 	for document: Variant in [[], {}, {"scenarios": []}, {"scenarios": ["bad"]},
 			{"scenarios": [{"id": "test", "opponent": "unknown"}]},
 			{"scenarios": [{"id": "test", "opponent": "older_brother", "overrides": {"gaol": 20}}]},

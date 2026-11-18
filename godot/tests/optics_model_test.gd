@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 
 const Model := preload("res://scenes/escape/optics_model.gd")
 var checks := 0

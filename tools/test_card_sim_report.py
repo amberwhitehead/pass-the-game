@@ -65,13 +65,13 @@ class ReportTests(unittest.TestCase):
                 "experiment_config": {"scenarios": [{"id": "saved"}]}, "matches": [match()]}
         with tempfile.TemporaryDirectory() as folder:
             path = generate_report(data, Path(folder))
-            html = path.read_text()
+            html = path.read_text(encoding="utf-8")
             self.assertNotIn("</script><img src=x>", html)
             self.assertIn(r"\u003c/script>", html)
             self.assertNotIn("__SIMULATION_DATA__", html)
-            saved = json.loads((Path(folder) / "experiments.json").read_text())
+            saved = json.loads((Path(folder) / "experiments.json").read_text(encoding="utf-8"))
             self.assertEqual(saved, data["experiment_config"])
-            raw = json.loads((Path(folder) / "results.json").read_text())
+            raw = json.loads((Path(folder) / "results.json").read_text(encoding="utf-8"))
             self.assertEqual(raw, data)
             for name in ("summary.json", "matches.csv", "cards.csv"):
                 self.assertTrue((Path(folder) / name).is_file())

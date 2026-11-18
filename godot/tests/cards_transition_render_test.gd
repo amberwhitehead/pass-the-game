@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Graphical regression: the source portal and destination must render the same
 ## pixels at an identical camera pose. Run without --headless.
 

@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Asset availability, bounded playback, ownership and modal input regressions.
 var checks := 0
 var failures := 0

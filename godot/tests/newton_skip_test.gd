@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## The keyboard skip still follows Egypt's real win, trophy and reward lifecycle.
 var _checks := 0
 var _failures := 0

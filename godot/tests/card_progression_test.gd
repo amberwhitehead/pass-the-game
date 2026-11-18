@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Discoveries shuffle into a compact deck without growing the opening hand.
 const Catalog := preload("res://minigames/cards/card_catalog.gd")
 const Progression := preload("res://minigames/cards/deck_progression.gd")

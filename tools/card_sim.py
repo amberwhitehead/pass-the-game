@@ -108,11 +108,11 @@ def main() -> int:
             print("Running real card rules, headless and muted…", flush=True)
             completed = subprocess.run(command, cwd=ROOT, text=True, capture_output=True, timeout=1800)
             transcript = completed.stdout + completed.stderr
-            (output / "runner.log").write_text(transcript)
+            (output / "runner.log").write_text(transcript, encoding="utf-8")
             if completed.returncode or "SCRIPT ERROR:" in transcript or not raw.is_file():
                 print(transcript[-12000:], file=sys.stderr)
                 raise ValueError(f"Simulation failed; see {output / 'runner.log'}")
-            data = json.loads(raw.read_text())
+            data = json.loads(raw.read_text(encoding="utf-8"))
             if not data.get("matches"):
                 raise ValueError("Simulation returned no matches; report was not replaced.")
             data.setdefault("metadata", {}).update(run_provenance)

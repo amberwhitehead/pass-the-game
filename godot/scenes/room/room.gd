@@ -126,6 +126,13 @@ func _on_minigame_ended(id: String, result: Dictionary) -> void:
 	$Egyptian.lines_repeat.assign(["Two prisms, one pair of hands. Take them to the hall, one at a time. The lenses can move too."])
 
 
+## Children (wheel aiming, the reward reveal) see back first; the menu gets what's left.
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("back") and not event.is_echo() and not Sound.settings_open:
+		get_viewport().set_input_as_handled()
+		PauseMenu.open_hall()
+
+
 func _on_prism_solved() -> void:
 	Game.set_flag("escape_prism_solved")
 	architecture.locked_door.unlock()

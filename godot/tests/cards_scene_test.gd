@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Scene integration smoke test. No rendered window or synthetic OS input.
 ## Run: godot --headless --path godot --script res://tests/cards_scene_test.gd
 
@@ -107,8 +107,11 @@ func _run() -> void:
 	_expect(not paused and _games.current == null, "Leaving the table restores the hub and clears current game")
 	_expect(_touch._enabled, "Leaving the table restores movement controls")
 	_expect(global_game.completed_minigames.has("cards"), "Completion is stored in global game state")
-	room.get_node("Challenge3")._refresh_completed()
-	_expect(room.get_node("Challenge3/Mesh").visible, "Challenge 3 remains visible and replayable after victory")
+	var stand := room.get_node("Challenge3")
+	stand._refresh_completed()
+	# The card stand replaces the generic orb marker and stays out for rematches.
+	_expect(stand.visible and stand.get_node("WalnutCardStand").visible and stand.minigame_id == "cards",
+		"Challenge 3 remains visible and replayable after victory")
 
 	# Re-enter, then exit while an animation is active: the hub must not remain paused.
 	_returned = false

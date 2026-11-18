@@ -7,9 +7,11 @@
   existing server; rebuild its files and verify the updated game loads.
 - Web is the default playtest deliverable. Create native macOS builds only when
   requested or needed for a specific verification task.
-- Use `GODOT=/path/to/Godot ./godot/build_web.sh` to rebuild without starting a
-  second server, or `./godot/serve_web.sh` to build and start one. Generated files
-  belong in the ignored `godot/build/web/` directory.
+- Use `python3 tools/build_web.py` (`py -3` on Windows; add `--godot PATH` if the
+  4.7.2 executable is not found) to rebuild without starting a second server, or
+  add `--serve` to build and start one. On macOS/Linux `./godot/build_web.sh` and
+  `./godot/serve_web.sh` remain equivalent. Generated files belong in the ignored
+  `godot/build/web/` directory.
 - Keep working on `main`; do not create branches unless asked. Commit each new
   addition, and keep new code in focused, maintainable modules.
 - Keep automated playtests in the background and muted. Prefer headless Godot

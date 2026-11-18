@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Executable design probes. These lock down observed tradeoffs, not target balance.
 const Rules := preload("res://minigames/cards/match_rules.gd")
 const Combat := preload("res://minigames/cards/match_combat.gd")

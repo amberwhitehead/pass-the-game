@@ -44,8 +44,13 @@ Little Brother's tutorial uses these rules:
   A draw into a full hand goes to discard. An exhausted deck causes increasing
   fatigue damage (1, then 2, then 3...). There is no discard recycling.
 - Rules, restart confirmation, rematch, and return-to-room controls are included.
-  Esc exits (or closes an open rules/restart dialog). Wins are recorded for the
-  current application session, including when leaving with the close button.
+  Esc closes an open rules/restart dialog or cancels a pending swap; otherwise it
+  opens the pause menu, which can leave the table. During the entrance and after
+  the match is decided, Esc still leaves directly. Wins are saved, including when
+  leaving with the close button. An unfinished match is kept as its seed, starting
+  deck and actions, and replays through the rules on the next visit; if the replay
+  no longer reproduces the saved snapshot (for example after a tuning change), a
+  fresh match is dealt instead.
 
 ## Starter deck
 
@@ -106,9 +111,8 @@ carried prism/lens slot. A collected card disappears from its display. Duplicate
 collection is ignored, and the next deal reads the current collection. A duel in
 progress cannot gain cards mid-turn.
 
-Collection persists for the current application session, including leaving the
-table, returning to the hall, and rematching. Reloading the game starts a fresh
-collection until persistent saves are implemented. Little Brother always uses
+Collection persists across leaving the table, returning to the hall, rematching,
+and relaunching: found cards are part of the saved game. Little Brother always uses
 his original tutorial deck. The older table shows `N / 5 found`; loss dialogue
 points toward a missing card rather than requiring a fixed discovery order.
 
@@ -166,7 +170,7 @@ godot --path godot res://minigames/cards/cards.tscn
 
 ## Deliberately deferred
 
-Deck editing, persistent saves, friend-group themes and final artwork. Mouse/touch
+Deck editing, friend-group themes and final artwork. Mouse/touch
 is the primary input for this prototype.
 
 Useful playtest feedback: is a turn understandable; does the enemy intent help;

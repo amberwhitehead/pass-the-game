@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Headless spatial input checks for the physical card table.
 ## Uses camera projection + real physics raycasts, never OS mouse input.
 

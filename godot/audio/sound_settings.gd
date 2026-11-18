@@ -1,26 +1,14 @@
 extends CanvasLayer
 ## Small global mixer, usable during paused-world card encounters as well as the hub.
+## Opened from the title screen and pause menu (open()); there is no floating button.
 const Style := preload("res://ui/game_style.gd")
 var _panel: PanelContainer
 var _arrival: Tween
 var _veil: ColorRect
-var _button: Button
 
 func _ready() -> void:
 	layer = 200
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_button = Button.new()
-	_button.theme = Style.theme()
-	_button.text = "Sound"
-	_button.add_theme_font_size_override("font_size", 14)
-	_button.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_button.offset_left = 170
-	_button.offset_right = 250
-	_button.offset_top = 18
-	_button.offset_bottom = 56
-	_button.focus_mode = Control.FOCUS_NONE
-	_button.pressed.connect(func(): _toggle(true))
-	add_child(_button)
 	_veil = ColorRect.new()
 	_veil.theme = Style.theme()
 	_veil.color = Color(Style.INK, .86)
@@ -100,10 +88,12 @@ func _ready() -> void:
 	column.add_child(close)
 	_veil.hide()
 
+func open() -> void:
+	_toggle(true)
+
 func _toggle(open: bool) -> void:
 	Sound.settings_open = open
 	_veil.visible = open
-	_button.visible = not open
 	if _arrival:
 		_arrival.kill()
 	if open:

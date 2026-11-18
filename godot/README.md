@@ -23,23 +23,24 @@ Generated `.godot/` data and `godot/build/` exports are ignored. The sound files
 in `assets/audio/cc0/`, their source records, and CC0 notices are tracked with the
 project. A clean checkout does not contain local exports or simulator reports.
 
-## Local Web playtest — macOS/Linux
+## Local Web playtest — Windows, macOS or Linux
 
 Install the **4.7.2 export templates** through **Editor → Manage Export
-Templates**. Install Python 3 for the audition-page build and local HTTP server.
-The build/server scripts use Bash; they do not require Node, npm, or Python packages.
-
-If `godot` is on PATH, or Godot is installed in `/Applications/Godot.app`:
+Templates**. Install Python 3 for the build script, audition page and local HTTP
+server; no Node, npm or Python packages are needed. From the repository root:
 
 ```sh
-./godot/serve_web.sh
+python3 tools/build_web.py --serve
 ```
 
-Otherwise set `GODOT` to the executable, for example on macOS:
+On Windows, use `py -3` in place of `python3`. The script finds Godot from
+`--godot PATH`, then `GODOT`, then `godot` on PATH, then `/Applications/Godot.app`,
+and stops if that executable is not 4.7.2 (an older Godot on PATH is a common
+trap). On Windows it uses the `_console.exe` beside the windowed `.exe`, so build
+output appears in the terminal. For example:
 
-```sh
-export GODOT="/path/to/Godot.app/Contents/MacOS/Godot"
-./godot/serve_web.sh
+```powershell
+py -3 tools/build_web.py --serve --godot "C:\Tools\Godot\Godot_v4.7.2-stable_win64.exe"
 ```
 
 Open **[http://localhost:8060/](http://localhost:8060/)**. The script imports
@@ -52,45 +53,25 @@ HTTP rather than opening `index.html` as a `file://` URL.
 After edits, leave the existing server running and rebuild in a second terminal:
 
 ```sh
-GODOT="/path/to/Godot" ./godot/build_web.sh
+python3 tools/build_web.py
 ```
 
-Then refresh the browser. Rebuilding resets gameplay when the page is reloaded.
-Both scripts honor `GODOT`; omit it when the default executable discovery works.
-They import/export headlessly with Dummy audio, so they do not open a game window.
+Then refresh the browser. Saved progress survives rebuilds; choose **New game**
+on the title screen to start fresh. The script imports and exports headlessly
+with Dummy audio, so it does not open a game window. It also creates
+`godot/build/.gdignore`; without it, Godot imports the exported files and the
+audition page's sound copies as project assets and packs them into the next build.
 
-Optional arguments:
+Other options: `--output DIR` exports elsewhere, `--port 8061` serves on another
+port, and `--serve-only` serves an existing build without rebuilding. The server
+binds to `127.0.0.1`; these commands do not publish a hosted game. If port 8060 is
+already in use by this project's healthy server, rebuild only. Otherwise stop the
+old server or use another port.
 
-```sh
-./godot/build_web.sh /absolute/path/to/web-output
-./godot/serve_web.sh 8061 /absolute/path/to/web-output
-```
-
-The server binds to `127.0.0.1`; these commands do not publish a hosted game.
-If port 8060 is already in use by this project's healthy server, rebuild only.
-Otherwise stop the old server or use another port.
-
-## Local Web playtest — Windows PowerShell
-
-Use the same editor and matching templates. The Bash wrappers are optional;
-these direct commands provide the equivalent import, export, and local server.
-Replace the Godot executable path with your installation:
-
-```powershell
-$GodotExe = "C:\Tools\Godot\Godot_v4.7.2-stable_win64_console.exe"
-New-Item -ItemType Directory -Force "godot/build/web" | Out-Null
-$WebOutput = Join-Path (Get-Location) "godot/build/web/index.html"
-& $GodotExe --headless --audio-driver Dummy --path godot --import
-& $GodotExe --headless --audio-driver Dummy --path godot --export-release Web $WebOutput
-py -3 tools/build_audio_audition.py
-py -3 -m http.server 8060 --bind 127.0.0.1 --directory godot/build/web
-```
-
-Stop if a build command fails; the server should serve a successful export.
-If your Python installation uses `python` rather than `py`, substitute `python`
-for `py -3`. For later builds, rerun the import, export and audition-page commands
-in another terminal and refresh the browser. The Windows steps
-use the shared export preset; this handoff's visual QA was performed on macOS.
+On macOS or Linux the original Bash wrappers do the same and remain available:
+`./godot/serve_web.sh [PORT] [OUTPUT]` and `GODOT=/path/to/Godot ./godot/build_web.sh [OUTPUT]`.
+The handoff's visual QA was performed on macOS; the Python script was added and
+verified on Windows.
 
 ## Audio and common setup issues
 
@@ -106,15 +87,35 @@ use the shared export preset; this handoff's visual QA was performed on macOS.
   standalone test scripts. The first cache-free import can initially report a
   missing imported default font; the import generates that resource. If it is
   still missing on the next launch, investigate the import log.
-- **Progress disappears after refresh:** expected for now. Puzzle state, wins, and
-  collected cards survive minigame visits during the current session, but there
-  is no disk/browser gameplay save. Sound preferences are saved separately.
+- **Unexpected `.import` changes:** `.import` files are committed source (per-asset
+  settings and stable `uid://` IDs); the generated cache is the ignored `.godot/`.
+  Godot's "Detect 3D" option rewrites a texture's `.import` to GPU compression the
+  first time the editor sees it in 3D, which is lossy for the character and prop
+  palettes. It is off for every committed texture and, through `importer_defaults`
+  in `project.godot`, for new ones. If an editor version still rewrites `.import`
+  files, revert them rather than committing them.
+- **Saved progress:** wins, puzzle state, the carried item and found cards save
+  automatically to numbered slots, `user://save_slot_<n>.json`, with no limit
+  (browser storage on the Web). Saves are readable JSON (format in
+  `autoload/save_game.gd`); Godot types appear as `{"Vector2": [x, y]}` and
+  nothing but plain data can be stored or loaded. The title screen's **Continue** resumes the most
+  recent slot, **New game** always starts a new slot, and **Load game** lists every save newest
+  first with its progress and a **Delete** button (a second press confirms).
+  In developer mode the title screen also offers a **Save editor**; see
+  [Getting started](../docs/GETTING_STARTED.md#2-see-the-game).
+  Unfinished minigames save too: leaving one, quitting to title or closing the
+  game keeps its progress for the next visit until it is won.
+  Older `.cfg` saves (the first save format) convert to JSON the first time the
+  title screen opens; one containing object syntax is refused and left alone.
+  Sound preferences
+  are saved separately in `user://sound.cfg`. Tests and scenes run directly with
+  F6 never read or write the saves.
 
 ## Controls and a first playthrough
 
 | Device | Controls |
 | --- | --- |
-| Keyboard | W/S or up/down to walk; A/D or left/right to turn; E, Space, Enter, or F to interact; Escape or Backspace to go back |
+| Keyboard | W/S or up/down to walk; A/D or left/right to turn; E, Space, Enter, or F to interact; Escape or Backspace to go back, or open the pause menu when there is nothing to go back from |
 | Mouse | Click-drag to look; click cards and their targets at the table |
 | Touch | On-screen movement/turn pad, A to interact, B to go back; drag elsewhere to look |
 | Gamepad | Left stick to walk/strafe; right stick to look; D-pad to walk/turn; A to interact; B to go back |
@@ -137,16 +138,19 @@ only works inside Egypt and does not solve the hall's optical puzzle.
 
 ## Project map
 
-Flow: `scenes/intro/intro.tscn` → `scenes/room/room.tscn` → minigame overlays.
+Flow: `scenes/title/title.tscn` → `scenes/intro/intro.tscn` (new games) →
+`scenes/room/room.tscn` → minigame overlays. Continue and Load game go straight
+to the room.
 
 | Area | Responsibility |
 | --- | --- |
-| `autoload/` | `Game` session state/input, `Sound` playback/settings, `SceneManager` scene fades, `TouchControls`, `Dialogue`, and the `MiniGames` registry/launcher |
+| `autoload/` | `Game` progress/autosave/input (file format in `save_game.gd`), `Sound` playback/settings, `SceneManager` scene fades, `TouchControls`, `Dialogue`, the `MiniGames` registry/launcher, and the Escape `PauseMenu` |
 | `scenes/room/` | Player, NPCs, interactable props, and hub composition. `room.tscn` retains station nodes; the architecture relocates them at runtime. |
 | `scenes/escape/` | Six side chambers, main-hall geometry/server details, prism optics, one-item carry system, reward reveal, and the Brothers' walnut/felt parlor. See the [module guide](scenes/escape/README.md). |
 | `minigames/newton/` | Egypt Fractal: park three pyramids on different fractal colors. `newton_math.gd` is the shader's CPU twin; keep them in sync. |
 | `minigames/turing/` | Roman Flow: Gray–Scott reaction-diffusion, adjustable rollers, and glass pins. A flood-fill worker evaluates paths from simulation snapshots. |
 | `minigames/cards/` | Both card encounters, shared rules/combat/AI, 3D cards/table, camera transition, and collection progression. See [rules and modules](minigames/cards/README.md). |
+| `scenes/dev/` | Developer tools, shown only in developer mode (`autoload/dev_mode.gd`: editor runs, `--dev`, or `?dev=1` on the Web). The save editor (`save_editor.tscn`) opens, edits, saves and plays saves; its edit rules and hall item checks are in `save_edits.gd`. |
 | `ui/` | Shared enamel panels, ivory typography, interaction prompts and physical signs; see the [UI guide](ui/README.md). |
 | `audio/` | Semantic cue mapping, scene-owned playback, mixer, ambience and settings; see the [audio guide](audio/README.md). |
 | `simulation/cards/` | Seeded matches using production rules and public-information policies; see the [simulator guide](simulation/cards/README.md). |
@@ -180,6 +184,17 @@ cannot depend on the player's system fonts.
 4. If it rewards an overworld item or unlock, connect that explicitly in the hub;
    registering a minigame alone does not create the next escape-room step.
 
+Escape opens the pause menu (Resume, Leave, Sound, Quit to title) unless your
+game handles `back` first. Override `_back_leaves()` to leave directly instead,
+for example once solved. To let players resume where they left off, return plain
+data from `save_state()` and apply `resume_state` in `_ready()`; it is saved with
+the game and cleared after a win. Games without it simply start fresh. Saved
+values come back as plain data: numbers may return as decimals (`2` as `2.0`), so
+convert what you read with `int()` / `float()`, and compare whole saved structures
+with `SaveGame.same_data()` rather than `==`. If your
+game renders with GPU viewports that update on their own, stop them on
+`NOTIFICATION_DISABLED` so the pause menu really pauses it (see `turing.gd`).
+
 An optional registry `trophy` script can return a Node3D from
 `static func build(result: Dictionary) -> Node3D`. Generic Props show that trophy
 after a win; see `newton_trophy.gd` and `turing/aqueduct.gd`. The card stand keeps
@@ -196,7 +211,7 @@ Import first, then run checks relevant to the changed system from the
 
 ```sh
 godot --headless --audio-driver Dummy --path godot --import
-godot --headless --audio-driver Dummy --path godot --script res://tests/cards_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- cards_test
 ```
 
 Use the executable path in place of `godot` when it is not on PATH. Automated

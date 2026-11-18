@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Physical rooms, one-item ownership, reward lifecycle, and persistent optics.
 ## Run: godot --headless --path godot --script res://tests/escape_hub_test.gd
 

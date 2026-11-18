@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Actual hub launcher, four-lane picking, two-target spell input, and event playback.
 const Catalog := preload("res://minigames/cards/card_catalog.gd")
 var checks := 0

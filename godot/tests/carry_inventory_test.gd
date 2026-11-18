@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Real item exchanges, persistence and camera cancellation/restore.
 
 var _checks := 0

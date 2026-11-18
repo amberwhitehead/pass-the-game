@@ -83,7 +83,11 @@ func _handle(text: String, at: Vector3, turn: bool) -> Area3D:
 	area.name = "TurnHandle" if turn else "ItemHandle"
 	area.position = at
 	area.prompt = text
-	area.used.connect(func(): turn_requested.emit(device_id) if turn else exchange_requested.emit(device_id))
+	area.used.connect(func():
+		if turn:
+			turn_requested.emit(device_id)
+		else:
+			exchange_requested.emit(device_id))
 	add_child(area)
 	var mat := Art.material(Color(.35, .55, .61) if turn else Color(.60, .43, .20), false, true)
 	Art.cylinder(area, .115, .065, Vector3.ZERO, mat)

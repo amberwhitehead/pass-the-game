@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Real hub interactions: reachability, duplicate protection, carrying, and re-entry.
 const ROOM := "res://scenes/room/room.tscn"
 const Progression := preload("res://minigames/cards/deck_progression.gd")
