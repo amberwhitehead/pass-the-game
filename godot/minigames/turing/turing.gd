@@ -147,9 +147,51 @@ func _ready() -> void:
 	_build_hud()
 	super()
 	_make_solver_textures()
+	_resume(resume_state)
 	_apply_params()
 	_push_pins()
 	_update_camera(1.0)
+
+
+## Rollers, placed pins and the view. The pattern itself regrows from them; a pin still
+## being carried goes back to its tray, as it does when dropped past the edge.
+func save_state() -> Dictionary:
+	if _solved:
+		return {}
+	var values := {}
+	for c in _controls:
+		if c.has("value"):
+			values[c.id] = c.value
+	var pins := []
+	for pc in _pieces:
+		if pc.placed:
+			pins.append({"kind": pc.kind, "pos": pc.pos})
+	return {"values": values, "pins": pins, "viz": _viz_mode, "theta": _theta, "rho": _rho}
+
+
+func _resume(state: Dictionary) -> void:
+	var values: Dictionary = state.get("values", {})
+	for c in _controls:
+		if values.has(c.id) and c.has("def"):
+			c["value"] = clampf(float(values[c.id]), c.min, c.max)
+	for pin: Dictionary in state.get("pins", []):
+		var kind := int(pin.get("kind", -1))
+		if kind in [0, 1] and _available(kind) > 0:
+			_add_piece(kind, pin.get("pos", Vector2.ZERO), true)
+	_viz_mode = posmod(int(state.get("viz", _viz_mode)), VIZ_NAMES.size())
+	_theta = float(state.get("theta", _theta))
+	_rho = clampf(float(state.get("rho", _rho)), 0.0, TABLE_R + 0.45)
+
+
+## The reaction-diffusion ring renders on the GPU every frame regardless of scripts, so
+## the pause menu (which disables this node) has to stop it explicitly.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DISABLED or what == NOTIFICATION_ENABLED:
+		var mode := SubViewport.UPDATE_ALWAYS if what == NOTIFICATION_ENABLED and not _solved else SubViewport.UPDATE_DISABLED
+		for st in _stages:
+			st.vp.render_target_update_mode = mode
+		if _tap != null:
+			_tap.render_target_update_mode = mode
 
 
 # --- simulation --------------------------------------------------------------------

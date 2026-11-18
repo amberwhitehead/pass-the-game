@@ -7,12 +7,15 @@ extends Control
 ## which can leave the game; override _back_leaves() for states where back should
 ## leave directly (a solved puzzle, a finished match).
 ## Set `use_touch_controls = false` for games that use tap/drag UI instead.
+## To resume where the player left off, return progress from save_state() and read it
+## back from resume_state in _ready(). Progress is kept until the game is won.
 
 const Style := preload("res://ui/game_style.gd")
 
 signal finished(result: Dictionary)
 
 var use_touch_controls := true
+var resume_state: Dictionary = {}  # Set by MiniGames before _ready() when there is saved progress.
 var _done := false
 
 
@@ -53,6 +56,12 @@ func _unhandled_input(event: InputEvent) -> void:
 ## True when back should leave directly instead of opening the pause menu.
 func _back_leaves() -> bool:
 	return false
+
+
+## Progress to restore on the next visit, or {} to start fresh. Values must be plain
+## data (numbers, strings, vectors, arrays, dictionaries) so they fit in the save file.
+func save_state() -> Dictionary:
+	return {}
 
 
 func finish(result: Dictionary) -> void:

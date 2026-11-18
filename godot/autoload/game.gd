@@ -33,6 +33,20 @@ func record_win(id: String, result: Dictionary) -> void:
 	_queue_save()
 
 
+## Unfinished minigame progress, kept in flags so it saves with everything else.
+func minigame_progress(id: String) -> Dictionary:
+	return (get_flag("minigame_progress", {}) as Dictionary).get(id, {}).duplicate(true)
+
+
+func set_minigame_progress(id: String, state: Dictionary) -> void:
+	var all: Dictionary = (get_flag("minigame_progress", {}) as Dictionary).duplicate(true)
+	if state.is_empty():
+		all.erase(id)
+	else:
+		all[id] = state.duplicate(true)
+	set_flag("minigame_progress", all)
+
+
 func has_save() -> bool:
 	return save_path != "" and SaveGame.exists(save_path)
 
@@ -90,6 +104,8 @@ func _flush_pending() -> void:
 
 func _notification(what: int) -> void:
 	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]:
+		if autosave:
+			MiniGames.capture_progress()  # Closing mid-minigame keeps its progress too.
 		_flush_pending()
 
 

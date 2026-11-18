@@ -112,6 +112,8 @@ use the shared export preset; this handoff's visual QA was performed on macOS.
   (browser storage on the Web). The title screen's **Continue** resumes the most
   recent slot, **New game** uses the first empty slot (or asks which to replace,
   with a second press to confirm), and **Load game** lists every slot's progress.
+  Unfinished minigames save too: leaving one, quitting to title or closing the
+  game keeps its progress for the next visit until it is won.
   A pre-slot `user://savegame.cfg` moves into an empty slot 1. Sound preferences
   are saved separately in `user://sound.cfg`. Tests and scenes run directly with
   F6 never read or write the saves.
@@ -187,6 +189,14 @@ cannot depend on the player's system fonts.
    Use `hub_architecture.gd` if its room/station needs a new position or label.
 4. If it rewards an overworld item or unlock, connect that explicitly in the hub;
    registering a minigame alone does not create the next escape-room step.
+
+Escape opens the pause menu (Resume, Leave, Sound, Quit to title) unless your
+game handles `back` first. Override `_back_leaves()` to leave directly instead,
+for example once solved. To let players resume where they left off, return plain
+data from `save_state()` and apply `resume_state` in `_ready()`; it is saved with
+the game and cleared after a win. Games without it simply start fresh. If your
+game renders with GPU viewports that update on their own, stop them on
+`NOTIFICATION_DISABLED` so the pause menu really pauses it (see `turing.gd`).
 
 An optional registry `trophy` script can return a Node3D from
 `static func build(result: Dictionary) -> Node3D`. Generic Props show that trophy

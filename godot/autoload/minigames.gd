@@ -45,6 +45,12 @@ func current_title() -> String:
 	return REGISTRY.get(_current_id, {}).get("title", "")
 
 
+## Stores the running minigame's progress without leaving it (before the app closes).
+func capture_progress() -> void:
+	if is_instance_valid(current) and not current.is_queued_for_deletion():
+		Game.set_minigame_progress(_current_id, current.save_state())
+
+
 ## Pauses the calling scene, runs the mini-game, resolves with its result.
 func play(id: String) -> Dictionary:
 	if is_running() or not REGISTRY.has(id):
@@ -86,6 +92,7 @@ func play(id: String) -> Dictionary:
 		current.external_entrance = true
 		current.hide()
 	current.process_mode = Node.PROCESS_MODE_ALWAYS
+	current.resume_state = Game.minigame_progress(id)
 	add_child(current)
 	_launching = false
 	started.emit(id)
@@ -97,6 +104,8 @@ func play(id: String) -> Dictionary:
 		transition.start(source_camera, current)
 
 	var result: Dictionary = await current.finished
+	# A win starts the next visit fresh; otherwise keep where the player left off.
+	Game.set_minigame_progress(id, {} if result.get("won", false) else current.save_state())
 	Sound.stop_owner(current)
 	if is_instance_valid(transition):
 		transition.abort()

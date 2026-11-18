@@ -139,6 +139,7 @@ godot --headless --audio-driver Dummy --path godot --script res://tests/carry_in
 godot --headless --audio-driver Dummy --path godot --script res://tests/escape_hub_test.gd
 godot --headless --audio-driver Dummy --path godot --script res://tests/save_game_test.gd
 godot --headless --audio-driver Dummy --path godot --script res://tests/pause_menu_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/minigame_resume_test.gd
 ```
 
 The pure optical model enumerates 3,465 source/rotation/lens/socket configurations.
@@ -171,6 +172,13 @@ Roman Flow. It checks that the menu pauses the hall or freezes the minigame, tha
 existing Escape jobs (releasing a prism wheel, the Sound panel) take priority, that
 Resume and a second Escape restore play, that Leave exits unsolved, that a solved
 puzzle still leaves directly, and that Quit to title saves first.
+
+The minigame resume suite leaves Egypt Fractal, Roman Flow and an Older Brother
+match partway through the real menu, reloads the save from disk, and checks that
+each reopens where it was left; that a win clears saved progress; that Roman
+Flow's GPU simulation stops while paused; that a resumed card match equals the
+original exactly even after a new card is found; that a replay which no longer
+matches deals a fresh match; and that Quit to title from a minigame saves it.
 
 Use `--audio-driver Dummy` for automated native tests and keep them headless.
 Browser visual checks should run in a background tab at

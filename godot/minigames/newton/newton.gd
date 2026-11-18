@@ -94,8 +94,28 @@ func _ready() -> void:
 	for c in _controls:
 		if c.has("def"):
 			c["value"] = c["def"]
+	_resume(resume_state)
 	_apply_params()
 	_update_camera(1.0)
+
+
+## Rollers and the walk around the table are all a visit changes; the win is recomputed.
+func save_state() -> Dictionary:
+	if _solved:
+		return {}
+	var values := {}
+	for c in _controls:
+		if c.has("value"):
+			values[c.id] = c.value
+	return {"values": values, "theta": _theta}
+
+
+func _resume(state: Dictionary) -> void:
+	var values: Dictionary = state.get("values", {})
+	for c in _controls:
+		if values.has(c.id) and c.has("def"):
+			c["value"] = clampf(float(values[c.id]), c.min, c.max)
+	_theta = float(state.get("theta", _theta))
 
 
 # --- world -------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 extends CanvasLayer
 ## Escape menu over a paused hall or minigame. Callers open it only when "back" has no
 ## other job (releasing a wheel, closing a panel, leaving a solved puzzle...).
+## Leaving a minigame or quitting to title keeps the minigame's progress (MiniGame.save_state).
 
 const Style := preload("res://ui/game_style.gd")
 const TITLE_SCENE := "res://scenes/title/title.tscn"
@@ -83,7 +84,6 @@ func open_minigame(game: Node, title: String) -> void:
 func _show(place: String) -> void:
 	_place.text = place
 	leave_button.visible = _minigame != null
-	quit_button.visible = _minigame == null
 	_touch_was_enabled = TouchControls.is_enabled()
 	TouchControls.set_enabled(false)
 	_veil.show()
@@ -110,7 +110,10 @@ func _leave_minigame() -> void:
 		game.finish({"won": false, "quit": true})
 
 
+## From a minigame this leaves it first, which keeps its progress for the next visit.
 func _quit_to_title() -> void:
+	if _minigame != null:
+		_leave_minigame()
 	Game.save_now()
 	Game.autosave = false
 	close()

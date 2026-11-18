@@ -27,6 +27,9 @@ var _dialog: Control
 var _notes: Array[String] = []
 var _found_cards: Array[String] = []
 var _encounter_settings: Dictionary = {}
+var _match_seed := 1
+var _actions: Array = []  # Every rules call this match, so a later visit can replay it exactly.
+var _resumed := false
 
 
 func _ready() -> void:
@@ -50,6 +53,8 @@ func _ready() -> void:
 		# Re-entering the room starts a fresh deal; the pure rules stay seedable.
 		_seed = int(randi() % 2147483646) + 1
 	_start_match()
+	if not resume_state.is_empty():
+		_resume_match(resume_state)
 	_entering = true
 	_busy = true
 	_refresh()
@@ -79,7 +84,10 @@ func complete_entrance() -> void:
 	table.hud.modulate.a = 1.0
 	table.hand.show()
 	_refresh()
-	_show_rules()
+	if _resumed:
+		table.hint.text = "Back at the table. The match is where you left it."
+	else:
+		_show_rules()
 	entrance_finished.emit()
 
 
@@ -95,6 +103,8 @@ func _start_match() -> void:
 	var overrides := {"collected_cards": _found_cards} if _older() else {}
 	_encounter_settings = Config.resolve(opponent_id, overrides)
 	match_state = Rules.new(opponent_id, overrides)
+	_match_seed = _seed
+	_actions.clear()
 	_shown = match_state.start(_seed)
 	_seed += 1
 	table.hud.collection_count = _found_cards.size() if _older() else -1
@@ -148,6 +158,7 @@ func _choose_lane(side: String, lane: int) -> void:
 		table.hint.text = error
 		table.slot(side, lane).pulse(Color("e77e6c"))
 		return
+	_actions.append({"card": _selected, "lane": lane, "other": -1})
 	var events: Array = match_state.play_card(_selected, lane)
 	_selected = -1
 	_swap_source = -1
@@ -184,6 +195,7 @@ func _choose_swap(lane: int) -> void:
 		Sound.play("unavailable", self)
 		table.hint.text = error
 		return
+	_actions.append({"card": _selected, "lane": _swap_source, "other": lane})
 	var events: Array = match_state.play_card(_selected, _swap_source, lane)
 	_selected = -1
 	_swap_source = -1
@@ -196,6 +208,7 @@ func _end_turn() -> void:
 	Sound.play("end_turn", self, 0, .8)
 	_selected = -1
 	_swap_source = -1
+	_actions.append({"end": true})
 	await _animate_events(match_state.end_turn())
 
 
@@ -284,6 +297,49 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	super(event)
+
+
+## An unfinished match as its seed, starting deck and actions. The final snapshot lets a
+## later visit confirm the replay still matches (card or rules tuning may have changed).
+func save_state() -> Dictionary:
+	if match_state == null or _actions.is_empty() or match_state.snapshot().winner != "":
+		return {}
+	return {"seed": _match_seed, "next_seed": _seed, "found": _found_cards.duplicate(),
+		"actions": _actions.duplicate(true), "notes": _notes.duplicate(), "snapshot": match_state.snapshot()}
+
+
+## Rebuilds a saved match by replaying it through the rules. Anything that no longer
+## replays exactly (an illegal step or a different result) deals a fresh match instead.
+func _resume_match(state: Dictionary) -> void:
+	var found: Array[String] = []
+	found.assign(state.get("found", []))
+	var overrides := {"collected_cards": found} if _older() else {}
+	var rules: RefCounted = Rules.new(opponent_id, overrides)
+	rules.start(int(state.get("seed", 1)))
+	var actions: Array = state.get("actions", [])
+	for action: Dictionary in actions:
+		if action.has("end"):
+			if rules.snapshot().winner != "":
+				return
+			rules.end_turn()
+		elif rules.legality_error(int(action.card), int(action.lane), int(action.other)) == "":
+			rules.play_card(int(action.card), int(action.lane), int(action.other))
+		else:
+			return
+	if rules.snapshot() != state.get("snapshot", {}):
+		return
+	_found_cards = found
+	_encounter_settings = Config.resolve(opponent_id, overrides)
+	match_state = rules
+	_shown = rules.snapshot()
+	_match_seed = int(state.get("seed", 1))
+	_seed = int(state.get("next_seed", _seed))
+	_actions = actions.duplicate(true)
+	_notes.assign(state.get("notes", []))
+	_resumed = true
+	table.hud.collection_count = _found_cards.size() if _older() else -1
+	table.history.text = "\n\n".join(_notes)
+	_refresh()
 
 
 ## Back still leaves during the entrance and once the match is decided.

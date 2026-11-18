@@ -75,8 +75,8 @@ func _minigame() -> void:
 	_expect(puzzle != null, "Egypt opens")
 	await _escape()
 	_expect(_menu.is_open() and puzzle.process_mode == Node.PROCESS_MODE_DISABLED, "Escape in a minigame opens the menu and freezes it")
-	_expect(_menu.leave_button.visible and _menu.leave_button.text == "Leave Egypt Fractal" and not _menu.quit_button.visible,
-		"The minigame menu offers to leave that minigame")
+	_expect(_menu.leave_button.visible and _menu.leave_button.text == "Leave Egypt Fractal" and _menu.quit_button.visible,
+		"The minigame menu offers to leave that minigame or quit to title")
 	_expect(_games.current == puzzle and not _returned, "Opening the menu does not leave the minigame")
 	await _escape()
 	_expect(not _menu.is_open() and puzzle.process_mode == Node.PROCESS_MODE_ALWAYS and _games.current == puzzle,

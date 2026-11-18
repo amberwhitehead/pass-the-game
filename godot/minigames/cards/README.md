@@ -47,7 +47,10 @@ Little Brother's tutorial uses these rules:
   Esc closes an open rules/restart dialog or cancels a pending swap; otherwise it
   opens the pause menu, which can leave the table. During the entrance and after
   the match is decided, Esc still leaves directly. Wins are saved, including when
-  leaving with the close button.
+  leaving with the close button. An unfinished match is kept as its seed, starting
+  deck and actions, and replays through the rules on the next visit; if the replay
+  no longer reproduces the saved snapshot (for example after a tuning change), a
+  fresh match is dealt instead.
 
 ## Starter deck
 
