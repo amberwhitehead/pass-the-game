@@ -195,3 +195,19 @@ across quitting and reloading. Winning clears it, so a solved puzzle starts fres
 - Minigames opt in with `save_state()` and `resume_state`; the guide for adding a
   minigame explains how. `minigame_resume_test` (27 checks) covers all three
   games through the real menu and a reload from disk.
+
+### `db66fe1` — Texture imports no longer change when the editor opens
+
+Opening the project in the Godot editor rewrote texture `.import` files, so every
+contributor would see unexplained diffs. Godot's "Detect 3D" option switches a
+lossless texture to lossy GPU compression the first time the editor sees it on a
+3D model. For the characters' and props' flat-colored palette images that risks
+shifted or bleeding colors, and it made committed settings depend on which scenes
+someone happened to open.
+
+- "Detect 3D" is now off in all 37 committed texture imports (27 character
+  palettes, 9 prop palettes, the icon). They stay lossless, exactly as committed.
+- `project.godot` sets the same default for textures added later.
+- The setup guide explains that `.import` files are committed source (settings and
+  stable asset IDs) while `.godot/` is the cache, and to revert any further
+  editor rewrites rather than commit them.
