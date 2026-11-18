@@ -172,3 +172,26 @@ do. Before this, Escape did nothing in the hall and left minigames immediately.
 - A new `PauseMenu` autoload holds the menu; minigames can override
   `_back_leaves()` to keep leaving directly. `pause_menu_test` (21 checks) drives
   real Escape presses through the hall, Egypt Fractal and Roman Flow.
+
+### `3ca816d` — Resume minigames, Quit to title from them, and a real Roman Flow pause
+
+Leaving a minigame unsolved now keeps your progress for the next visit, including
+across quitting and reloading. Winning clears it, so a solved puzzle starts fresh.
+
+- **Egypt Fractal** keeps its roller values and your angle around the table.
+- **Roman Flow** keeps its rollers, placed pins, view mode and position. The
+  pattern regrows from them; a pin you were carrying goes back to its tray.
+- **Card duels** keep the match's seed, starting deck and every action, and
+  replay them through the rules on return, so the match comes back exactly. Cards
+  found in the meantime join the next match, not the saved one. If the replay no
+  longer reproduces the saved state (say, after card stats change), a fresh match
+  is dealt rather than a wrong one. A resumed match skips the rules introduction.
+- **Quit to title** is now in the minigame menu too. It leaves the minigame
+  (keeping its progress), saves, and opens the title screen. Closing the game
+  mid-minigame also keeps its progress.
+- **Roman Flow really pauses.** Its simulation runs on the GPU independently of
+  scripts, so the pattern kept changing behind the menu; it now stops and
+  restarts with the menu.
+- Minigames opt in with `save_state()` and `resume_state`; the guide for adding a
+  minigame explains how. `minigame_resume_test` (27 checks) covers all three
+  games through the real menu and a reload from disk.
