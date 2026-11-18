@@ -12,6 +12,14 @@ extends RefCounted
 # identity or credit preference.
 # ==========================================================================================
 
+# Open credit questions, left for the next contributor (or the people concerned) to settle.
+# Nobody has decided these; the entries below avoid guessing:
+# - cee.wtf's handoff says "the owner" playtested on November 16, 2026, without a name.
+#   The playtest is not credited to anyone.
+# - tesseract's pull request came from a fork owned by "tessprime"; the docs and
+#   commits say "tesseract", so that name is used.
+# - Only rmurrish's turn records which AI tool was used; no tool is listed for the others.
+
 ## Contributors in the order their turns reached the game.
 const CONTRIBUTORS := [
 	{"name": "Amber Whitehead", "role": "Project owner",
