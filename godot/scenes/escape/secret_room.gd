@@ -1,7 +1,9 @@
 extends Node3D
-## An optional Easter egg: an unusual panel on the hall's east wall, near the south-east
-## corner, under the inscription "Not every room has a number." Inspecting it moves the
-## player to a small room far below the hall; a panel there returns them.
+## An optional Easter egg. The hall's side walls carry a few plain service panels; most
+## are inert wall cladding, but the one on the east wall near the south-east corner has a
+## recessed latch on a patch worn smooth by use. Opening it moves the player to a small
+## room far below the hall; a clearly labelled panel there returns them.
+## Keep the decorative panels plain meshes: no prompt, focus, sound or input.
 ##
 ## The room is deliberately empty for future developers to build on: add to `room`
 ## (local origin = the room's floor centre). Visits are scene-local; nothing is saved.
@@ -15,6 +17,13 @@ const Sign := preload("res://ui/world_sign.gd")
 ## Panel on the east wall's inner face, south of Door 2, facing into the hall.
 const PANEL_AT := Vector3(10.86, 0, 5.4)
 const PANEL_YAW := -PI / 2
+## Inert lookalikes on the side walls' inner faces (x = ±10.86), clear of doors, NPCs,
+## card caches and the optics: [position, yaw, height, variant].
+const DECOR := [
+	[Vector3(10.86, 0, -6.0), -PI / 2, 1.0, "vent"],
+	[Vector3(-10.86, 0, 5.4), PI / 2, 0.9, "plain"],
+	[Vector3(-10.86, 0, -3.9), PI / 2, 1.0, "vent"],
+]
 ## The room sits well below the hall floor (which is solid and 0.24 m thick).
 const ROOM_AT := Vector3(0, -6, 0)
 const ROOM_HALF := 3.0
@@ -87,15 +96,55 @@ func _request(direction: int) -> void:
 
 
 func _build_entrance() -> void:
-	var corner := Node3D.new()
-	corner.name = "UnusualPanel"
-	corner.position = PANEL_AT
-	corner.rotation.y = PANEL_YAW
-	add_child(corner)
-	entrance = _panel(corner, "Inspect unusual panel", 1)
-	Sign.plaque(corner, "Not every room has a number.", "", Vector3(0, 2.0, .05), Vector2(1.7, .3), Sign.GOLD)
-	# Short range: enough to light the corner, not through the Brothers' wall 2.6 m away.
-	Geometry.lamp(corner, Vector3(0, 2.4, .7), Color(1.0, .88, .7), 2.4, .9)
+	var spot := Node3D.new()
+	spot.name = "ServicePanel"
+	spot.position = PANEL_AT
+	spot.rotation.y = PANEL_YAW
+	add_child(spot)
+	entrance = _panel(spot, "Open service panel", 1, false)
+	for index in DECOR.size():
+		var decor: Array = DECOR[index]
+		var plain := Node3D.new()
+		plain.name = "WallServicePanel%d" % (index + 1)
+		plain.position = decor[0]
+		plain.rotation.y = decor[1]
+		add_child(plain)
+		service_cladding(plain, decor[2], decor[3])
+
+
+## Plain service-panel cladding in the hall wall's own material: an inset plate, a dark
+## seam, steel trim and corner bolts. Meshes only; the wall behind supplies collision.
+## variant "vent" adds louvre slots; "worked" adds the real panel's latch on a worn patch.
+static func service_cladding(parent: Node3D, height := 1.0, variant := "plain") -> Array[MeshInstance3D]:
+	var worked: Array[MeshInstance3D] = []
+	var width := .7
+	var centre := Vector3(0, .65 + height / 2, 0)
+	var wall := Geometry.surface(Color(0.10, 0.13, 0.15), 0.3, .62)
+	var plate := Geometry.surface(Color(0.115, 0.145, 0.165), 0.34, .58)
+	var trim := Geometry.surface(Color(0.18, 0.22, 0.24), 0.65, .34)
+	var seam := Geometry.material(Color("05090a"))
+	Geometry.box(parent, centre + Vector3(0, 0, .012), Vector3(width + .06, height + .06, .024), trim)
+	Geometry.box(parent, centre + Vector3(0, 0, .028), Vector3(width, height, .02), plate)
+	for edge: Array in [[Vector3(0, height / 2, 0), Vector3(width, .01, .006)], [Vector3(0, -height / 2, 0), Vector3(width, .01, .006)],
+			[Vector3(-width / 2, 0, 0), Vector3(.01, height, .006)], [Vector3(width / 2, 0, 0), Vector3(.01, height, .006)]]:
+		Geometry.box(parent, centre + edge[0] + Vector3(0, 0, .04), edge[1], seam)
+	var bolt := Geometry.material(Color(0.32, 0.35, 0.36), .7)
+	for corner in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+		Geometry.box(parent, centre + Vector3(corner.x * (width / 2 - .05), corner.y * (height / 2 - .05), .042),
+			Vector3(.028, .028, .012), bolt)
+	if variant == "vent":
+		for slot in 4:
+			Geometry.box(parent, centre + Vector3(0, height / 2 - .14 - slot * .055, .04), Vector3(width * .55, .014, .006), seam)
+	if variant == "worked":
+		# The tell: a recessed latch, its surround rubbed bright by hands. Shape and
+		# sheen, not hue, so it reads up close and stays quiet across the hall.
+		var at := centre + Vector3(width / 2 - .13, 0, 0)
+		var worn := Geometry.material(Color(0.33, 0.36, 0.37), .72)
+		worked.append(Geometry.box(parent, at + Vector3(0, 0, .039), Vector3(.15, .24, .003), worn))
+		Geometry.box(parent, at + Vector3(0, 0, .041), Vector3(.06, .1, .004), seam)
+		var tongue := Geometry.material(Color(0.56, 0.58, 0.57), .8)
+		worked.append(Geometry.box(parent, at + Vector3(0, -.01, .043), Vector3(.024, .055, .008), tongue))
+	return worked
 
 
 func _build_room() -> void:
@@ -126,10 +175,12 @@ func _build_room() -> void:
 	Sign.plaque(way_out, "Return to the hall", "", Vector3(0, 1.95, .05), Vector2(1.1, .3), Sign.GOLD)
 
 
-## A recessed brass-framed panel with a handle; local +Z faces the player.
-func _panel(parent: Node3D, prompt: String, direction: int) -> Interactable:
+## A usable panel. In the hall it is service cladding with a worked latch; the room's
+## exit keeps a brass frame and handle so leaving is never another secret.
+func _panel(parent: Node3D, prompt: String, direction: int, labelled := true) -> Interactable:
 	var panel := SecretPanel.new()
 	panel.prompt = prompt
+	panel.labelled = labelled
 	panel.interacted.connect(_request.bind(direction))
 	parent.add_child(panel)
 	return panel
@@ -138,8 +189,8 @@ func _panel(parent: Node3D, prompt: String, direction: int) -> Interactable:
 class SecretPanel extends Interactable:
 	const Geometry := preload("res://scenes/escape/hub_geometry.gd")
 	const Sign := preload("res://ui/world_sign.gd")
-	var _frame: Array[MeshInstance3D] = []
-	var _focus: Vector3
+	var labelled := true
+	var _glow: Array[MeshInstance3D] = []
 
 	func _ready() -> void:
 		super()
@@ -152,13 +203,14 @@ class SecretPanel extends Interactable:
 		bounds.shape = box
 		bounds.position = Vector3(0, 1.15, .2)  # In front of the wall, so line of sight reaches it.
 		add_child(bounds)
+		if not labelled:
+			_glow = load("res://scenes/escape/secret_room.gd").service_cladding(self, 1.0, "worked")
+			return
 		var dark := Geometry.surface(Color("101a1d"), .3, .7)
 		Geometry.box(self, Vector3(0, 1.15, .02), Vector3(.7, 1.1, .03), dark)
 		for edge: Array in [[Vector3(0, 1.72, .045), Vector3(.8, .05, .04)], [Vector3(0, .58, .045), Vector3(.8, .05, .04)],
 				[Vector3(-.375, 1.15, .045), Vector3(.05, 1.19, .04)], [Vector3(.375, 1.15, .045), Vector3(.05, 1.19, .04)]]:
-			var strip := Geometry.box(self, edge[0], edge[1], Geometry.material(Color("8c7448"), .72))
-			_frame.append(strip)
-		# A recessed seam and a pull handle: the shape, not just the colour, sets it apart.
+			_glow.append(Geometry.box(self, edge[0], edge[1], Geometry.material(Color("8c7448"), .72)))
 		Geometry.box(self, Vector3(0, 1.15, .04), Vector3(.012, 1.0, .01), Geometry.material(Color("05090a")))
 		Geometry.box(self, Vector3(.22, 1.15, .1), Vector3(.035, .3, .035), Geometry.material(Color("b89a5e"), .8))
 		for y in [1.02, 1.28]:
@@ -167,9 +219,10 @@ class SecretPanel extends Interactable:
 	func get_focus_position() -> Vector3:
 		return to_global(Vector3(0, 1.15, .12))
 
+	## Close-range focus feedback, as other usable things in the hall have.
 	func _on_focus_changed(value: bool) -> void:
-		for strip in _frame:
-			var material := strip.material_override as StandardMaterial3D
+		for part in _glow:
+			var material := part.material_override as StandardMaterial3D
 			material.emission_enabled = value
 			material.emission = Sign.GOLD
-			material.emission_energy_multiplier = .45
+			material.emission_energy_multiplier = .45 if labelled else .25

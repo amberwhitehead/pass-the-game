@@ -40,11 +40,22 @@ func _run() -> void:
 
 func _layout() -> void:
 	var labels := _labels(_secret)
-	_expect("Not every room has a number." in labels, "The inscription reads exactly")
+	_expect(labels.size() == 3 and not _labels(_secret.entrance.get_parent()).size(),
+		"The hall entrance has no sign; only the room's three labels exist")
 	_expect("You found an Easter Egg!" in labels and "This room should be developed by other developers." in labels,
 		"Both room signs read exactly")
 	_expect("Return to the hall" in labels and _secret.exit.prompt == "Return to the hall", "The return panel is labelled")
-	_expect(_secret.entrance.prompt == "Inspect unusual panel", "The entrance prompt")
+	_expect(_secret.entrance.prompt == "Open service panel", "The entrance prompt")
+	_expect(_secret.find_children("*", "OmniLight3D", true, false).size() == 1, "Only the room has its own light")
+	var decor: Array[Node] = _secret.find_children("WallServicePanel*", "Node3D", false, false)
+	_expect(decor.size() == 3, "Three decorative service panels line the hall")
+	for panel: Node in decor:
+		_expect(panel.find_children("*", "Area3D", true, false).is_empty()
+			and panel.find_children("*", "CollisionObject3D", true, false).is_empty(),
+			"%s is plain meshes: nothing to target or collide with" % panel.name)
+	var entrance_parts: int = _secret.entrance.find_children("*", "MeshInstance3D", true, false).size()
+	var plain_parts: int = (decor[1] as Node).find_children("*", "MeshInstance3D", true, false).size()
+	_expect(entrance_parts > plain_parts, "Only the real panel carries the worked latch")
 	_expect(_secret.room.global_position.y <= -6.0, "The room is far below the hall floor")
 	var panel_top: Vector3 = _secret.entrance.get_focus_position()
 	_expect(panel_top.x < 10.86 and absf(panel_top.y - 1.15) < .01, "The panel's focus point is in front of the wall at chest height")
@@ -60,7 +71,23 @@ func _enter_and_return() -> void:
 	_expect(_player.target == _secret.entrance, "Standing 1.5 m from the panel targets it")
 	await _physics(2)
 	_expect(_room.hud._prompt.visible and _secret.entrance.prompt in _room.hud._prompt.title.text,
-		"The normal prompt shows 'Inspect unusual panel'")
+		"The normal prompt shows 'Open service panel'")
+	# Every decorative panel, faced the same way from the same distance, offers nothing.
+	for panel: Node3D in _secret.find_children("WallServicePanel*", "Node3D", false, false):
+		var face := panel.to_global(Vector3(0, 1.15, 1.5))
+		face.y = 0.0
+		_player.global_position = face
+		var look := panel.to_global(Vector3(0, 1.15, 0)) - face
+		_player.rotation.y = atan2(-look.x, -look.z)
+		_player.camera.rotation.x = -0.2
+		await _physics(6)
+		var start := _player.global_position
+		await _tap(KEY_E)
+		await _physics(3)
+		_expect(_player.target == null and not _room.hud._prompt.visible and not _secret.inside
+			and _player.global_position.distance_to(start) < .05, "%s shows no prompt and does nothing" % panel.name)
+	await _stand_at_panel(Vector3(9.3, 0, 5.4), -0.2)
+	await _physics(2)
 	var before := {"position": _player.global_position, "yaw": _player.rotation.y, "pitch": _player.camera.rotation.x}
 	await _tap(KEY_E)
 	await _physics(3)

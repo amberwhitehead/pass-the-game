@@ -91,8 +91,10 @@ Human playtesting still determines whether the lens relocation insight is clear.
 
 ## Easter egg room (spoiler)
 
-`secret_room.gd` adds an unusual panel on the east wall near the south-east corner,
-under "Not every room has a number." Inspecting it moves the player to a small empty
-room 6 m below the hall; its panel returns them to where they stood. The room is left
-for future developers: build inside `SecretRoom.room` (origin = its floor centre).
-Visits are not saved. Covered by `secret_room_test`.
+`secret_room.gd` lines the hall's east and west walls with a few plain service panels.
+Three are inert cladding (meshes only, no prompt or collision of their own). The one
+on the east wall near the south-east corner has a recessed latch on a rubbed-bright
+patch; it offers "Open service panel" and moves the player to a small empty room 6 m
+below the hall, whose labelled panel returns them to where they stood. The room is
+left for future developers: build inside `SecretRoom.room` (origin = its floor
+centre). Visits are not saved. Covered by `secret_room_test`.
