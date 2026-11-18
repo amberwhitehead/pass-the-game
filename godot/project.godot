@@ -37,6 +37,12 @@ window/handheld/orientation=4
 
 theme/custom_font="res://assets/fonts/DejaVuSans.ttf"
 
+[importer_defaults]
+
+texture={
+"detect_3d/compress_to": 0
+}
+
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true

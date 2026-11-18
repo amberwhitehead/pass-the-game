@@ -107,6 +107,13 @@ use the shared export preset; this handoff's visual QA was performed on macOS.
   standalone test scripts. The first cache-free import can initially report a
   missing imported default font; the import generates that resource. If it is
   still missing on the next launch, investigate the import log.
+- **Unexpected `.import` changes:** `.import` files are committed source (per-asset
+  settings and stable `uid://` IDs); the generated cache is the ignored `.godot/`.
+  Godot's "Detect 3D" option rewrites a texture's `.import` to GPU compression the
+  first time the editor sees it in 3D, which is lossy for the character and prop
+  palettes. It is off for every committed texture and, through `importer_defaults`
+  in `project.godot`, for new ones. If an editor version still rewrites `.import`
+  files, revert them rather than committing them.
 - **Saved progress:** wins, puzzle state, the carried item and found cards save
   automatically to one of three slots, `user://save_slot_1.cfg` to `_3.cfg`
   (browser storage on the Web). The title screen's **Continue** resumes the most
