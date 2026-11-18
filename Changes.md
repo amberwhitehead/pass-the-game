@@ -132,3 +132,24 @@ saves".
   continues a game, so tests and F6 scene runs never touch the real save. The
   new `save_game_test` (15 checks) covers the file format, version mismatch,
   autosave gating and batching, and Continue / New game.
+
+### `927c495` — Title screen with three save slots
+
+The game now opens on a title screen instead of the intro story.
+
+- **Continue** resumes the most recently saved slot and goes straight to the
+  hall. It appears only when a save exists.
+- **New game** takes the first empty slot and plays the intro. If all three
+  slots are full, it lists them so you can choose one to replace; replacing a
+  slot takes a second press.
+- **Load game** lists every slot with its progress (for example "Egypt ✓ · Door
+  2 open · 3/5 cards") and when it was last played. Empty slots can't be loaded.
+  Escape or gamepad B returns to the menu.
+- Saves are now `user://save_slot_1.cfg` to `_3.cfg`. A save from the previous
+  commit's single file moves into an empty slot 1 the first time the title
+  screen opens.
+- The intro returns to its original version with only "Skip intro"; the
+  Continue / New game buttons from the previous commit moved to the title
+  screen.
+- `save_game_test` now has 32 checks, covering slots and the title screen with
+  its own test slot files.
