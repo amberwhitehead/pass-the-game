@@ -201,10 +201,12 @@ It saves to `user://test_controls.cfg`; headless runs never load or save the pla
 The movement suite drives the real Player scene on a small floor/wall/low-ceiling
 fixture: W/S and A/D after a 90-degree turn, walking at both pitch limits, equal
 straight and diagonal speed, moving while looking, standing and running jumps, no
-air jumps or held-key bouncing, walls, falling, the ceiling, a lock taken mid-jump,
+air jumps or held-key bouncing, walls, falling, walking off a ledge, the ceiling, a lock taken mid-jump,
 pause preserving a jump without replaying held keys, the remapped keys with
 gamepad bindings intact, emulated touch not looking twice, the mouse-capture gate
-and the wheel turning with A/D. Real pointer lock needs a browser and a person.
+and the wheel turning with A/D. In the real hall it also checks that Space beside an
+NPC jumps without starting the conversation while E still starts it. Real pointer lock
+needs a browser and a person.
 
 The pure optical model enumerates 3,465 source/rotation/lens/socket configurations.
 Only A/B with either L/M color order wins. Scene checks verify atomic exchanges,

@@ -12,6 +12,7 @@ var _menu: CanvasLayer
 const FLOOR_Y := 0.0
 const WALL_X := 4.0
 const CEILING := Vector3(-8, 2.0, 0)  # Underside of a low slab, 0.3 m above the head.
+const LEDGE := Vector3(0, 0.5, 10)  # A 0.5 m platform to walk off.
 
 
 func _initialize() -> void:
@@ -30,6 +31,7 @@ func _run() -> void:
 	_box(world, Vector3(0, FLOOR_Y - 0.1, 0), Vector3(40, 0.2, 40))
 	_box(world, Vector3(WALL_X + 0.1, 1.5, 0), Vector3(0.2, 3, 40))
 	_box(world, CEILING + Vector3(0, 0.1, 0), Vector3(3, 0.2, 3))
+	_box(world, LEDGE + Vector3(0, -0.25, 0), Vector3(3, 0.5, 3))  # Top surface at LEDGE.y.
 	_player = load("res://scenes/room/player.tscn").instantiate()
 	world.add_child(_player)
 	await _ticks(10)
@@ -45,6 +47,7 @@ func _run() -> void:
 	await _wheel()
 	_release_all()
 	world.queue_free()
+	await _space_near_interactable()
 	Engine.physics_ticks_per_second = ticks_per_second
 	print("Player movement: %d checks, %d failures" % [_checks, _failures])
 	quit(1 if _failures else 0)
@@ -174,6 +177,21 @@ func _jumping() -> void:
 	peak = await _jump_peak(false)
 	_expect(peak + 1.7 <= CEILING.y + 0.03, "A low ceiling stops the head (peak %.3f)" % peak)
 	_expect(_player.is_on_floor(), "After hitting the ceiling the player falls back down")
+	# Walk off a ledge: no snap down, a real fall that keeps its momentum, then a landing.
+	await _place(LEDGE, 0.0)
+	_expect(_player.is_on_floor() and absf(_player.position.y - LEDGE.y) < 0.02, "The player stands on the ledge")
+	_press(["move_up"])
+	var left_ledge := false
+	var fell_moving := false
+	for tick in 90:
+		await physics_frame
+		if not _player.is_on_floor() and _player.position.y < LEDGE.y - 0.05:
+			left_ledge = true
+			fell_moving = fell_moving or _horizontal_speed() > _player.speed - 0.05
+	_release_all()
+	await _ticks(30)
+	_expect(left_ledge and fell_moving, "Walking off the ledge falls while still moving forward")
+	_expect(_player.is_on_floor() and absf(_player.position.y - FLOOR_Y) < 0.02, "The fall lands on the floor below")
 	# A modal lock in mid-air must not freeze the jump in place.
 	await _place(Vector3.ZERO, 0.0)
 	_press(["jump"])
@@ -299,6 +317,52 @@ func _wheel() -> void:
 	_expect(_player.position.distance_to(at) < 0.001, "The locked player does not strafe")
 	aim.finish()
 	aim.queue_free()
+
+
+## In the real hall, facing a talking NPC: a real Space key event jumps without talking;
+## a real E key event still starts the conversation.
+func _space_near_interactable() -> void:
+	root.get_node("Game").set_flag("room_visited")
+	var room: Node3D = load("res://scenes/room/room.tscn").instantiate()
+	root.add_child(room)
+	current_scene = room
+	var player: Player = room.get_node("Player")
+	var npc: NPC = room.get_node("Egyptian")
+	var dialogue := root.get_node("Dialogue")
+	await _ticks(5)
+	for direction: Vector3 in [Vector3.FORWARD, Vector3.BACK, Vector3.LEFT, Vector3.RIGHT]:
+		player.global_position = npc.global_position + direction * 1.6
+		player.global_position.y = 0.0
+		player.velocity = Vector3.ZERO
+		var to := npc.global_position - player.global_position
+		player.rotation.y = atan2(-to.x, -to.z)
+		player.camera.rotation.x = -0.15
+		await _ticks(6)
+		if player.target == npc:
+			break
+	_expect(player.target == npc, "Fixture faces the Egyptian closely enough to interact")
+	await _real_key(KEY_SPACE)
+	await _ticks(3)
+	_expect(not dialogue.active, "Space beside an NPC does not start the conversation")
+	_expect(player.velocity.y > 0.0 or not player.is_on_floor(), "Space beside an NPC jumps")
+	await _ticks(60)
+	await _real_key(KEY_E)
+	await _ticks(2)
+	_expect(dialogue.active, "E beside the NPC still starts the conversation")
+	dialogue.active = false
+	dialogue._panel.visible = false
+	room.queue_free()
+	await _ticks(2)
+
+
+func _real_key(key: Key) -> void:
+	for pressed in [true, false]:
+		var event := InputEventKey.new()
+		event.physical_keycode = key
+		event.keycode = key
+		event.pressed = pressed
+		Input.parse_input_event(event)
+		await _ticks(3)
 
 
 func _jump_peak(hold_after: bool) -> float:
