@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Save file round trips, slots, autosave gating and batching, and the title screen.
 ## Uses its own slot files, so the player's real saves are never read or replaced.
 const SaveGame := preload("res://autoload/save_game.gd")

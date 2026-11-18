@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Deterministic contracts for the older brother's positional combat.
 const Rules := preload("res://minigames/cards/match_rules.gd")
 const Combat := preload("res://minigames/cards/match_combat.gd")

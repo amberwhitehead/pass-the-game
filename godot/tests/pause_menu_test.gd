@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## The Escape menu through real input: hall pause, priority for existing back actions,
 ## minigame freeze/resume/leave, solved puzzles leaving directly, and quitting to title.
 const SaveGame := preload("res://autoload/save_game.gd")

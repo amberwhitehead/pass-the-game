@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Long copy and modal controls must fit the window without swallowing gameplay input.
 var checks := 0
 var failures := 0

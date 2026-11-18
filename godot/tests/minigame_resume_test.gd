@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Leaving mid-minigame keeps progress for the next visit, through the real launcher, the
 ## pause menu and the save file. Wins clear it. Roman Flow's GPU simulation stops while
 ## paused. Card matches resume by exact replay and refuse replays that no longer match.

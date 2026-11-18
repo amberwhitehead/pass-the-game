@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Scene integration smoke test. No rendered window or synthetic OS input.
 ## Run: godot --headless --path godot --script res://tests/cards_scene_test.gd
 

@@ -6,17 +6,41 @@ From the repository root (`py -3` instead of `python3` on Windows):
 python3 tools/run_tests.py
 ```
 
-This imports the project, runs every Godot suite headless and muted, then the
-Python tool tests, and prints one PASS/FAIL line per suite with a total. A
-`SCRIPT ERROR` fails a suite even if it reports no failures, because Godot exits
-normally after one and skips the rest of that suite. It exits nonzero if anything
-fails; full logs are in `godot/build/test-logs/`. Pass
-part of a name to run only some suites (`python3 tools/run_tests.py optics save`),
-`--no-import` to skip the import, and `--godot PATH` if Godot 4.7.2 is not found
-(it refuses other versions). `cards_transition_render_test` needs a real window,
-so it is skipped unless you pass `--graphical`, which opens one.
+This imports the project, then runs every Godot suite headless and muted **in one
+Godot process** (about 25 seconds), then the Python tool tests, printing one
+PASS/FAIL line per suite with a total. It exits nonzero if anything fails; full
+logs are in `godot/build/test-logs/`.
 
-The sections below describe what each suite covers and how to run one directly.
+- `--quick` runs only the logic suites that load no scenes, in about 2 seconds.
+- Part of a name runs only matching suites: `python3 tools/run_tests.py optics save`.
+- `--no-import` skips the import; `--godot PATH` names Godot 4.7.2 if it is not
+  found (other versions are refused).
+- `cards_transition_render_test` needs a real window, so it is skipped unless you
+  pass `--graphical`, which opens one.
+- `--shuffle SEED` runs suites in a random order, to check that none depends on
+  another; `--isolated` gives each suite its own process (much slower).
+
+Failures are quick and specific:
+
+- **Compile errors.** Before any suite, every script in the project is compiled.
+  A compile error anywhere stops the run in about 2 seconds, naming the file and
+  line, instead of surfacing later as unrelated failures.
+- **Script errors.** A `SCRIPT ERROR` fails its suite at once even if the suite
+  reports no failures (Godot carries on after one, skipping the rest of the suite);
+  the remaining suites continue in a fresh process.
+- **Hangs.** A suite still running after 20 seconds (`--timeout`) is stopped, its
+  Godot processes are killed, and the rest continue.
+
+How it works: each suite extends `tests/test_suite.gd`, which supplies the few
+`SceneTree` members suites use (`root`, `process_frame`, `quit()`...), so a suite
+reads as if it were its own Godot program. `tests/run_suites.gd` runs the suites
+named after `--` one after another, resetting the engine and autoloads between
+them as a fresh process would. To add a suite, create `tests/<name>_test.gd`
+extending `test_suite.gd` and end it with `quit(0)` or `quit(1)`; the runner finds
+it by name. Any reset a new kind of state needs belongs in `run_suites.gd`.
+
+The sections below describe what each suite covers. Each command runs one suite
+directly with Godot, without the runner.
 
 # Card rules checks
 
@@ -24,10 +48,10 @@ The balance lab uses the actual card rules with seeded, public-information bots:
 
 ```sh
 python3 tools/card_sim.py --seeds 200
-godot --headless --audio-driver Dummy --path godot --script res://tests/sim_config_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/sim_policies_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/sim_runner_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/sim_blindspots_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- sim_config_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- sim_policies_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- sim_runner_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- sim_blindspots_test
 python3 -m unittest discover -s tools -p 'test_card_sim*.py'
 ```
 
@@ -42,17 +66,17 @@ targets. See `godot/simulation/cards/README.md` for experiments and report usage
 From the repository root, using Godot 4.7.2:
 
 ```sh
-godot --headless --audio-driver Dummy --path godot --script res://tests/cards_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/cards_scene_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/cards_table_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/cards_transition_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/card_face_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/older_rules_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/older_scene_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/cards_motion_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/card_progression_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/card_progression_scene_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/card_pickups_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- cards_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- cards_scene_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- cards_table_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- cards_transition_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- card_face_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- older_rules_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- older_scene_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- cards_motion_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- card_progression_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- card_progression_scene_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- card_pickups_test
 ```
 
 Each script exits nonzero if a check fails. The rules suite runs without loading
@@ -137,7 +161,7 @@ The pixel regression must run with a graphical renderer (it opens and closes its
 own game window):
 
 ```sh
-godot --audio-driver Dummy --path godot --script res://tests/cards_transition_render_test.gd
+godot --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- cards_transition_render_test
 ```
 
 It freezes the real transition at its covered handoff and compares the source
@@ -151,15 +175,15 @@ color-conversion pass that crushes shadows at the handoff.
 # Escape-room and carry checks
 
 ```sh
-godot --headless --audio-driver Dummy --path godot --script res://tests/newton_skip_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/optics_model_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/optics_scene_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/optics_aiming_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/carry_inventory_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/escape_hub_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/save_game_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/pause_menu_test.gd
-godot --headless --audio-driver Dummy --path godot --script res://tests/minigame_resume_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- newton_skip_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- optics_model_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- optics_scene_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- optics_aiming_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- carry_inventory_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- escape_hub_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- save_game_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- pause_menu_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- minigame_resume_test
 ```
 
 The pure optical model enumerates 3,465 source/rotation/lens/socket configurations.

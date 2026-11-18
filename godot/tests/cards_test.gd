@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Run: godot --headless --path godot --script res://tests/cards_test.gd
 ## Pure rules tests; no scenes, graphics, or input devices required.
 

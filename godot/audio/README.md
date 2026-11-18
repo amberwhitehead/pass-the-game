@@ -117,7 +117,7 @@ After importing assets, run from the repository root with Godot on PATH (or
 substitute its full executable path):
 
 ```sh
-godot --headless --audio-driver Dummy --path godot --script res://tests/audio_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- audio_test
 python3 -m unittest discover -s tools -p 'test_audio_choices.py'
 ```
 

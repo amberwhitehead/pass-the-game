@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Discoveries reach the actual controller, its rematches, and printed spell effects.
 const Catalog := preload("res://minigames/cards/card_catalog.gd")
 const Progression := preload("res://minigames/cards/deck_progression.gd")

@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Continuous hub/table handoff, reservation and cancellation integration checks.
 
 const Layout := preload("res://minigames/cards/table_layout.gd")

@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Both presentations share one face, and card copy must fit printed areas.
 const Face := preload("res://minigames/cards/card_face.gd")
 const Type := preload("res://minigames/cards/card_typography.gd")

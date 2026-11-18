@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Real card actors and animation lifecycles, without launching the room/tutorial.
 var _effects: GDScript
 var _checks := 0

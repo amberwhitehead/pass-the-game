@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 ## Interaction and optical regressions for continuous rotation, rather than
 ## a test that merely repeats the discrete setup helper used by older scenes.
 

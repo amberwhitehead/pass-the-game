@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 const Runner := preload("res://simulation/cards/run.gd")
 const Metrics := preload("res://simulation/cards/metrics.gd")
 const Options := preload("res://simulation/cards/run_options.gd")

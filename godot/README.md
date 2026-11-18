@@ -208,7 +208,7 @@ Import first, then run checks relevant to the changed system from the
 
 ```sh
 godot --headless --audio-driver Dummy --path godot --import
-godot --headless --audio-driver Dummy --path godot --script res://tests/cards_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- cards_test
 ```
 
 Use the executable path in place of `godot` when it is not on PATH. Automated

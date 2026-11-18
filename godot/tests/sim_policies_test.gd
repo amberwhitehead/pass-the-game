@@ -1,4 +1,4 @@
-extends SceneTree
+extends "res://tests/test_suite.gd"
 const Rules := preload("res://minigames/cards/match_rules.gd")
 const Combat := preload("res://minigames/cards/match_combat.gd")
 const Policies := preload("res://simulation/cards/policies.gd")
