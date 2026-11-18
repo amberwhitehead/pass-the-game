@@ -29,7 +29,8 @@ func _ready() -> void:
 	# Always-available exit, even when the touch pad is hidden.
 	var close := Button.new()
 	close.text = "×"
-	close.tooltip_text = "Leave · Esc (keyboard) / B (controller or touch) opens the menu"
+	close.tooltip_text = "Leave · %s (keyboard) / B (controller or touch) opens the menu" \
+		% preload("res://autoload/key_bindings.gd").label("back")
 	close.add_theme_font_size_override("font_size", 24)
 	close.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	close.offset_left = -68

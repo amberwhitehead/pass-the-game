@@ -58,6 +58,7 @@ All game sounds are included in the checkout. After a Web build, the
 
 Look with the **mouse** (click the game once so it can take the cursor), walk with
 **W/S**, strafe with **A/D**, jump with **Space**, and press **E** to interact.
+Every keyboard key can be changed in **Escape → Controls**.
 **Escape** opens a pause menu (Resume, Sound, Quit to title, or leave the current
 minigame) whenever it has nothing else to do. Progress saves automatically, with as many
 save slots as you like; the title screen offers **Continue**, **New game** and **Load game**.

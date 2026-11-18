@@ -8,6 +8,7 @@ extends CanvasLayer
 ## Touch and gamepad play never need capture; the last device used decides.
 
 const Style := preload("res://ui/game_style.gd")
+const KeyBindings := preload("res://autoload/key_bindings.gd")
 ## Mouse motion is ignored for a moment after capture begins: browsers can report one
 ## large jump as the pointer locks, which would snap the view.
 const SETTLE_FRAMES := 2
@@ -16,7 +17,9 @@ var keyboard_mouse := false
 var _player: Node3D
 var _captured_frame := -1
 var _was_captured := false
+var _pending := false  # Capture asked for but not (yet) granted.
 var _card: PanelContainer
+var _hint: Label
 
 
 func configure(player: Node3D) -> void:
@@ -70,19 +73,28 @@ func look_ready() -> bool:
 func request() -> void:
 	if wants_capture() and not is_captured():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		_pending = true
 
 
 func _process(_delta: float) -> void:
 	if wants_capture():
 		if not is_captured() and not OS.has_feature("web"):
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED  # Desktop builds need no gesture.
-	elif is_captured():
+	elif is_captured() or _pending:
+		# A refused browser lock stays pending and would spend the next click (say,
+		# on a pause-menu button) retrying; withdraw it as soon as a menu is up.
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		_pending = false
 	var captured := is_captured()
+	if captured:
+		_pending = false
 	if captured and not _was_captured:
 		_captured_frame = Engine.get_process_frames()
 	_was_captured = captured
-	_card.visible = blocks_input()
+	var show := blocks_input()
+	if show and not _card.visible:
+		_hint.text = _hint_text()  # Keys may have been rebound in Controls.
+	_card.visible = show
 
 
 func _input(event: InputEvent) -> void:
@@ -105,7 +117,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _exit_tree() -> void:
-	if is_captured():
+	if is_captured() or _pending:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
@@ -126,8 +138,14 @@ func _build_card() -> void:
 	var title := Style.label("Click to look around", 22, Style.PAPER, true)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(title)
-	var hint := Style.label("Mouse looks  ·  WASD moves  ·  Space jumps  ·  Esc for the menu", 14, Style.MUTED)
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(hint)
+	_hint = Style.label(_hint_text(), 14, Style.MUTED)
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(_hint)
 	_card.visible = false
 	add_child(_card)
+
+
+func _hint_text() -> String:
+	return "Mouse looks  ·  %s %s %s %s moves  ·  %s jumps  ·  %s for the menu" % [
+		KeyBindings.label("move_up"), KeyBindings.label("strafe_left"), KeyBindings.label("move_down"),
+		KeyBindings.label("strafe_right"), KeyBindings.label("jump"), KeyBindings.label("back")]

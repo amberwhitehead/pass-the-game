@@ -115,7 +115,7 @@ verified on Windows.
 
 | Device | Controls |
 | --- | --- |
-| Keyboard | W/S or up/down to walk; A/D to strafe; left/right to turn; Space to jump; E, Enter, or F to interact; Escape or Backspace to go back, or open the pause menu when there is nothing to go back from |
+| Keyboard | W/S or up/down to walk; A/D to strafe; left/right to turn; Space to jump; E, Enter, or F to interact; Escape or Backspace to go back, or open the pause menu when there is nothing to go back from. All of these can be changed in Pause → Controls |
 | Mouse | In the hall the game captures the cursor and the mouse looks directly, no button needed; menus, settings and minigames get the cursor back. Click cards and their targets at the table |
 | Touch | On-screen movement/turn pad, A to interact, B to go back; drag elsewhere to look |
 | Gamepad | Left stick to walk/strafe; right stick to look; D-pad to walk/turn; A to interact; B to go back |
@@ -130,6 +130,19 @@ focus, so whenever keyboard/mouse play is waiting for the cursor the hall shows
 from a menu do nothing until released. Touch and gamepad play never need capture.
 Tuning (`scenes/room/player.gd`): walk 3.5 m/s in any direction, mouse 0.005 rad per
 pixel, jump 0.55 m with 20 m/s² gravity, 8 m/s² air steering.
+
+**Controls** (pause menu, hall or minigame) lists every keyboard key, alternates
+included, with a Change button each. Change waits for one key; Escape cancels, and the
+Back / pause row has **Use Escape** to choose Escape itself. A key another action uses is
+refused with a message naming that action; nothing is swapped or unbound. Edits wait
+for **Apply**; **Back** discards them after asking; **Restore defaults** asks first.
+The menu navigates with the built-in `ui_*` keys (arrows, Enter, Escape), so it works
+whatever the game keys are. `autoload/key_bindings.gd` holds the defaults, labels and
+saving; choices go to `user://controls.cfg` (separate from saves and `sound.cfg`) and
+replace only keyboard events, so gamepad and touch stay as they are. A missing,
+corrupt or invalid file falls back to the defaults and is left untouched. Hints (the
+interaction plaque, dialogue, wheel and click-to-look card) read the current keys,
+labelled for the player's keyboard layout.
 
 Skip the intro if desired. Room **01 / Egypt Fractal** is open from the start.
 Its first win reveals two prisms; use them with the movable lenses in the main

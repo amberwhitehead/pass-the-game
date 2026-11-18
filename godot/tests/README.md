@@ -186,7 +186,17 @@ godot --headless --audio-driver Dummy --path godot --script res://tests/run_suit
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- minigame_resume_test
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- save_editor_test
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- player_movement_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- controls_menu_test
 ```
+
+The Controls suite clicks and types through the real pause menu: opening from the hall
+and a minigame, arrow-key focus, Enter on Change without its release counting, key
+repeat ignored, a conflict naming the other action, Escape cancelling, Use Escape,
+discard and restore-defaults confirmations, Apply then resuming with the new keys held
+(nothing moves until released), the replaced keys no longer acting, gamepad events and
+deadzones kept, and saved files that are missing, corrupt, invalid or cannot be written.
+It saves to `user://test_controls.cfg`; headless runs never load or save the player's
+`user://controls.cfg`.
 
 The movement suite drives the real Player scene on a small floor/wall/low-ceiling
 fixture: W/S and A/D after a 90-degree turn, walking at both pitch limits, equal
