@@ -279,3 +279,28 @@ sent to someone. They are now ordinary JSON (save format version 2), e.g.
   guide for adding a minigame says the same.
 - Old `.cfg` saves convert once when the title screen opens, keeping their save
   time. A file containing object or resource syntax is refused before it is read.
+
+### `6fc70da` — Damaged save tags load as plain data
+
+A hand-edited or damaged tag such as `{"Vector2": ["a", 1]}` stopped the save
+loader with a script error. Now a tag only becomes its Godot type when every value
+is a number of the right count; anything else loads as a plain dictionary.
+
+### `d33b722` — All test suites in one Godot process
+
+A full run started Godot 26 times, and a hang or compile error could stall it for
+many minutes. Now:
+
+- Every suite runs in **one Godot process**. Each suite extends
+  `tests/test_suite.gd`, which supplies the few `SceneTree` members suites use,
+  so only each suite's first line changed. `tests/run_suites.gd` runs them in
+  turn, resetting the engine and autoloads between them.
+- **A full run takes about 30 s with import; `--quick` (logic suites only) about
+  2.5 s.** Before: about 45 s, and no quick option.
+- **Failures are fast and specific.** A compile error anywhere stops the run in
+  about 2 s, naming the file and line. A script error fails its suite at once
+  and the rest continue in a fresh process. A suite running past 20 s is killed
+  along with its whole Godot process tree (on Windows, killing only Godot's
+  console wrapper had left the real process running).
+- `--shuffle` and `--isolated` check that suites don't depend on each other. The
+  docs now run single suites through the host.
