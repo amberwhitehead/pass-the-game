@@ -8,7 +8,8 @@ three unimplemented stations retain their original placeholder interactions.
 
 ## Playing
 
-Walk with W/S, turn with A/D or the arrows, and drag to look. Press E (gamepad A)
+Look with the mouse, walk with W/S, strafe with A/D, turn with the arrows, and jump
+with Space (touch: drag to look). Press E (gamepad A)
 on the highlighted control. Aim at LIFT / PLACE to exchange a carried object and
 at TURN to engage a mounted prism's handwheel. Drag horizontally, use A/D or
 left/right arrows, or use the right stick to rotate continuously. E/gamepad A or

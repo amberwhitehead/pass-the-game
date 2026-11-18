@@ -115,13 +115,21 @@ verified on Windows.
 
 | Device | Controls |
 | --- | --- |
-| Keyboard | W/S or up/down to walk; A/D or left/right to turn; E, Space, Enter, or F to interact; Escape or Backspace to go back, or open the pause menu when there is nothing to go back from |
-| Mouse | Click-drag to look; click cards and their targets at the table |
+| Keyboard | W/S or up/down to walk; A/D to strafe; left/right to turn; Space to jump; E, Enter, or F to interact; Escape or Backspace to go back, or open the pause menu when there is nothing to go back from |
+| Mouse | In the hall the game captures the cursor and the mouse looks directly, no button needed; menus, settings and minigames get the cursor back. Click cards and their targets at the table |
 | Touch | On-screen movement/turn pad, A to interact, B to go back; drag elsewhere to look |
 | Gamepad | Left stick to walk/strafe; right stick to look; D-pad to walk/turn; A to interact; B to go back |
 
 The touch pad fades after keyboard/gamepad input and returns on touch. Input
 actions are registered in `autoload/game.gd`.
+
+Mouse capture lives in `scenes/room/mouse_capture.gd`. Browsers only lock the pointer
+from a real click or key press and release it on Escape or when the window loses
+focus, so whenever keyboard/mouse play is waiting for the cursor the hall shows
+**Click to look around** and ignores player input until the click. Keys still held
+from a menu do nothing until released. Touch and gamepad play never need capture.
+Tuning (`scenes/room/player.gd`): walk 3.5 m/s in any direction, mouse 0.005 rad per
+pixel, jump 0.55 m with 20 m/s² gravity, 8 m/s² air steering.
 
 Skip the intro if desired. Room **01 / Egypt Fractal** is open from the start.
 Its first win reveals two prisms; use them with the movable lenses in the main

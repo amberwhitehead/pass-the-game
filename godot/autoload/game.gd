@@ -151,18 +151,22 @@ func get_flag(flag: String, default: Variant = false) -> Variant:
 
 ## Actions (all devices feed the same names):
 ##   move_up/down     walk forward/back     (W/S, ↑/↓, left stick Y, D-pad)
-##   move_left/right  turn left/right       (A/D, arrows, D-pad)
-##   strafe_left/right sidestep             (gamepad left stick X only)
-##   look_*           look around           (right stick)
-##   interact / back                        (E/Space/Enter/F, pad A) / (Esc/Backspace, pad B)
+##   move_left/right  turn left/right       (arrows, D-pad, touch ◀ ▶)
+##   strafe_left/right sidestep             (A/D, left stick X)
+##   look_*           look around           (right stick; the captured mouse looks directly)
+##   jump                                   (Space)
+##   interact / back                        (E/Enter/F, pad A) / (Esc/Backspace, pad B)
 ## Touch: on-screen pad buttons + drag-to-look (see TouchControls / Player).
 func _register_actions() -> void:
 	var keys := {
 		"move_up": [KEY_W, KEY_UP],
 		"move_down": [KEY_S, KEY_DOWN],
-		"move_left": [KEY_LEFT, KEY_A],
-		"move_right": [KEY_RIGHT, KEY_D],
-		"interact": [KEY_E, KEY_SPACE, KEY_ENTER, KEY_F],
+		"move_left": [KEY_LEFT],
+		"move_right": [KEY_RIGHT],
+		"strafe_left": [KEY_A],
+		"strafe_right": [KEY_D],
+		"jump": [KEY_SPACE],
+		"interact": [KEY_E, KEY_ENTER, KEY_F],
 		"back": [KEY_ESCAPE, KEY_BACKSPACE],
 	}
 	var pad_buttons := {

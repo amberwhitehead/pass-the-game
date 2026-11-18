@@ -185,7 +185,16 @@ godot --headless --audio-driver Dummy --path godot --script res://tests/run_suit
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- pause_menu_test
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- minigame_resume_test
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- save_editor_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- player_movement_test
 ```
+
+The movement suite drives the real Player scene on a small floor/wall/low-ceiling
+fixture: W/S and A/D after a 90-degree turn, walking at both pitch limits, equal
+straight and diagonal speed, moving while looking, standing and running jumps, no
+air jumps or held-key bouncing, walls, falling, the ceiling, a lock taken mid-jump,
+pause preserving a jump without replaying held keys, the remapped keys with
+gamepad bindings intact, emulated touch not looking twice, the mouse-capture gate
+and the wheel turning with A/D. Real pointer lock needs a browser and a person.
 
 The pure optical model enumerates 3,465 source/rotation/lens/socket configurations.
 Only A/B with either L/M color order wins. Scene checks verify atomic exchanges,

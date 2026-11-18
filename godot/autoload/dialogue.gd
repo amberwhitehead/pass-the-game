@@ -1,7 +1,7 @@
 extends CanvasLayer
 ## Bottom-of-screen dialogue box.
 ##   await Dialogue.say("Mira", ["Hello!", "Nice day."])
-## Advance with the A button / tap / E / Space. Resolves when finished.
+## Advance with the A button / tap / E / Enter / F. Resolves when finished.
 
 signal finished
 

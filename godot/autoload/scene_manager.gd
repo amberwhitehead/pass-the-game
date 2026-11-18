@@ -16,6 +16,11 @@ func _ready() -> void:
 	add_child(_fade)
 
 
+## True from the start of a fade until the next scene is fully shown.
+func is_busy() -> bool:
+	return _busy
+
+
 func change_scene(path: String, fade_time := 0.4) -> void:
 	if _busy:
 		return
