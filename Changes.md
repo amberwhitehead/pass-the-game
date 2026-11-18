@@ -254,3 +254,28 @@ route through the game, what is open to work on (gathered from the handoff and
 design notebook), and how earlier turns reached the repository, described as
 history rather than rules. The README's "Start here" now leads with it and with
 this file.
+
+### `933ade5` — A script error fails a test suite
+
+Godot exits normally after a GDScript error, quietly skipping the rest of that
+suite while still reporting no failures (the same way `sim_runner_test` had hidden
+nine checks). `tools/run_tests.py` now marks such a suite failed and shows the
+error.
+
+### `12b41f1` — Saves are readable JSON
+
+Saves were Godot `ConfigFile` text, which can build objects and load resources
+while a file is read; that matters once save files are committed as test data or
+sent to someone. They are now ordinary JSON (save format version 2), e.g.
+`user://save_slot_1.json`:
+
+- Plain objects, arrays, strings, numbers and booleans. Godot value types are
+  one-key tags such as `{"Vector2": [0.72, 1.44]}` and come back exactly; vector
+  and color components are written as their shortest exact decimal. Nothing else
+  can be saved or loaded.
+- Code that restores state already reads plain dictionaries and converts numbers
+  with `int()`/`float()`. Numbers can come back as decimals (`2` as `2.0`), so the
+  card replay check now compares with `SaveGame.same_data()` instead of `==`. The
+  guide for adding a minigame says the same.
+- Old `.cfg` saves convert once when the title screen opens, keeping their save
+  time. A file containing object or resource syntax is refused before it is read.
