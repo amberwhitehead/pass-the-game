@@ -153,3 +153,22 @@ The game now opens on a title screen instead of the intro story.
   screen.
 - `save_game_test` now has 32 checks, covering slots and the title screen with
   its own test slot files.
+
+### `5fa6d03` — Escape pause menu
+
+Escape (or gamepad/touch B) opens a pause menu whenever it has nothing else to
+do. Before this, Escape did nothing in the hall and left minigames immediately.
+
+- **In the hall** the menu pauses the game and offers Resume, Sound and Quit to
+  title. Quitting saves first.
+- **In a minigame** it freezes the game and offers Resume, Leave *(minigame)*
+  and Sound.
+- Escape again resumes. The touch pad hides while the menu is open.
+- **Existing Escape actions come first:** releasing a prism wheel, skipping the
+  reward reveal, closing card dialogs, cancelling a swap and closing the Sound
+  panel. Escape still leaves directly where the game already says it does: a
+  solved Egypt or Roman puzzle, a decided card match, and the card table's
+  entrance. The card rules text now mentions the menu.
+- A new `PauseMenu` autoload holds the menu; minigames can override
+  `_back_leaves()` to keep leaving directly. `pause_menu_test` (21 checks) drives
+  real Escape presses through the hall, Egypt Fractal and Roman Flow.
