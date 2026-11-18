@@ -331,3 +331,14 @@ its scene open in the editor, F6 opens it directly. Normal players never see it.
   the hall without writing any save.
 - A win ticked here records only that it was won, so the Egypt and Roman Flow
   trophies, which are built from a real win's details, show nothing for it.
+
+### `abd5163` — Save editor's Back button at the top
+
+**‹ Back** now sits at the top left of the save editor rather than in the bottom
+row of actions.
+
+### `7cf1e9f` — Sound from the menus instead of a floating button
+
+The floating **Sound** button, which sat over every screen, is gone. The mixer
+opens from the title screen's new **Sound** item and from the pause menu, as
+before; the mixer panel itself is unchanged.
