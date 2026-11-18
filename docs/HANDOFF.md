@@ -1,199 +1,166 @@
 # Pass The Game handoff
 
-Handoff snapshot: **November 16, 2026**, after the brothers' room styling and
-CC0 audio pass. The project is ready for another developer's turn and more human
-playtesting. It has a connected first escape-room puzzle and two card encounters;
-the complete six-room progression and final exit are still open work.
+Handoff snapshot: **November 17, 2026**, at the end of tesseract's turn. Earlier
+handoffs are kept in [`docs/handoffs/`](handoffs/); cee.wtf's
+[November 16 handoff](handoffs/2026-11-16-cee.wtf.md) describes the hall, prism
+connector and card game in depth, and most of it still holds.
 
-Start with the [repository README](../README.md) for setup,
-[Godot project guide](../godot/README.md) for development, and
-[audio guide](../godot/audio/README.md) for the included CC0 sound library and
-[audition page](http://localhost:8060/audio/). Audio is part of a normal clone;
-contributors can build and share the complete game from the repository.
+New here, or coming back? Start with [Getting started](GETTING_STARTED.md): setup,
+checking everything works, and what is open. [`Changes.md`](../Changes.md) lists
+every commit by contributor.
 
 ## What this turn added
 
-- **A playable card station in Challenge 3.** Little Brother teaches a three-lane
-  creature/spell game. Older Brother uses four lanes, tougher persistent creatures,
-  interception, diagonal attacks, lane swaps and finite reserves.
-- **First-person physical card tables.** Cards, lane markers, score, draw pile,
-  Attention and turn bell live on the table. A live 3D camera transition connects
-  the hall to the duel. The hand rises near the bottom edge; inspection, rules,
-  combat journal, rematches and interruption/return handling are implemented.
-- **Exploration-based deck progression.** Five cards on hall shelves and server
-  racks join Older Brother's deck when found. They use their own collection state,
-  separate from the carried puzzle item. Losing does not remove discoveries.
-- **Refraction Hall.** Six square side chambers now surround the main escape-room
-  space. The existing Egypt Fractal and Roman Flow games remain in their rooms.
-  Main-room server detail and open space are retained for future turns.
-- **The prism connector.** Egypt's first win reveals two portable prisms on an
-  animated reward pedestal, with a camera reveal and caption. The player carries
-  one prism or lens at a time, swaps occupied mounts, rotates prisms smoothly with
-  magnetic snapping, and routes one beam through yellow and blue lenses to unlock
-  Roman Flow. The puzzle occupies the east-side bay; its receiver is on Door 2.
-- **A shared visual language.** Ivory type, dark enamel panels and brass unify
-  HUDs, dialogue, hover prompts and physical labels. The card table and brothers'
-  parlor share walnut, green felt and brass. The original NPC models are preserved.
-- **A self-contained CC0 sound pass.** Kenney sounds cover card handling,
-  impacts/spells, hall ambience/footsteps, optics and mechanical interactions.
-  Scene-owned playback, bounded voice pools and persistent mixer settings are in.
-  Samples, source records and license notices are committed with the project.
-  A browser audition page offers alternatives for each cue and exports choices
-  for review; the mix still needs human listening feedback.
-- **A balance laboratory.** Headless bots exercise the production card rules;
-  interactive reports expose pacing, card use, fatigue and progression differences.
-  These are diagnostic tools, not substitutes for human feedback.
+This turn worked on a Windows machine and focused on making the game easier to
+pick up and keep: saving, menus, tests and tooling. No new rooms or puzzles.
+
+**For players**
+
+- **Title screen with saves.** Continue (the latest save), New game (always a new
+  slot) and Load game (every save newest first, each with Delete). Progress
+  saves automatically as readable JSON, with as many slots as you like.
+- **Escape pause menu** in the hall and in minigames: Resume, Sound, Quit to
+  title, and Leave in a minigame. Escape keeps its existing jobs first (releasing
+  a prism wheel, closing card dialogs, leaving a solved puzzle).
+- **Minigames resume where you left them**, across quitting: Egypt's rollers,
+  Roman Flow's rollers and pins, and card matches (replayed exactly through the
+  rules). A win clears it.
+- **Sound** now opens from the title screen and pause menu instead of a floating
+  button.
+- **Fix:** pressing a prism's TURN or LIFT/PLACE handle raised a script error that
+  stopped editor runs (exported builds were unaffected).
+
+**For contributors**
+
+- **One command for every check:** `python3 tools/run_tests.py` (`py -3` on
+  Windows). All Godot suites run in one process, about 30 s with import;
+  `--quick` about 2.5 s. Compile errors stop the run in about 2 s naming file and
+  line; a script error or hang fails only its suite.
+- **One command to build and serve the Web playtest** on any OS:
+  `python3 tools/build_web.py --serve`.
+- **Save editor** (developer mode: editor runs, `?dev=1`, or `--dev`): open any
+  save, tick wins, cards and hall progress or edit the raw JSON, then Save, Save
+  as new slot, or Play (unsaved). The quickest way to reach later content.
+- **Windows fixes:** three outdated card tests, a macOS-only temp path that hid
+  nine checks, Python tools now read files as UTF-8, and Godot no longer rewrites
+  texture imports (it was converting the character palettes to lossy compression).
+- **Docs:** [Getting started](GETTING_STARTED.md) and [`Changes.md`](../Changes.md).
+
+## What changed for you
+
+**rmurrish** (foundation, characters, Egypt Fractal, Roman Flow)
+
+- The game opens on a title screen (`scenes/title/`); your intro is unchanged and
+  plays for New game.
+- In Egypt and Roman Flow, Escape opens the pause menu instead of leaving, except
+  once solved, where it still leaves (`_back_leaves()`). The × button still leaves.
+- Both games save and resume their state (`save_state()` / `resume_state`).
+  Roman Flow also stops its GPU simulation while paused.
+- The character and prop palette `.import` files have "Detect 3D" off, so they
+  stay lossless as committed; `project.godot` defaults new textures the same way.
+
+**cee.wtf** (hall, prism connector, card game, sound, tests)
+
+- `cards_motion`, `cards_scene` and `cards_transition` tests were updated for a
+  slow first frame, the card stand and the resize-fitted FOV; they now pass.
+- Every test suite's first line changed to `extends "res://tests/test_suite.gd"` so
+  they all run in one process; the checks themselves are untouched. Run a single
+  suite with `--script res://tests/run_suites.gd -- <suite>`.
+- At the card table, Escape opens the pause menu unless it has a job (closing a
+  dialog, cancelling a swap, the entrance, a decided match). The rules text says so.
+- Card matches resume by replaying the seed and actions; a replay that no longer
+  matches the saved snapshot deals a fresh match.
+- The optics handle error is fixed; the floating Sound button is gone (the mixer
+  is unchanged); `AGENTS.md` now points to the Python build script.
+
+**Amber**
+
+- This turn arrives as a pull request from a fork
+  (`tessprime/pass-the-game`, branch `tesseract-changes-11-17`) rather than a
+  commit on `main`. How turns should reach the repository is your call.
+
+**Anyone adding a minigame**
+
+- Escape opens the pause menu by default; override `_back_leaves()` to leave
+  directly. Return state from `save_state()` and read `resume_state` to resume.
+- Saved values come back as plain data: convert numbers with `int()`/`float()`
+  and compare saved structures with `SaveGame.same_data()`. The
+  [project guide](../godot/README.md#adding-a-minigame) has the details.
 
 ## What a player can do now
 
 | Place | Current behavior |
 | --- | --- |
-| 01 — Egypt Fractal | Starts accessible; its first win reveals the two prism rewards. |
-| Main hall optics | Combine the two lens colors and route around the obstacle to unlock Door 2. Unlock and placements survive visits to games within the session. |
-| 02 — Roman Flow | Accessible after the optical connector is solved; the existing game and trophy remain. |
-| 03 — The Brothers | Card stand or Little Brother starts the tutorial. Older Brother is available directly; beating Little Brother is not a hard gate. |
-| Hall card displays | Five optional discoveries can be collected before any duel. They affect the next Older Brother deal, never a match already in progress. |
-| 04 — Workshop, 05 — Calendar, 06 — Observatory | Furnished destinations with placeholder station interactions; no new games were added here. |
-| Final exit | Still sealed; there is no completed campaign-ending sequence. |
+| Title screen | Continue, New game, Load game (with Delete), Sound; Save editor in developer mode. |
+| 01 — Egypt Fractal | Open from the start; its first win reveals the two prisms. Resumes where left. |
+| Main hall optics | Route green light to Door 2 to open Roman Flow. Saved across quitting. |
+| 02 — Roman Flow | Open after the optics puzzle. Resumes where left. |
+| 03 — The Brothers | Little Brother's tutorial and Older Brother's match; matches resume. Five hall cards join Older Brother's deck. |
+| 04 Workshop, 05 Calendar, 06 Observatory | Furnished, no games yet. |
+| Final exit | Still sealed. |
 
-Visible door numbers differ from legacy scene-node names. `Challenge3` is The
-Brothers, `Challenge4` is Egypt, `Challenge5` is Roman Flow, and `Challenge1`,
-`Challenge2`, `Challenge6` remain the unimplemented stations. Do not infer the
-door sequence from the old node numbers.
-
-## Card balance at handoff
-
-Little Brother keeps the **16-card tutorial deck**, four fixed opening cards,
-three lanes, Attention growing from 2 to 4, and a score goal of ±10. His opening
-and opponent sequence are deliberately forgiving.
-
-Older Brother currently has:
-
-- **12 base cards:** 3 Bruisers, 2 Forkshots, 1 Sentinel, 1 Defender, 2 Bolts,
-  2 Patches and 1 Switcheroo.
-- **Five cards in every opening hand:** Bruiser, Forkshot and Sentinel are fixed;
-  the other two come from the shuffled remainder.
-- **One added card per discovery:** Champion, Aegis, Tempest, Renewal and Thunderbolt.
-  Total deck size is `12 + found`; after the opening, `7 + found` remain to draw.
-  Found cards can appear in the two random opening slots or on later turns. They
-  are not appended to the opening hand as guaranteed bonuses.
-- Four lanes, Attention growing from 3 to 5, a goal of ±12, a visible starting
-  enemy creature, and a finite enemy reserve. Both sides can exhaust their cards
-  and suffer increasing fatigue.
-- A new randomized shuffle seed on a live visit, with new deals on rematch. The
-  simulator takes explicit seeds so comparisons and replays are reproducible.
-
-The intended curve is **very hard with no discoveries → very easy with all five**.
-The latest twelve-card/five-card-opening arrangement is a human-playtest baseline.
-Earlier simulator findings used larger decks and different dealing rules; their
-win rates do not establish the current curve. Keep current card/opponent stats
-stable long enough to observe the smaller deck before changing several variables.
-
-For full rules, current card definitions and art integration, read the
-[card guide](../godot/minigames/cards/README.md). For experiments and limitations,
-read the [simulation guide](../godot/simulation/cards/README.md).
+Card balance is unchanged from cee.wtf's handoff (Older Brother's 12-card base
+deck, five discoveries, "very hard with none, very easy with all five"); see
+[that handoff](handoffs/2026-11-16-cee.wtf.md#card-balance-at-handoff). It still
+needs human playtesting.
 
 ## Where to make changes
 
+cee.wtf's [table](handoffs/2026-11-16-cee.wtf.md#where-to-make-changes) still
+applies for the hall, optics, cards and audio. New this turn:
+
 | Area | Main entry points |
 | --- | --- |
-| Hub composition and progression hooks | `godot/scenes/room/room.gd`, `godot/scenes/escape/hub_architecture.gd` |
-| Optical rules, state and interaction | `godot/scenes/escape/optics_model.gd`, `optics_controller.gd`, `optics_aiming.gd` |
-| Carrying and reward presentation | `godot/scenes/escape/carry_inventory.gd`, `carry_slot.gd`, `reward_pedestal.gd`, `reward_reveal.gd` |
-| Brothers' room and challenge stand | `godot/scenes/escape/brothers_room.gd`, `brothers_chamber.gd`, `brothers_decor.gd`; `godot/scenes/room/brothers_station.gd` |
-| Card definitions, deck and encounter tuning | `godot/minigames/cards/card_catalog.gd`, `deck_progression.gd`, `match_encounter.gd` |
-| Card rules, combat and opponent policy | `godot/minigames/cards/match_rules.gd`, `match_combat.gd`, `match_ai.gd` |
-| Card rendering, input and entrance | `godot/minigames/cards/table_view.gd`, `table_hand.gd`, `card_face.gd`, `table_handoff.gd`; [transition contracts](../godot/minigames/cards/TRANSITION.md) |
-| Hall discoveries | `godot/scenes/escape/card_cache.gd`, `card_pickup.gd`; `Game.collect_card` in `godot/autoload/game.gd` |
-| Shared UI and world labels | `godot/ui/`; [style guide](../godot/ui/README.md) |
-| Audio cues, playback and mixer | `godot/audio/`; [audio guide](../godot/audio/README.md) |
-| Balance experiments and reports | `godot/simulation/cards/`, `tools/card_sim.py`, `tools/card_progression_report.py` |
+| Saving, slots, save format | `godot/autoload/save_game.gd` (JSON format, type allow list, migration); `godot/autoload/game.gd` (autosave, Continue, New game) |
+| Title screen | `godot/scenes/title/title.gd` |
+| Pause menu | `godot/autoload/pause_menu.gd`; `MiniGame._back_leaves()` in `godot/minigames/mini_game.gd` |
+| Minigame resume | `save_state()` / `resume_state` in each minigame; storage in `godot/autoload/minigames.gd` |
+| Developer tools | `godot/autoload/dev_mode.gd`; `godot/scenes/dev/` (save editor and its rules) |
+| Tests | `tools/run_tests.py`; `godot/tests/run_suites.gd` and `test_suite.gd`; [test guide](../godot/tests/README.md) |
+| Build | `tools/build_web.py` (any OS); the Bash scripts remain for macOS/Linux |
 
-Each area has small helpers so presentation and rules can evolve independently.
-Use the existing semantic audio cues and shared UI components when adding content.
-Card IDs are stable identifiers; names and artwork can change without renaming
-collection state or rule references.
+## Plans not reached
 
-## Plans we did not get to
+Still open from cee.wtf's list: friend-group card themes and art, more interesting
+card discoveries, the next item and hall connector (beginning with Older
+Brother's reward), recorded character speech, music and a listening pass, and the
+remaining rooms and final exit. Persistent saves, item 4 there, are done.
 
-These are directions discussed with the project owner, not requirements for the
-next contributor to implement all at once.
+Started or noticed this turn:
 
-1. **Friend-group card themes and artwork.** The owner will gather themes and
-   provide art. Current card names and monogram art are placeholders. The card
-   face already accepts an `art_path`; keep text and numbers out of the artwork.
-2. **More interesting card discoveries.** Current finds are visible pickups around
-   the hall. Later finds could use a suspicious floor seam, an NPC favor, the
-   mainframe, water mechanism or optical hardware. There is no discovery gate or
-   mini-puzzle yet. Avoid hiding necessary cards behind the opponent they help beat.
-3. **The next progression item and connector.** Beating Older Brother should
-   eventually award an item used in a short hall puzzle to open another station.
-   The reward, destination and connector are not chosen. Roman Flow's place in
-   the remaining item chain also needs a decision.
-4. **Persistent saves.** Preserve defeated opponents, discoveries, optical
-   placements/unlocks and inventory across launches. At present those survive only
-   within the running session; reloading the page starts fresh. Mixer preferences
-   are saved separately and already persist.
-5. **Recorded character speech.** The owner is interested in recording their voice
-   for Animal Crossing-like letter/vowel chatter. There is no new voice system or
-   recorded speech yet. NPC captions and existing animation remain the presentation.
-6. **Music and a listening/mix pass.** The current sound pass has no new music.
-   Listen in context before selecting more samples or changing gain globally.
-7. **Campaign completion and remaining rooms.** Finish the unused stations, their
-   connectors, and the final exit once future contributors' concepts are known.
+1. **Committed test saves.** Save files for points in the game (Egypt solved,
+   Door 2 open, all cards found, a card match in progress), made with the save
+   editor, plus a test that loads each into the real hall and checks what a
+   player would see. They would catch save-format breaks early.
+2. **Optics layout in the save editor.** It is raw-JSON only for now.
+3. **Wins ticked in the save editor** record only that they were won, so the Egypt
+   and Roman Flow trophies (built from a real win's details) show nothing for them.
+4. **Skip the compile pass when no script changed** (saves about a second a run).
+5. **Roman Flow's puzzle** (simulation, solver, win) has no automated tests.
+6. **Sound is unreachable** from the intro and the save editor, which have no menu.
 
-Earlier ideas included a neural-network/sensor card machine, evolutionary creature
-movement, and a Katamari-inspired activity. They were brainstorms; the active
-station direction pivoted to the brothers' card game because the machine concept
-risked opaque trial and error. No neural/evolutionary implementation is waiting
-to be completed. Likewise, two laser beams were superseded by one beam through
-two colored lenses; do not treat the discarded variant as missing work.
+## Known limits and useful checks
 
-The [original design notebook](prism-room-puzzle.md) retains these conversations
-and speculative discovery ideas. Its historical proposals should not override
-the current guides or playable behavior.
+- **Not checked visually:** the title screen's save list with many saves, the
+  pause menu and the save editor, especially at narrow widths. Browser tools
+  weren't available this turn, and native windows were avoided.
+- **Web tab closing** may not trigger Godot's close notification, so the last
+  half second of changes, or an open minigame's progress, could be lost. Untested.
+- `cards_transition_render_test` needs a real window and was not run on Windows.
+- `--isolated` once reported `ui_panels_test` as "Godot did not run the suite"
+  with an empty log; it passes otherwise. Unexplained, and set aside.
+- "Detect 3D" is now off for every committed texture and by default for new ones,
+  so the editor should no longer rewrite `.import` files. If one appears changed
+  anyway, revert it rather than commit it.
 
-## Known limits and useful next checks
-
-- For testing the hall without solving Egypt, press **Shift+L** inside its table,
-  then **E** or **Escape**. This lights the three crystals and follows the normal
-  victory/trophy/reward-reveal flow; it does not bypass the hall's prism puzzle.
-- There is no deck editor. Discoveries automatically join Older Brother's deck;
-  Little Brother always uses his tutorial deck.
-- Mouse/touch is the primary card interface. Hub navigation supports keyboard,
-  touch and gamepad, but full card-game gamepad navigation is not complete.
-- The NPC art is intentionally unchanged. Preserve those models and their style
-  when polishing the environment.
-- The mathematical prism route and inventory conservation have automated
-  coverage, and the owner reports that the prism puzzle worked in a full
-  playthrough. Fresh-player discovery of movable lenses, wrong-color feedback
-  and the early turn remains worth observing.
-- Table camera/layout has been checked at multiple aspect ratios, including a
-  narrow portrait window. Human readability and touch comfort remain worth testing.
-- Only the first item-based station connector is implemented. Card discoveries
-  make the hall relevant, but they are not a full linear unlock chain.
-
-A focused first playtest: start fresh, solve Egypt, recover both rewards, open
-Roman Flow, try the tutorial, and challenge Older Brother with zero, a few and all
-five discoveries. Record which cards were actually drawn, whether the player
-understood why they lost, how long creatures survived, and whether returning to
-explore felt useful. Do not require a loss before allowing exploration.
+A focused playtest: New game, solve Egypt (or Shift+L), carry the prisms and open
+Door 2, leave Roman Flow midway and come back, quit to title and Continue, then try
+the save editor at `?dev=1` to jump to Older Brother with all five cards.
 
 ## Verification and working habits
 
-**Human playtest, November 16, 2026:** the owner reported that the prism puzzle
-worked and the end-to-end playtest passed. Their remaining control-label feedback
-was addressed: Egypt and Roman Flow now show Enter / E and Esc on keyboard,
-switching to A/B for controller or touch input.
-
-See the [test guide](../godot/tests/README.md) for targeted checks. Existing suites
-cover card legality/combat, progression across all 32 discovery subsets, real
-scene/input/transition lifecycles, room access, carry conservation, reward
-restoration, optical routes, and audio integration. Passing those checks does not
-mean the game is balanced or the mix sounds good.
-
-Use headless Godot with `--audio-driver Dummy` for automated checks and a background
-Web tab with `?muted=1` for visual QA. Avoid native windows that interrupt the user.
-Rebuild Web after gameplay/presentation changes and provide a local playtest link.
-The project convention is to work on `main`, keep new additions modular, and commit
-each addition; see [AGENTS.md](../AGENTS.md).
+At handoff, `tools/run_tests.py` passes: 27 Godot suites and the Python tool
+tests, 2,278 checks, in about 30 seconds on Windows with Godot 4.7.2. The
+window-only render test is skipped. Automated checks run headless and muted;
+browser checks use a background tab with `?muted=1`. Rebuild the Web playtest
+after gameplay or presentation changes; see [`AGENTS.md`](../AGENTS.md).

@@ -117,7 +117,8 @@ recorded in the history:
   and plans not reached, and `AGENTS.md` for AI coding agents.
 - **tesseract** worked on a branch (`tesseract-changes-11-17`) in a fork, as a
   series of smaller commits, started [`Changes.md`](../Changes.md) to record each
-  contribution, and planned a pull request.
+  contribution, rewrote the handoff (keeping cee.wtf's in `docs/handoffs/`), and
+  opened a pull request.
 
 How the next turn reaches the repository, and any conventions for turns, are
 Amber's call.
