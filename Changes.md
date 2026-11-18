@@ -235,3 +235,22 @@ browser playtest on Windows, macOS or Linux, doing what `build_web.sh` and
 - Options: `--output`, `--port`, `--serve-only`. `tools/test_build_web.py` covers
   version matching, the Windows console executable and the search order.
 - The READMEs and `AGENTS.md` now use the script; the PowerShell steps are gone.
+
+### `245b2af` — One command for every check
+
+`python3 tools/run_tests.py` (`py -3` on Windows) imports the project, runs every
+Godot suite headless and muted, then the Python tool tests, and prints one
+PASS/FAIL line per suite, the error lines of any failure, and a total. Before,
+each of the 27 suites was a separate command spread through the test guide.
+Logs go to `godot/build/test-logs/`. It accepts part of a suite name to run only
+some, `--no-import`, `--godot`, and `--graphical` for the one window-only suite,
+which is otherwise skipped with the reason shown.
+
+### `7ce84bf` — Getting-started guide
+
+`docs/GETTING_STARTED.md` is for someone new or a previous contributor coming
+back: setup, checking everything works, the traps hit on a new machine, a quick
+route through the game, what is open to work on (gathered from the handoff and
+design notebook), and how earlier turns reached the repository, described as
+history rather than rules. The README's "Start here" now leads with it and with
+this file.
