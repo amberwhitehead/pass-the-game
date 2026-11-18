@@ -34,7 +34,6 @@ var _label: RichTextLabel
 var _tween: Tween
 var _fx_tween: Tween
 var _starting := false
-var _new_game: Button
 
 
 func _ready() -> void:
@@ -71,12 +70,16 @@ func _ready() -> void:
 	_speaker = _panel.speaker
 	_label = _panel.copy
 
-	var saved := Game.has_save()
-	var skip := _corner_button("Continue  ›" if saved else "Skip intro  ›", 18)
+	var skip := Button.new()
+	skip.text = "Skip intro  ›"
+	skip.add_theme_font_size_override("font_size", 15)
+	skip.set_anchors_preset(PRESET_TOP_RIGHT)
+	skip.offset_left = -150
+	skip.offset_top = 18
+	skip.offset_bottom = 56
+	skip.offset_right = -24
 	skip.pressed.connect(_start_game)
-	if saved:
-		_new_game = _corner_button("New game", 64)
-		_new_game.pressed.connect(_on_new_game)
+	add_child(skip)
 
 	_next_page()
 
@@ -134,38 +137,10 @@ func _advance() -> void:
 	_next_page()
 
 
-func _corner_button(text: String, top: float) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.add_theme_font_size_override("font_size", 15)
-	button.set_anchors_preset(PRESET_TOP_RIGHT)
-	button.offset_left = -150
-	button.offset_top = top
-	button.offset_bottom = top + 38
-	button.offset_right = -24
-	add_child(button)
-	return button
-
-
-## Erasing progress takes a second press.
-func _on_new_game() -> void:
-	if _starting:
-		return
-	if _new_game.text == "New game":
-		_new_game.text = "Erase progress?"
-		_new_game.offset_left = -190
-		return
-	Game.start_new()
-	_start_game()
-
-
-## Skipping or finishing the story continues a saved game when there is one.
 func _start_game() -> void:
 	if _starting:
 		return
 	_starting = true
-	if not Game.autosave and not Game.continue_saved():
-		Game.start_new()
 	TouchControls.set_enabled(true)
 	SceneManager.change_scene(ROOM_SCENE)
 

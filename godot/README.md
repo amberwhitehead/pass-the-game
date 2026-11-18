@@ -56,7 +56,7 @@ GODOT="/path/to/Godot" ./godot/build_web.sh
 ```
 
 Then refresh the browser. Saved progress survives rebuilds; choose **New game**
-in the intro to start fresh.
+on the title screen to start fresh.
 Both scripts honor `GODOT`; omit it when the default executable discovery works.
 They import/export headlessly with Dummy audio, so they do not open a game window.
 
@@ -108,10 +108,13 @@ use the shared export preset; this handoff's visual QA was performed on macOS.
   missing imported default font; the import generates that resource. If it is
   still missing on the next launch, investigate the import log.
 - **Saved progress:** wins, puzzle state, the carried item and found cards save
-  automatically to `user://savegame.cfg` (browser storage on the Web). Skipping or
-  finishing the intro continues a save; **New game** erases it after a second
-  press. Sound preferences are saved separately in `user://sound.cfg`. Tests and
-  scenes run directly with F6 never read or write the save.
+  automatically to one of three slots, `user://save_slot_1.cfg` to `_3.cfg`
+  (browser storage on the Web). The title screen's **Continue** resumes the most
+  recent slot, **New game** uses the first empty slot (or asks which to replace,
+  with a second press to confirm), and **Load game** lists every slot's progress.
+  A pre-slot `user://savegame.cfg` moves into an empty slot 1. Sound preferences
+  are saved separately in `user://sound.cfg`. Tests and scenes run directly with
+  F6 never read or write the saves.
 
 ## Controls and a first playthrough
 
@@ -140,7 +143,9 @@ only works inside Egypt and does not solve the hall's optical puzzle.
 
 ## Project map
 
-Flow: `scenes/intro/intro.tscn` → `scenes/room/room.tscn` → minigame overlays.
+Flow: `scenes/title/title.tscn` → `scenes/intro/intro.tscn` (new games) →
+`scenes/room/room.tscn` → minigame overlays. Continue and Load game go straight
+to the room.
 
 | Area | Responsibility |
 | --- | --- |

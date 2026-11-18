@@ -158,10 +158,12 @@ The Egypt skip suite sends the actual Shift+L keyboard shortcut through the scen
 input path. It checks lit pyramids/crystals, a single celebration, normal trophy
 and reward delivery, interruption guards, and replay without duplicated rewards.
 
-The save suite round-trips nested flags, colors, vectors and routes through the
-save file, rejects other format versions, and checks that autosave stays off until
-a game starts, batches rapid changes, and that Continue and New game restore or
-erase progress. It writes its own `user://savegame_test.cfg`, never the real save.
+The save suite round-trips nested flags, colors, vectors and routes through a
+save file, rejects other format versions, and checks slot selection, autosave
+gating and batching, loading and replacing slots, and the title screen's
+Continue, New game, Load game and replace-confirmation paths. It points
+`SaveGame.slot_prefix` at its own `user://test_save_slot_*.cfg` files, never the
+player's saves.
 
 Use `--audio-driver Dummy` for automated native tests and keep them headless.
 Browser visual checks should run in a background tab at

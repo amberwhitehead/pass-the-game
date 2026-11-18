@@ -12,10 +12,10 @@ signal card_collected(id: String)
 var flags: Dictionary = {}
 var completed_minigames: Dictionary = {}  # id -> best result Dictionary
 var collected_cards: Array[String] = []  # Discoveries; independent of carried puzzle items.
-## Off until the intro starts or continues a game, so tests and single-scene runs
-## never read or overwrite the player's save.
+## Off until the title screen starts or loads a game, so tests and single-scene runs
+## never read or overwrite the player's saves.
 var autosave := false
-var save_path := SaveGame.PATH
+var save_path := ""  # The active slot's file; empty until a game starts or loads.
 var _save_timer: Timer
 
 
@@ -34,14 +34,24 @@ func record_win(id: String, result: Dictionary) -> void:
 
 
 func has_save() -> bool:
-	return SaveGame.exists(save_path)
+	return save_path != "" and SaveGame.exists(save_path)
 
 
-## Restores saved progress and turns on autosave. Returns false if there is no usable save.
-func continue_saved() -> bool:
-	var state := SaveGame.read(save_path)
+func load_slot(slot: int) -> bool:
+	return continue_saved(SaveGame.slot_path(slot))
+
+
+func new_game(slot: int) -> void:
+	start_new(SaveGame.slot_path(slot))
+
+
+## Restores saved progress and autosaves there from now on. Returns false if there is no usable save.
+func continue_saved(path := save_path) -> bool:
+	var state := SaveGame.read(path)
 	if state.is_empty():
 		return false
+	_flush_pending()
+	save_path = path
 	flags = (state.get("flags", {}) as Dictionary).duplicate(true)
 	completed_minigames = (state.get("completed_minigames", {}) as Dictionary).duplicate(true)
 	collected_cards.assign(state.get("collected_cards", []))
@@ -49,18 +59,20 @@ func continue_saved() -> bool:
 	return true
 
 
-## Clears progress, erases the save and turns on autosave.
-func start_new() -> void:
+## Clears progress and starts a fresh save at path, replacing anything there.
+func start_new(path := save_path) -> void:
+	_flush_pending()
+	save_path = path
 	flags.clear()
 	completed_minigames.clear()
 	collected_cards.clear()
-	SaveGame.erase(save_path)
 	autosave = true
+	save_now()
 
 
 func save_now() -> void:
 	_save_timer.stop()
-	if autosave:
+	if autosave and save_path != "":
 		SaveGame.write({"flags": flags, "completed_minigames": completed_minigames,
 			"collected_cards": collected_cards}, save_path)
 
@@ -70,10 +82,15 @@ func _queue_save() -> void:
 		_save_timer.start(SAVE_DELAY)
 
 
-func _notification(what: int) -> void:
-	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED] \
-			and _save_timer != null and not _save_timer.is_stopped():
+## Writes a pending autosave to the current slot before switching to another.
+func _flush_pending() -> void:
+	if _save_timer != null and not _save_timer.is_stopped():
 		save_now()
+
+
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]:
+		_flush_pending()
 
 
 func _ready() -> void:
