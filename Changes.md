@@ -312,3 +312,22 @@ next number, never reusing one), so it no longer asks which save to replace.
 **Load game** lists every save newest first in a scrolling list, each with its
 progress, when it was last played, and its own **Delete**, which takes a second
 press. Slots are found by listing `user://save_slot_<n>.json` files.
+
+### `01fe673` — Save editor
+
+A developer tool for reaching any point in the game quickly and for inspecting
+saves. In developer mode (running from the Godot editor, `?dev=1` on the Web
+build, or a `--dev` launch option) the title screen shows **Save editor**; with
+its scene open in the editor, F6 opens it directly. Normal players never see it.
+
+- Open any save, or start from a blank one.
+- Controls for wins, Egypt's revealed prisms, the reward cradles, the carried
+  item, Door 2, found cards, and clearing a minigame's unfinished progress.
+- The whole save as raw JSON, editable, for everything else (the optics layout,
+  NPC flags, future contributors' flags). Values it has no control for are kept.
+- Warnings when hall items no longer add up (2 prisms, 1 yellow lens, 1 blue lens
+  across cradles, hand and optics mounts) or progress skips a step.
+- **Save**, **Save as new slot**, and **Play (unsaved)**, which tries the state in
+  the hall without writing any save.
+- A win ticked here records only that it was won, so the Egypt and Roman Flow
+  trophies, which are built from a real win's details, show nothing for it.
