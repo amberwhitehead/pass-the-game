@@ -304,3 +304,11 @@ many minutes. Now:
   console wrapper had left the real process running).
 - `--shuffle` and `--isolated` check that suites don't depend on each other. The
   docs now run single suites through the host.
+
+### `4e7deea` — Unlimited save slots
+
+Saves are no longer limited to three. **New game** always starts a new slot (the
+next number, never reusing one), so it no longer asks which save to replace.
+**Load game** lists every save newest first in a scrolling list, each with its
+progress, when it was last played, and its own **Delete**, which takes a second
+press. Slots are found by listing `user://save_slot_<n>.json` files.
