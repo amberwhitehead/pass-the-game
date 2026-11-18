@@ -57,7 +57,7 @@ All game sounds are included in the checkout. After a Web build, the
 
 Walk with **W/S**, turn with **A/D**, drag to look, and press **E** to interact.
 **Escape** opens a pause menu (Resume, Sound, Quit to title, or leave the current
-minigame) whenever it has nothing else to do. Progress saves automatically to one of three
-slots; the title screen offers **Continue**, **New game** and **Load game**.
+minigame) whenever it has nothing else to do. Progress saves automatically, with as many
+save slots as you like; the title screen offers **Continue**, **New game** and **Load game**.
 There is no final escape sequence
 yet.

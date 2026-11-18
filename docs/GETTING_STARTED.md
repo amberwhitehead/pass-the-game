@@ -45,7 +45,8 @@ Things that have tripped people up:
 ## 2. See the game
 
 Start a **New game** on the title screen. Escape opens the pause menu almost
-everywhere. Progress saves automatically to three slots.
+everywhere. Progress saves automatically; New game always starts
+a new slot, and Load game lists every save.
 
 1. **01 Egypt Fractal** is open from the start. **Shift+L** inside it lights all
    three crystals if you want to skip the puzzle. Winning reveals two prisms.

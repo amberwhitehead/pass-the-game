@@ -208,9 +208,9 @@ The save suite round-trips nested flags, colors, vectors and routes through a
 JSON save file exactly, checks that files stay readable JSON, that numbers compare
 with `same_data`, and that no file can build objects or load resources. It rejects
 other format versions and corrupt files, converts old `.cfg` saves (refusing ones
-with object syntax), and checks slot selection, autosave gating and batching,
-loading and replacing slots, and the title screen's Continue, New game, Load game
-and replace-confirmation paths. It points `SaveGame.slot_prefix` at its own
+with object syntax), and checks that slots are found on disk with no limit, autosave gating and batching,
+loading slots, and the title screen's Continue, New game (always a new slot),
+newest-first Load game list and two-press Delete. It points `SaveGame.slot_prefix` at its own
 `user://test_save_slot_*.json` files, never the player's saves.
 
 The pause menu suite sends real Escape events in the hall and in Egypt Fractal and

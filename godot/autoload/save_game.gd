@@ -10,7 +10,6 @@ extends RefCounted
 ## compares whole saved structures uses same_data().
 
 const DeckProgression := preload("res://minigames/cards/deck_progression.gd")
-const SLOTS := 3
 const VERSION := 2  # 1 was a ConfigFile (.cfg); see migrate_cfg().
 
 const DEFAULT_PREFIX := "user://save_slot_"
@@ -22,8 +21,22 @@ const UNSAFE_CFG := ["Object(", "Resource(", "SubResource(", "ExtResource("]
 static var slot_prefix := DEFAULT_PREFIX
 
 
+## Slots are numbered from 0 here and from 1 in file names and on screen. There is no
+## limit; a slot exists when its file does.
 static func slot_path(slot: int) -> String:
 	return "%s%d.json" % [slot_prefix, slot + 1]
+
+
+## Every slot with a file, in number order. extension "cfg" lists old-format saves.
+static func slots(extension := "json") -> Array[int]:
+	var found: Array[int] = []
+	var start := slot_prefix.get_file()
+	for file in DirAccess.get_files_at(slot_prefix.get_base_dir()):
+		var number := file.trim_prefix(start).trim_suffix("." + extension)
+		if file.begins_with(start) and file.ends_with("." + extension) and number.is_valid_int() and int(number) > 0:
+			found.append(int(number) - 1)
+	found.sort()
+	return found
 
 
 static func exists(path: String) -> bool:
@@ -188,7 +201,7 @@ static func erase(path: String) -> void:
 static func latest_slot() -> int:
 	var best := -1
 	var best_time := 0
-	for slot in SLOTS:
+	for slot in slots():
 		var time := saved_at(slot_path(slot))
 		if time > best_time:
 			best = slot
@@ -196,11 +209,19 @@ static func latest_slot() -> int:
 	return best
 
 
-static func first_empty_slot() -> int:
-	for slot in SLOTS:
-		if saved_at(slot_path(slot)) == 0:
-			return slot
-	return -1
+## Usable saves, most recently played first.
+static func slots_by_recent() -> Array[int]:
+	var usable := slots().filter(func(slot: int): return saved_at(slot_path(slot)) > 0)
+	usable.sort_custom(func(a: int, b: int): return saved_at(slot_path(a)) > saved_at(slot_path(b)))
+	var ordered: Array[int] = []
+	ordered.assign(usable)
+	return ordered
+
+
+## The number for a new game: one past the highest existing slot, so numbers are never reused.
+static func new_slot() -> int:
+	var existing := slots() + slots("cfg")
+	return int(existing.max()) + 1 if not existing.is_empty() else 0
 
 
 ## Converts a version 1 ConfigFile save to JSON at json_path and removes the old file.
@@ -228,14 +249,15 @@ static func migrate_cfg(cfg_path: String, json_path: String) -> bool:
 	return true
 
 
-## Converts the player's older saves: the pre-slot savegame.cfg into an empty slot 1, and
-## version 1 .cfg slots to JSON. Only touches the player's real saves, never test slots.
+## Converts the player's older saves: version 1 .cfg slots to JSON, and the pre-slot
+## savegame.cfg into a new slot. Only touches the player's real saves, never test slots.
 static func adopt_legacy() -> void:
 	if slot_prefix != DEFAULT_PREFIX:
 		return
-	for slot in SLOTS:
+	for slot in slots("cfg"):
 		migrate_cfg("%s%d.cfg" % [DEFAULT_PREFIX, slot + 1], slot_path(slot))
-	migrate_cfg(LEGACY_PATH, slot_path(0))
+	if exists(LEGACY_PATH):
+		migrate_cfg(LEGACY_PATH, slot_path(new_slot()))
 
 
 ## A short progress line for the slot list, e.g. "Egypt ✓ · Door 2 open · 3/5 cards".

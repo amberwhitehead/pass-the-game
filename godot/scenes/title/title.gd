@@ -1,5 +1,6 @@
 extends Control
-## Title screen: Continue the latest save, start a New game in a free slot, or Load a slot.
+## Title screen: Continue the latest save, start a New game in a new slot, or Load any slot.
+## Slots are unlimited; Load game lists them newest first, each with its own Delete.
 ## Starting or loading here is what turns on autosave (see Game.autosave).
 
 const Style := preload("res://ui/game_style.gd")
@@ -11,13 +12,15 @@ const MONTHS := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", 
 var continue_button: Button
 var new_button: Button
 var load_button: Button
-var slot_buttons: Array[Button] = []
+var slot_buttons: Array[Button] = []  # One row per save, newest first.
+var delete_buttons: Array[Button] = []
+var slot_order: Array[int] = []  # The slot each row shows.
 var _menu: VBoxContainer
 var _slots: PanelContainer
 var _slots_heading: Label
+var _rows: VBoxContainer
 var _back: Button
-var _overwriting := false  # The slot list replaces a save instead of loading one.
-var _confirm_slot := -1
+var _confirm_delete := -1  # A slot whose Delete was pressed once.
 var _leaving := false
 
 
@@ -53,19 +56,22 @@ func _ready() -> void:
 	column.add_child(_menu)
 	continue_button = _button(_menu, "Continue", _continue)
 	new_button = _button(_menu, "New game", _new_game)
-	load_button = _button(_menu, "Load game", _show_slots.bind(false))
+	load_button = _button(_menu, "Load game", _show_slots)
 
 	_slots = PanelContainer.new()
-	_slots.custom_minimum_size.x = 480
+	_slots.custom_minimum_size.x = 560
 	column.add_child(_slots)
 	var list := VBoxContainer.new()
 	_slots.add_child(list)
 	_slots_heading = Style.label("", 22, Style.GOLD, true)
 	list.add_child(_slots_heading)
-	for slot in SaveGame.SLOTS:
-		var button := _button(list, "", _choose_slot.bind(slot))
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		slot_buttons.append(button)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size.y = 330
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	list.add_child(scroll)
+	_rows = VBoxContainer.new()
+	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_rows)
 	_back = _button(list, "Back", _show_menu)
 	_show_menu()
 
@@ -88,33 +94,50 @@ func _show_menu() -> void:
 	(continue_button if latest >= 0 else new_button).grab_focus()
 
 
-## Lists every slot. Loading skips empty slots; overwriting asks for a second press.
-func _show_slots(overwriting: bool) -> void:
-	_overwriting = overwriting
-	_confirm_slot = -1
-	_slots_heading.text = "Choose a slot to replace" if overwriting else "Load game"
+func _show_slots() -> void:
+	_confirm_delete = -1
 	_refresh_slots()
 	_menu.hide()
 	_slots.show()
-	for button in slot_buttons:
-		if not button.disabled:
-			button.grab_focus()
-			return
-	_back.grab_focus()
+	(slot_buttons[0] if not slot_buttons.is_empty() else _back).grab_focus()
 
 
+## Rebuilds one row per save, newest first. Delete takes a second press.
 func _refresh_slots() -> void:
-	for slot in SaveGame.SLOTS:
+	for row in _rows.get_children():
+		_rows.remove_child(row)
+		row.queue_free()
+	slot_buttons.clear()
+	delete_buttons.clear()
+	slot_order = SaveGame.slots_by_recent()
+	_slots_heading.text = "Load game  ·  %d save%s" % [slot_order.size(), "" if slot_order.size() == 1 else "s"]
+	for slot in slot_order:
 		var path := SaveGame.slot_path(slot)
-		var time := SaveGame.saved_at(path)
-		var button := slot_buttons[slot]
-		if time == 0:
-			button.text = "Slot %d  ·  Empty" % (slot + 1)
-		elif slot == _confirm_slot:
-			button.text = "Replace slot %d? Press again to erase it" % (slot + 1)
-		else:
-			button.text = "Slot %d  ·  %s\n%s" % [slot + 1, SaveGame.describe(SaveGame.read(path)), _when(time)]
-		button.disabled = time == 0 and not _overwriting
+		var row := HBoxContainer.new()
+		_rows.add_child(row)
+		var open := _button(row, "Slot %d  ·  %s\n%s" % [slot + 1, SaveGame.describe(SaveGame.read(path)),
+			_when(SaveGame.saved_at(path))], _choose_slot.bind(slot))
+		open.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		open.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var remove := _button(row, "Delete?  Press again" if slot == _confirm_delete else "Delete", _delete_slot.bind(slot))
+		remove.add_theme_font_size_override("font_size", 15)
+		slot_buttons.append(open)
+		delete_buttons.append(remove)
+
+
+func _delete_slot(slot: int) -> void:
+	if _confirm_delete != slot:
+		_confirm_delete = slot
+		_refresh_slots()
+		delete_buttons[slot_order.find(slot)].grab_focus()
+		return
+	_confirm_delete = -1
+	SaveGame.erase(SaveGame.slot_path(slot))
+	if SaveGame.slots_by_recent().is_empty():
+		_show_menu()
+		return
+	_refresh_slots()
+	slot_buttons[0].grab_focus()
 
 
 func _continue() -> void:
@@ -123,26 +146,15 @@ func _continue() -> void:
 		_go(ROOM_SCENE)
 
 
+## Always a fresh slot, so starting over never touches an existing save.
 func _new_game() -> void:
-	var slot := SaveGame.first_empty_slot()
-	if slot < 0:
-		_show_slots(true)
-		return
-	Game.new_game(slot)
+	Game.new_game(SaveGame.new_slot())
 	_go(INTRO_SCENE)
 
 
 func _choose_slot(slot: int) -> void:
-	if not _overwriting:
-		if Game.load_slot(slot):
-			_go(ROOM_SCENE)
-		return
-	if SaveGame.saved_at(SaveGame.slot_path(slot)) != 0 and _confirm_slot != slot:
-		_confirm_slot = slot
-		_refresh_slots()
-		return
-	Game.new_game(slot)
-	_go(INTRO_SCENE)
+	if Game.load_slot(slot):
+		_go(ROOM_SCENE)
 
 
 func _go(scene: String) -> void:

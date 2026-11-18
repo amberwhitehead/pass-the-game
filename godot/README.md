@@ -95,12 +95,12 @@ verified on Windows.
   in `project.godot`, for new ones. If an editor version still rewrites `.import`
   files, revert them rather than committing them.
 - **Saved progress:** wins, puzzle state, the carried item and found cards save
-  automatically to one of three slots, `user://save_slot_1.json` to `_3.json`
+  automatically to numbered slots, `user://save_slot_<n>.json`, with no limit
   (browser storage on the Web). Saves are readable JSON (format in
   `autoload/save_game.gd`); Godot types appear as `{"Vector2": [x, y]}` and
   nothing but plain data can be stored or loaded. The title screen's **Continue** resumes the most
-  recent slot, **New game** uses the first empty slot (or asks which to replace,
-  with a second press to confirm), and **Load game** lists every slot's progress.
+  recent slot, **New game** always starts a new slot, and **Load game** lists every save newest
+  first with its progress and a **Delete** button (a second press confirms).
   Unfinished minigames save too: leaving one, quitting to title or closing the
   game keeps its progress for the next visit until it is won.
   Older `.cfg` saves (the first save format) convert to JSON the first time the

@@ -28,7 +28,7 @@ func _run() -> void:
 
 
 func _erase_all() -> void:
-	for slot in SaveGame.SLOTS:
+	for slot in SaveGame.slots():
 		SaveGame.erase(SaveGame.slot_path(slot))
 
 
@@ -112,13 +112,20 @@ func _migration() -> void:
 
 
 func _slots() -> void:
-	check(SaveGame.latest_slot() == -1 and SaveGame.first_empty_slot() == 0, "With no saves, slot 1 is free and nothing continues")
+	check(SaveGame.slots().is_empty() and SaveGame.latest_slot() == -1 and SaveGame.new_slot() == 0,
+		"With no saves, nothing continues and a new game is slot 1")
 	_write_at(1, {"flags": {"escape_prism_solved": true}}, 100)
 	_write_at(2, {}, 200)
-	check(SaveGame.latest_slot() == 2, "Continue picks the most recently saved slot")
-	check(SaveGame.first_empty_slot() == 0, "New game uses the first empty slot")
-	_write_at(0, {}, 50)
-	check(SaveGame.first_empty_slot() == -1, "Full slots leave no empty slot")
+	_write_at(11, {}, 50)
+	check(SaveGame.slots() == [1, 2, 11], "Slots are found on disk, with no fixed limit")
+	check(SaveGame.latest_slot() == 2 and SaveGame.slots_by_recent() == [2, 1, 11],
+		"Continue picks the most recent save and the list runs newest first")
+	check(SaveGame.new_slot() == 12, "A new game takes the next number, never reusing a deleted one's gap")
+	_write_text("user://test_save_slot_4.txt", "not a save")
+	_write_text("user://test_save_slot_x.json", "{}")
+	check(SaveGame.slots() == [1, 2, 11], "Unrelated files beside the saves are ignored")
+	SaveGame.erase("user://test_save_slot_4.txt")
+	SaveGame.erase("user://test_save_slot_x.json")
 	_erase_all()
 
 
@@ -174,23 +181,32 @@ func _title_screen() -> void:
 	check(title.continue_button.visible and not title.load_button.disabled, "Saves offer Continue and Load game")
 	check(title.continue_button.has_focus(), "Continue has keyboard and gamepad focus")
 	title.load_button.pressed.emit()
-	check(title.slot_buttons[0].text.begins_with("Slot 1  ·  Egypt ✓") and title.slot_buttons[1].disabled,
-		"Load game lists slot progress and disables empty slots")
+	check(title.slot_order == [2, 0] and title.slot_buttons[1].text.begins_with("Slot 1  ·  Egypt ✓"),
+		"Load game lists every save newest first, with its progress")
+	check(title.slot_buttons[0].has_focus(), "The newest save has keyboard and gamepad focus")
 	title._show_menu()
 	title.new_button.pressed.emit()
-	check(_game.save_path == SaveGame.slot_path(1), "New game starts in the first empty slot")
+	check(_game.save_path == SaveGame.slot_path(3) and SaveGame.slots() == [0, 2, 3],
+		"New game always starts a new slot and leaves existing saves alone")
 	title.queue_free()
 	await process_frame
 	_game.autosave = false
 
 	title = await _open_title()
-	title.new_button.pressed.emit()
-	check(title.slot_buttons[0].visible and title._overwriting, "With every slot full, New game asks which slot to replace")
-	title.slot_buttons[0].pressed.emit()
-	check(SaveGame.read(SaveGame.slot_path(0)).has("completed_minigames") and "Replace" in title.slot_buttons[0].text,
-		"Replacing a slot asks for a second press")
-	title.slot_buttons[0].pressed.emit()
-	check(SaveGame.read(SaveGame.slot_path(0)).get("completed_minigames", {"x": 1}).is_empty(), "The second press replaces the slot")
+	title.load_button.pressed.emit()
+	var rows: int = title.slot_order.size()
+	var target: int = title.slot_order[1]
+	title.delete_buttons[1].pressed.emit()
+	check(SaveGame.exists(SaveGame.slot_path(target)) and "again" in title.delete_buttons[1].text,
+		"Delete asks for a second press before erasing")
+	title.delete_buttons[1].pressed.emit()
+	check(not SaveGame.exists(SaveGame.slot_path(target)) and title.slot_order.size() == rows - 1 \
+		and target not in title.slot_order, "The second press deletes that save and the list updates")
+	for slot: int in title.slot_order.duplicate():
+		title.delete_buttons[0].pressed.emit()
+		title.delete_buttons[0].pressed.emit()
+	check(SaveGame.slots().is_empty() and title._menu.visible and not title.continue_button.visible,
+		"Deleting the last save returns to the menu with only New game")
 	title.queue_free()
 	await process_frame
 	_game.autosave = false
