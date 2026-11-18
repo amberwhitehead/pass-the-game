@@ -1,3 +1,21 @@
+# Running every check
+
+From the repository root (`py -3` instead of `python3` on Windows):
+
+```sh
+python3 tools/run_tests.py
+```
+
+This imports the project, runs every Godot suite headless and muted, then the
+Python tool tests, and prints one PASS/FAIL line per suite with a total. It
+exits nonzero if anything fails; full logs are in `godot/build/test-logs/`. Pass
+part of a name to run only some suites (`python3 tools/run_tests.py optics save`),
+`--no-import` to skip the import, and `--godot PATH` if Godot 4.7.2 is not found
+(it refuses other versions). `cards_transition_render_test` needs a real window,
+so it is skipped unless you pass `--graphical`, which opens one.
+
+The sections below describe what each suite covers and how to run one directly.
+
 # Card rules checks
 
 The balance lab uses the actual card rules with seeded, public-information bots:
