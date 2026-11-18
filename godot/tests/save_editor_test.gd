@@ -122,6 +122,12 @@ func _screen() -> void:
 	await process_frame
 	check(title.editor_button != null and title.editor_button.get_parent() == title._menu,
 		"The title screen offers the editor in developer mode")
+	var settings: Node = root.get_node("Sound/SoundSettings")
+	check(settings.get_children().filter(func(child): return child is Button).is_empty(),
+		"There is no floating Sound button")
+	title.sound_button.pressed.emit()
+	check(root.get_node("Sound").settings_open, "The title screen's Sound item opens the mixer")
+	settings._toggle(false)
 	title.queue_free()
 	await process_frame
 

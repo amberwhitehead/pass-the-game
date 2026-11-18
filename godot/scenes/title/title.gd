@@ -14,6 +14,7 @@ const MONTHS := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", 
 var continue_button: Button
 var new_button: Button
 var load_button: Button
+var sound_button: Button
 var editor_button: Button  # Developer mode only.
 var slot_buttons: Array[Button] = []  # One row per save, newest first.
 var delete_buttons: Array[Button] = []
@@ -60,6 +61,7 @@ func _ready() -> void:
 	continue_button = _button(_menu, "Continue", _continue)
 	new_button = _button(_menu, "New game", _new_game)
 	load_button = _button(_menu, "Load game", _show_slots)
+	sound_button = _button(_menu, "Sound", func(): Sound.get_node("SoundSettings").open())
 	if DevMode.enabled():
 		editor_button = _button(_menu, "Save editor", func(): _go(EDITOR_SCENE))
 
