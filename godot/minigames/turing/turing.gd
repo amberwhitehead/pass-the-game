@@ -660,6 +660,11 @@ func _reset_all() -> void:
 	_restart_pattern()
 
 
+## Once solved, back leaves (as the HUD says) instead of opening the pause menu.
+func _back_leaves() -> bool:
+	return _solved
+
+
 ## Once solved, leaving by any route (A, B, the close button) still counts as a win.
 func finish(result: Dictionary) -> void:
 	super(result if not _solved else {"won": true, "route": _route})

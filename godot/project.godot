@@ -23,6 +23,7 @@ SceneManager="*res://autoload/scene_manager.gd"
 TouchControls="*res://autoload/touch_controls.gd"
 Dialogue="*res://autoload/dialogue.gd"
 MiniGames="*res://autoload/minigames.gd"
+PauseMenu="*res://autoload/pause_menu.gd"
 
 [display]
 

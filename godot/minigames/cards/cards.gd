@@ -286,6 +286,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	super(event)
 
 
+## Back still leaves during the entrance and once the match is decided.
+func _back_leaves() -> bool:
+	return _entering or _shown.get("winner", "") != ""
+
+
 func finish(result: Dictionary) -> void:
 	Sound.stop_owner(self)
 	if _ever_won or _shown.get("winner", "") == "player":

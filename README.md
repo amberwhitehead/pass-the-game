@@ -52,7 +52,8 @@ All game sounds are included in the checkout. After a Web build, the
 [audition page](http://localhost:8060/audio/) lets you compare sound choices.
 
 Walk with **W/S**, turn with **A/D**, drag to look, and press **E** to interact.
-**Escape** backs out of a puzzle. Progress saves automatically to one of three
+**Escape** opens a pause menu (Resume, Sound, Quit to title, or leave the current
+minigame) whenever it has nothing else to do. Progress saves automatically to one of three
 slots; the title screen offers **Continue**, **New game** and **Load game**.
 There is no final escape sequence
 yet.

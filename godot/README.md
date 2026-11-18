@@ -120,7 +120,7 @@ use the shared export preset; this handoff's visual QA was performed on macOS.
 
 | Device | Controls |
 | --- | --- |
-| Keyboard | W/S or up/down to walk; A/D or left/right to turn; E, Space, Enter, or F to interact; Escape or Backspace to go back |
+| Keyboard | W/S or up/down to walk; A/D or left/right to turn; E, Space, Enter, or F to interact; Escape or Backspace to go back, or open the pause menu when there is nothing to go back from |
 | Mouse | Click-drag to look; click cards and their targets at the table |
 | Touch | On-screen movement/turn pad, A to interact, B to go back; drag elsewhere to look |
 | Gamepad | Left stick to walk/strafe; right stick to look; D-pad to walk/turn; A to interact; B to go back |
@@ -149,7 +149,7 @@ to the room.
 
 | Area | Responsibility |
 | --- | --- |
-| `autoload/` | `Game` progress/autosave/input (file format in `save_game.gd`), `Sound` playback/settings, `SceneManager` scene fades, `TouchControls`, `Dialogue`, and the `MiniGames` registry/launcher |
+| `autoload/` | `Game` progress/autosave/input (file format in `save_game.gd`), `Sound` playback/settings, `SceneManager` scene fades, `TouchControls`, `Dialogue`, the `MiniGames` registry/launcher, and the Escape `PauseMenu` |
 | `scenes/room/` | Player, NPCs, interactable props, and hub composition. `room.tscn` retains station nodes; the architecture relocates them at runtime. |
 | `scenes/escape/` | Six side chambers, main-hall geometry/server details, prism optics, one-item carry system, reward reveal, and the Brothers' walnut/felt parlor. See the [module guide](scenes/escape/README.md). |
 | `minigames/newton/` | Egypt Fractal: park three pyramids on different fractal colors. `newton_math.gd` is the shader's CPU twin; keep them in sync. |

@@ -53,6 +53,10 @@ func set_enabled(enabled: bool) -> void:
 	_apply(false)
 
 
+func is_enabled() -> bool:
+	return _enabled
+
+
 ## True if a screen position is over a visible on-screen button.
 func is_over_button(pos: Vector2) -> bool:
 	if not _root.visible:

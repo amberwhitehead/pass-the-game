@@ -138,6 +138,7 @@ godot --headless --audio-driver Dummy --path godot --script res://tests/optics_a
 godot --headless --audio-driver Dummy --path godot --script res://tests/carry_inventory_test.gd
 godot --headless --audio-driver Dummy --path godot --script res://tests/escape_hub_test.gd
 godot --headless --audio-driver Dummy --path godot --script res://tests/save_game_test.gd
+godot --headless --audio-driver Dummy --path godot --script res://tests/pause_menu_test.gd
 ```
 
 The pure optical model enumerates 3,465 source/rotation/lens/socket configurations.
@@ -164,6 +165,12 @@ gating and batching, loading and replacing slots, and the title screen's
 Continue, New game, Load game and replace-confirmation paths. It points
 `SaveGame.slot_prefix` at its own `user://test_save_slot_*.cfg` files, never the
 player's saves.
+
+The pause menu suite sends real Escape events in the hall and in Egypt Fractal and
+Roman Flow. It checks that the menu pauses the hall or freezes the minigame, that
+existing Escape jobs (releasing a prism wheel, the Sound panel) take priority, that
+Resume and a second Escape restore play, that Leave exits unsolved, that a solved
+puzzle still leaves directly, and that Quit to title saves first.
 
 Use `--audio-driver Dummy` for automated native tests and keep them headless.
 Browser visual checks should run in a background tab at

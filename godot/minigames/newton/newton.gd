@@ -437,6 +437,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			_grabbed = _focus
 
 
+## Once solved, back leaves (as the HUD says) instead of opening the pause menu.
+func _back_leaves() -> bool:
+	return _solved
+
+
 ## Once solved, leaving by any route (A, B, the close button) still counts as a win. The result carries the
 ## pyramids' positions and colours, so the room can show them (NewtonTrophy) after you leave.
 func finish(result: Dictionary) -> void:

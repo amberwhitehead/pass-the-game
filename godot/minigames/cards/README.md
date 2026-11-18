@@ -44,8 +44,10 @@ Little Brother's tutorial uses these rules:
   A draw into a full hand goes to discard. An exhausted deck causes increasing
   fatigue damage (1, then 2, then 3...). There is no discard recycling.
 - Rules, restart confirmation, rematch, and return-to-room controls are included.
-  Esc exits (or closes an open rules/restart dialog). Wins are recorded for the
-  current application session, including when leaving with the close button.
+  Esc closes an open rules/restart dialog or cancels a pending swap; otherwise it
+  opens the pause menu, which can leave the table. During the entrance and after
+  the match is decided, Esc still leaves directly. Wins are saved, including when
+  leaving with the close button.
 
 ## Starter deck
 

@@ -100,6 +100,9 @@ func _ready() -> void:
 	column.add_child(close)
 	_veil.hide()
 
+func open() -> void:
+	_toggle(true)
+
 func _toggle(open: bool) -> void:
 	Sound.settings_open = open
 	_veil.visible = open

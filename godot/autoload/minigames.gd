@@ -41,6 +41,10 @@ func is_running() -> bool:
 	return current != null or _launching
 
 
+func current_title() -> String:
+	return REGISTRY.get(_current_id, {}).get("title", "")
+
+
 ## Pauses the calling scene, runs the mini-game, resolves with its result.
 func play(id: String) -> Dictionary:
 	if is_running() or not REGISTRY.has(id):
