@@ -187,7 +187,14 @@ godot --headless --audio-driver Dummy --path godot --script res://tests/run_suit
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- save_editor_test
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- player_movement_test
 godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- controls_menu_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- secret_room_test
+godot --headless --audio-driver Dummy --path godot --script res://tests/run_suites.gd -- credits_test
 ```
+
+The secret-room suite plays the hall's Easter egg with real key events: the exact sign
+text, the prompt, entering with E and with a remapped key, a held key not bouncing
+back, pausing inside, walls, returning to the same position and view (or the hall
+entrance when that spot is blocked), and carried items and progress left alone.
 
 The Controls suite clicks and types through the real pause menu: opening from the hall
 and a minigame, arrow-key focus, Enter on Change without its release counting, key

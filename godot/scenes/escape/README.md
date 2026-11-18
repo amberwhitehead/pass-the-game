@@ -88,3 +88,11 @@ source/turn/lens/placement combinations and admits exactly the two interchangeab
 lens orders on A/B. Scene tests cover exchanges, camera cancellation/restoration,
 reward duplication, physical openings/locks and conservation after room recreation.
 Human playtesting still determines whether the lens relocation insight is clear.
+
+## Easter egg room (spoiler)
+
+`secret_room.gd` adds an unusual panel on the east wall near the south-east corner,
+under "Not every room has a number." Inspecting it moves the player to a small empty
+room 6 m below the hall; its panel returns them to where they stood. The room is left
+for future developers: build inside `SecretRoom.room` (origin = its floor centre).
+Visits are not saved. Covered by `secret_room_test`.
