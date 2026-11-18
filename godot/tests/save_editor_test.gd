@@ -62,6 +62,8 @@ func _screen() -> void:
 	check(editor.slot == 0 and editor.win_boxes.turing.button_pressed and not editor.save_button.disabled,
 		"The editor opens the latest save and shows its wins")
 	check(editor.slot_picker.item_count == 2, "The slot list offers a blank save and each slot")
+	check(editor.back_button.get_parent().get_index() == 0 and editor.back_button.get_index() == 0,
+		"Back is the first control at the top of the editor")
 
 	editor.win_boxes.newton.button_pressed = true
 	editor.card_boxes.aegis.button_pressed = true

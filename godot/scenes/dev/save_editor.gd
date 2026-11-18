@@ -56,6 +56,7 @@ func _ready() -> void:
 
 	var header := HBoxContainer.new()
 	page.add_child(header)
+	back_button = _button(header, "‹  Back", _back)
 	header.add_child(Style.label("Save editor", 30, Style.PAPER, true))
 	_summary = Style.label("", 16, Style.MUTED)
 	_summary.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -104,7 +105,6 @@ func _ready() -> void:
 	save_button = _button(actions, "Save", _save)
 	save_new_button = _button(actions, "Save as new slot", _save_new)
 	play_button = _button(actions, "Play (unsaved)", _play)
-	back_button = _button(actions, "Back", _back)
 	status_label = Style.label("", 15, Style.TEAL)
 	page.add_child(status_label)
 
