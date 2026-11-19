@@ -98,3 +98,8 @@ patch; it offers "Open service panel" and moves the player to a small empty room
 below the hall, whose labelled panel returns them to where they stood. The room is
 left for future developers: build inside `SecretRoom.room` (origin = its floor
 centre). Visits are not saved. Covered by `secret_room_test`.
+
+Its travellers' board (`egg_board.gd`) shows a phone for the player plus one piece
+per stage once that stage has a recorded win in `Game.completed_minigames`. The
+stage-to-piece mapping is `STAGES` in that file; Workshop, Calendar and Observatory
+have pieces (`board_pieces.gd`) but no wins wired yet. Covered by `egg_board_test`.

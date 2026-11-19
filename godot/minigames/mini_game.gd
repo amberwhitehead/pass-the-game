@@ -3,6 +3,10 @@ extends Control
 ## Base class for all mini-games. Each mini-game is its own scene under
 ## res://minigames/<id>/ and loads whatever it needs itself.
 ##
+## AI agents adding a stage: a genuine win (finish({"won": true}), recorded by MiniGames
+## through Game.record_win) can also place that stage's piece on the Easter Egg room's
+## board; see the STAGES mapping in res://scenes/escape/egg_board.gd. Update that mapping
+## only; this stage should not reference the secret room itself.
 ## Call finish({"won": true, ...}) when done. Pressing "back" opens the pause menu,
 ## which can leave the game; override _back_leaves() for states where back should
 ## leave directly (a solved puzzle, a finished match).

@@ -40,8 +40,9 @@ func _run() -> void:
 
 func _layout() -> void:
 	var labels := _labels(_secret)
-	_expect(labels.size() == 3 and not _labels(_secret.entrance.get_parent()).size(),
-		"The hall entrance has no sign; only the room's three labels exist")
+	var board_labels := _labels(_secret.board).size()
+	_expect(labels.size() - board_labels == 3 and not _labels(_secret.entrance.get_parent()).size(),
+		"The hall entrance has no sign; apart from the board's position names the room has its three labels")
 	_expect("You found an Easter Egg!" in labels and "This room should be developed by other developers." in labels,
 		"Both room signs read exactly")
 	_expect("Return to the hall" in labels and _secret.exit.prompt == "Return to the hall", "The return panel is labelled")

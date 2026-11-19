@@ -13,6 +13,7 @@ extends Node3D
 
 const Geometry := preload("res://scenes/escape/hub_geometry.gd")
 const Sign := preload("res://ui/world_sign.gd")
+const EggBoard := preload("res://scenes/escape/egg_board.gd")
 
 ## Panel on the east wall's inner face, south of Door 2, facing into the hall.
 const PANEL_AT := Vector3(10.86, 0, 5.4)
@@ -36,6 +37,7 @@ var inside := false
 var entrance: Interactable
 var exit: Interactable
 var room: Node3D
+var board: Node3D  # egg_board.gd
 var _player: Player
 var _pending := 0  # +1 go in, -1 come back, applied in the next physics step.
 var _return := {}
@@ -59,6 +61,7 @@ func _physics_process(_delta: float) -> void:
 	if going_in:
 		_return = {"position": _player.global_position, "yaw": _player.rotation.y,
 			"pitch": _player.camera.rotation.x}
+		board.refresh()  # Wins earned before (or since) the last visit are on the board.
 		_place(room.to_global(ARRIVAL), ARRIVAL_YAW, 0.0)
 		inside = true
 	else:
@@ -164,6 +167,12 @@ func _build_room() -> void:
 	Geometry.box(room, Vector3(0, ROOM_HEIGHT + .12, 0), Vector3(ROOM_HALF * 2 + .5, .25, ROOM_HALF * 2 + .5), wall, true)
 	# Lights cast no shadows here, so the range stays short of the hall floor 6 m above.
 	Geometry.lamp(room, Vector3(0, 1.6, 0), Color(.9, .92, 1.0), 4.8, 1.4)
+	# The travellers' board: west of the arrival, turned toward it, low enough that the
+	# signs above stay in view and the way to the return panel stays clear.
+	board = EggBoard.new()
+	board.position = Vector3(-1.55, 0, -.35)
+	board.rotation.y = .7
+	room.add_child(board)
 	var back := -ROOM_HALF + .01  # The north wall's inner face.
 	Sign.plaque(room, "You found an Easter Egg!", "", Vector3(-.6, 2.05, back), Vector2(3.4, .6), Sign.GOLD)
 	Sign.plaque(room, "This room should be developed by other developers.", "", Vector3(-.6, 1.3, back), Vector2(3.4, .42), Sign.GOLD)

@@ -208,6 +208,8 @@ cannot depend on the player's system fonts.
    Use `hub_architecture.gd` if its room/station needs a new position or label.
 4. If it rewards an overworld item or unlock, connect that explicitly in the hub;
    registering a minigame alone does not create the next escape-room step.
+5. If it is the Workshop, Calendar or Observatory stage, connect its ID in the `STAGES`
+   mapping of `scenes/escape/egg_board.gd`; that stage's board piece already exists.
 
 Escape opens the pause menu (Resume, Leave, Sound, Quit to title) unless your
 game handles `back` first. Override `_back_leaves()` to leave directly instead,
