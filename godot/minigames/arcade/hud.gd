@@ -17,8 +17,11 @@ static func draw_play(ci: CanvasItem, game) -> void:
 	# Lives.
 	for i in maxi(0, p.lives - (0 if p.alive else 0)):
 		ci.draw_texture(Sprites.tex("life"), Vector2(4 + i * 9, 205))
-	# Weapons, the one in hand highlighted, with level pips.
+	# Weapons, the one in hand highlighted, with level pips. With more than one, the
+	# switch key is shown in front of the list.
 	var x := 120.0
+	if p.owned.size() > 1:
+		Pix.text(ci, Vector2(x - 34, 205), "X/K:", Color("ffe45c"))
 	for w in p.owned:
 		var name: String = Entities.WEAPON_NAMES[w]
 		var col: Color = Entities.WEAPON_COLORS[w] if w == p.current else Color("4a4f66")
@@ -39,6 +42,7 @@ static func draw_title(ci: CanvasItem, game, frame: int) -> void:
 		Pix.text(ci, Vector2(192, 136), "INSERT COIN", Color("ffe45c"), 2, 1)
 	Pix.text(ci, Vector2(192, 160), "PRESS FIRE TO PLAY", Color("ffffff"), 1, 1)
 	Pix.text(ci, Vector2(192, 176), "HI SCORE %07d" % game.high, Color("ff4d4d"), 1, 1)
+	Pix.text(ci, Vector2(192, 188), "Z FIRE   X SWITCH WEAPON   SHIFT SPEED", Color("6ef2ff"), 1, 1)
 	Pix.text(ci, Vector2(192, 202), "(C) 1985 CHRONOSOFT  NOT FOR SALE BEFORE 1963", Color("4a4f66"), 1, 1)
 
 
