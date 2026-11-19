@@ -965,6 +965,180 @@
           ]
         }
       ]
+    },
+    "arcade_shot": {
+      "files": [
+        "scifi/laserSmall_000",
+        "scifi/laserSmall_001"
+      ],
+      "db": -20.0,
+      "pitch": 0.06,
+      "gap": 70,
+      "label": "Raider shot",
+      "group": "Arcade",
+      "description": "CHRONO RAIDER: the ship fires.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Raider shot",
+          "files": [
+            "scifi/laserSmall_000",
+            "scifi/laserSmall_001"
+          ]
+        }
+      ]
+    },
+    "arcade_hit": {
+      "files": [
+        "impact/impactMetal_light_000",
+        "impact/impactMetal_light_001"
+      ],
+      "db": -16.0,
+      "pitch": 0.06,
+      "gap": 50,
+      "label": "Enemy hit",
+      "group": "Arcade",
+      "description": "CHRONO RAIDER: a shot hits an enemy that survives.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Enemy hit",
+          "files": [
+            "impact/impactMetal_light_000",
+            "impact/impactMetal_light_001"
+          ]
+        }
+      ]
+    },
+    "arcade_boom": {
+      "files": [
+        "impact/impactWood_heavy_000",
+        "impact/impactSoft_heavy_000"
+      ],
+      "db": -9.0,
+      "pitch": 0.15,
+      "gap": 60,
+      "label": "Explosion",
+      "group": "Arcade",
+      "description": "CHRONO RAIDER: an enemy explodes.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Explosion",
+          "files": [
+            "impact/impactWood_heavy_000",
+            "impact/impactSoft_heavy_000"
+          ]
+        }
+      ]
+    },
+    "arcade_die": {
+      "files": [
+        "scifi/forceField_002"
+      ],
+      "db": -6.0,
+      "pitch": 0.0,
+      "gap": 300,
+      "label": "Raider down",
+      "group": "Arcade",
+      "description": "CHRONO RAIDER: the player's ship is shot down.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Raider down",
+          "files": [
+            "scifi/forceField_002"
+          ]
+        }
+      ]
+    },
+    "arcade_pickup": {
+      "files": [
+        "interface/confirmation_003"
+      ],
+      "db": -8.0,
+      "pitch": 0.0,
+      "gap": 100,
+      "label": "Weapon capsule",
+      "group": "Arcade",
+      "description": "CHRONO RAIDER: a weapon capsule is collected.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Weapon capsule",
+          "files": [
+            "interface/confirmation_003"
+          ]
+        }
+      ]
+    },
+    "arcade_switch": {
+      "files": [
+        "interface/switch_002"
+      ],
+      "db": -12.0,
+      "pitch": 0.0,
+      "gap": 80,
+      "label": "Weapon or speed",
+      "group": "Arcade",
+      "description": "CHRONO RAIDER: weapon or speed gear changes.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Weapon or speed",
+          "files": [
+            "interface/switch_002"
+          ]
+        }
+      ]
+    },
+    "arcade_start": {
+      "files": [
+        "interface/maximize_004"
+      ],
+      "db": -8.0,
+      "pitch": 0.0,
+      "gap": 300,
+      "label": "Game start",
+      "group": "Arcade",
+      "description": "CHRONO RAIDER: a new game starts.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Game start",
+          "files": [
+            "interface/maximize_004"
+          ]
+        }
+      ]
+    },
+    "arcade_over": {
+      "files": [
+        "interface/minimize_004"
+      ],
+      "db": -8.0,
+      "pitch": 0.0,
+      "gap": 300,
+      "label": "Game over",
+      "group": "Arcade",
+      "description": "CHRONO RAIDER: the last ship is lost.",
+      "loop": false,
+      "review": true,
+      "options": [
+        {
+          "label": "Game over",
+          "files": [
+            "interface/minimize_004"
+          ]
+        }
+      ]
     }
   }
 }

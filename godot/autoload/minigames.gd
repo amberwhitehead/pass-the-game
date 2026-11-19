@@ -21,6 +21,8 @@ const REGISTRY := {
 		"trophy": "res://minigames/turing/aqueduct.gd"},
 	"workshop": {"title": "The Engineer's Workshop", "scene": "res://minigames/workshop/workshop.tscn",
 		"trophy": "res://minigames/workshop/workshop_trophy.gd"},
+	# The secret room's arcade cabinet: never won, so it adds no progress.
+	"arcade": {"title": "CHRONO RAIDER", "scene": "res://minigames/arcade/arcade.tscn"},
 }
 
 var current: Node = null
