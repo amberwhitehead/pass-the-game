@@ -4,6 +4,8 @@ extends CanvasLayer
 ## Leaving a minigame or quitting to title keeps the minigame's progress (MiniGame.save_state).
 
 const Style := preload("res://ui/game_style.gd")
+const ControlsMenu := preload("res://ui/controls_menu.gd")
+const CreditsScreen := preload("res://ui/credits_screen.gd")
 const TITLE_SCENE := "res://scenes/title/title.tscn"
 
 signal closed
@@ -11,7 +13,11 @@ signal closed
 var resume_button: Button
 var leave_button: Button
 var sound_button: Button
+var controls_button: Button
+var credits_button: Button
 var quit_button: Button
+var controls: ControlsMenu
+var credits: CreditsScreen
 var _veil: ColorRect
 var _place: Label
 var _minigame: Node  # The minigame frozen under the menu, or null in the hall.
@@ -43,8 +49,29 @@ func _ready() -> void:
 	resume_button = _button(column, "Resume", close)
 	leave_button = _button(column, "", _leave_minigame)
 	sound_button = _button(column, "Sound", func(): Sound.get_node("SoundSettings").open())
+	controls_button = _button(column, "Controls", _open_controls)
+	credits_button = _button(column, "Credits", func():
+		if is_open():
+			credits.open())
 	quit_button = _button(column, "Quit to title", _quit_to_title)
 	_veil.hide()
+	controls = ControlsMenu.new()
+	controls.name = "Controls"
+	add_child(controls)
+	controls.closed.connect(func():  # Back lands on the pause menu, not in the game.
+		if is_open():
+			controls_button.grab_focus())
+	credits = CreditsScreen.new()
+	credits.name = "Credits"
+	add_child(credits)
+	credits.closed.connect(func():  # Back returns to this menu; the game stays paused.
+		if is_open():
+			credits_button.grab_focus())
+
+
+func _open_controls() -> void:
+	if is_open():
+		controls.open()
 
 
 func _button(parent: Control, text: String, action: Callable) -> Button:
@@ -93,6 +120,8 @@ func _show(place: String) -> void:
 func close() -> void:
 	if not is_open():
 		return
+	controls.close()  # Unapplied edits are discarded.
+	credits.close()
 	_veil.hide()
 	TouchControls.set_enabled(_touch_was_enabled)
 	if is_instance_valid(_minigame):
@@ -122,8 +151,8 @@ func _quit_to_title() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not is_open() or Sound.settings_open:
-		return
+	if not is_open() or Sound.settings_open or controls.is_open() or credits.is_open():
+		return  # Controls and Credits own every key while up, including Escape.
 	if event.is_action_pressed("back") and not event.is_echo():
 		get_viewport().set_input_as_handled()
 		close()

@@ -1,6 +1,6 @@
 extends Control
 ## Opening story: 2D UI over a shader background + simple drawn graphics.
-## Tap / A / Space to advance. Edit PAGES to change the story.
+## Tap / click / A / E / Enter to advance. Edit PAGES to change the story.
 ##   art:     "woosh" (time-travel streaks) or "officer"
 ##   speaker: name shown above the text ("" for none)
 ##   text:    "" + auto=<seconds> makes a text-less beat that advances itself

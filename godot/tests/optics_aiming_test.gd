@@ -29,7 +29,8 @@ func _run() -> void:
 	root.add_child(aim)
 	var targets: Array[float] = [0.0, PI / 4]
 	aim.begin("S", deg_to_rad(10), targets)
-	check(player.interaction_locked and player._look_finger == -1 and player.velocity == Vector3.ZERO, "begin borrows movement and clears ongoing camera drag")
+	check(player.interaction_locked and player._look_finger == -1 and player.velocity == Vector3(0, 1, 0),
+		"begin borrows movement, clears ongoing camera drag, and keeps vertical velocity so a jump lands")
 	check(not aim.snapped and is_equal_approx(aim.angle, deg_to_rad(10)), "free angle remains continuous away from hardware")
 	aim.nudge(deg_to_rad(-7))
 	check(aim.snapped and is_zero_approx(aim.angle), "enters detent within four degrees")

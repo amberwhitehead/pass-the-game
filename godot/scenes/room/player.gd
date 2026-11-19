@@ -1,20 +1,29 @@
 class_name Player
 extends CharacterBody3D
-## First-person player. Eye-level camera is a child of this body.
+## First-person player. The body only turns about yaw; the child Camera pitches.
 ##
+## Keyboard + mouse: the captured mouse looks, W/S walk, A/D strafe, ←/→ turn, Space jumps,
+##            E/Enter/F interact. MouseCapture owns the cursor (and its click-to-continue card).
 ## Touch:     on-screen pad (▲▼ walk, ◀▶ turn, A interact) + drag anywhere else to look.
-## Keyboard:  W/S or ↑/↓ walk, A/D or ←/→ turn, E/Space/Enter/F interact.
-##            (mouse: click-drag to look, same as touch)
-## Gamepad:   left stick walk/strafe (strafe is stick-only), right stick look, D-pad walk/turn, A interact.
+## Gamepad:   left stick walk/strafe, right stick look, D-pad walk/turn, A interact.
 
 signal focus_changed(target: Interactable)
 
+const MouseCapture := preload("res://scenes/room/mouse_capture.gd")
+## Ignored while still held from a menu or modal, until released (see suppress_held_inputs).
+const GAMEPLAY_ACTIONS := ["move_up", "move_down", "move_left", "move_right", "strafe_left",
+	"strafe_right", "look_left", "look_right", "look_up", "look_down", "jump"]
+
 @export var eye_height := 1.6     ## metres; camera height above the floor
-@export var speed := 3.5
+@export var speed := 3.5          ## m/s on the ground, in any direction
 @export var turn_speed := 2.0     ## rad/s, D-pad / arrow turning
 @export var look_speed := 2.6     ## rad/s, right stick
-@export var drag_sensitivity := 0.005  ## rad per pixel
+@export var drag_sensitivity := 0.005  ## rad per pixel, touch drag-to-look
+@export var mouse_sensitivity := 0.005  ## rad per screen pixel, captured mouse
 @export var max_pitch := 1.0      ## rad up/down
+@export var gravity := 20.0       ## m/s²; brisker than 9.8 so a hop feels snappy
+@export var jump_height := 0.55   ## metres the feet rise from a standing jump
+@export var air_acceleration := 8.0  ## m/s² of steering while airborne
 @export var reach := 2.6          ## metres
 @export var reach_cone := 0.75    ## min dot(forward, to_target); ~41 degrees
 
@@ -22,35 +31,84 @@ signal focus_changed(target: Interactable)
 @onready var _reach: Area3D = $Reach
 
 var target: Interactable = null
+var mouse_capture: MouseCapture
 var _look_finger := -1
 var cinematic_locked := false
 var interaction_locked := false
+var _was_frozen := true  # The first tick treats anything already held as held over.
+var _suppressed: Dictionary = {}  # action -> true while a press held over is still down
 
 
 func _ready() -> void:
 	camera.position.y = eye_height
+	mouse_capture = MouseCapture.new()
+	mouse_capture.configure(self)
+	add_child(mouse_capture)
+	PauseMenu.closed.connect(suppress_held_inputs)
 
 
 func _frozen() -> bool:
-	return cinematic_locked or interaction_locked or Sound.settings_open or Dialogue.active or MiniGames.is_running()
+	return cinematic_locked or interaction_locked or Sound.settings_open or Dialogue.active \
+		or MiniGames.is_running() or (mouse_capture != null and mouse_capture.blocks_input())
+
+
+## Keys and sticks still held when control returns (menu, dialogue, a recovery click)
+## do nothing until released, so nothing pressed for a menu replays in the hall.
+func suppress_held_inputs() -> void:
+	for action: String in GAMEPLAY_ACTIONS:
+		if Input.is_action_pressed(action):
+			_suppressed[action] = true
+
+
+func _strength(action: String) -> float:
+	if _suppressed.has(action):
+		if Input.is_action_pressed(action):
+			return 0.0
+		_suppressed.erase(action)
+	return Input.get_action_strength(action)
+
+
+func _axis(negative: String, positive: String) -> float:
+	return _strength(positive) - _strength(negative)
+
+
+func jump_speed() -> float:
+	return sqrt(2.0 * gravity * jump_height)
 
 
 func _physics_process(delta: float) -> void:
+	var frozen := _frozen()
+	if _was_frozen and not frozen:
+		suppress_held_inputs()
+		_look_finger = -1
+	_was_frozen = frozen
 	var walk := 0.0
 	var strafe := 0.0
 	var yaw := 0.0
 	var pitch := 0.0
-	if not _frozen():
-		walk = Input.get_axis("move_down", "move_up")
-		strafe = Input.get_axis("strafe_left", "strafe_right")
-		yaw = Input.get_axis("move_right", "move_left") * turn_speed \
-			- Input.get_axis("look_left", "look_right") * look_speed
-		pitch = -Input.get_axis("look_up", "look_down") * look_speed
+	var jump := false
+	if not frozen:
+		walk = _axis("move_down", "move_up")
+		strafe = _axis("strafe_left", "strafe_right")
+		yaw = _axis("move_right", "move_left") * turn_speed - _axis("look_left", "look_right") * look_speed
+		pitch = -_axis("look_up", "look_down") * look_speed
+		_strength("jump")  # Clears a hold-over once Space is released.
+		jump = Input.is_action_just_pressed("jump") and not _suppressed.has("jump")
 	rotation.y += yaw * delta
 	_pitch(pitch * delta)
-	var move := -global_transform.basis.z * walk + global_transform.basis.x * strafe
-	move.y = 0.0
-	velocity = move.limit_length(1.0) * speed
+	# Yaw-only axes: looking up or down never tilts or slows walking.
+	var input := Vector2(strafe, walk).limit_length(1.0)
+	var wish := Basis(Vector3.UP, rotation.y) * Vector3(input.x, 0.0, -input.y) * speed
+	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
+	var on_floor := is_on_floor()
+	horizontal = wish if on_floor else horizontal.move_toward(wish, air_acceleration * delta)
+	velocity.x = horizontal.x
+	velocity.z = horizontal.z
+	if on_floor:
+		if jump:
+			velocity.y = jump_speed()
+	else:
+		velocity.y -= gravity * delta
 	move_and_slide()
 	_update_target()
 
@@ -59,9 +117,22 @@ func _pitch(amount: float) -> void:
 	camera.rotation.x = clampf(camera.rotation.x + amount, -max_pitch, max_pitch)
 
 
-## Drag-to-look: a finger that starts on empty screen (not on a pad button)
-## steers the camera. Mouse drags arrive here too (touch emulation).
+## One mouse or drag displacement, applied directly (never scaled by frame time).
+func look(relative: Vector2, sensitivity: float) -> void:
+	rotation.y -= relative.x * sensitivity
+	_pitch(-relative.y * sensitivity)
+
+
+## Captured mouse looks without a button. Drag-to-look is for real touches only: mouse
+## drags also arrive as emulated touches, which would otherwise turn the view twice.
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		if mouse_capture.look_ready() and not _frozen():
+			look(event.screen_relative, mouse_sensitivity)
+		return
+	if (event is InputEventScreenTouch or event is InputEventScreenDrag) \
+			and event.device == InputEvent.DEVICE_ID_EMULATION:
+		return
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			if _look_finger == -1 and not _frozen() and not TouchControls.is_over_button(event.position):
@@ -69,8 +140,7 @@ func _input(event: InputEvent) -> void:
 		elif event.index == _look_finger:
 			_look_finger = -1
 	elif event is InputEventScreenDrag and event.index == _look_finger and not _frozen():
-		rotation.y -= event.relative.x * drag_sensitivity
-		_pitch(-event.relative.y * drag_sensitivity)
+		look(event.relative, drag_sensitivity)
 
 
 func forward_flat() -> Vector3:

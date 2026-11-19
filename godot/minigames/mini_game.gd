@@ -3,6 +3,10 @@ extends Control
 ## Base class for all mini-games. Each mini-game is its own scene under
 ## res://minigames/<id>/ and loads whatever it needs itself.
 ##
+## AI agents adding a stage: a genuine win (finish({"won": true}), recorded by MiniGames
+## through Game.record_win) can also place that stage's piece on the Easter Egg room's
+## board; see the STAGES mapping in res://scenes/escape/egg_board.gd. Update that mapping
+## only; this stage should not reference the secret room itself.
 ## Call finish({"won": true, ...}) when done. Pressing "back" opens the pause menu,
 ## which can leave the game; override _back_leaves() for states where back should
 ## leave directly (a solved puzzle, a finished match).
@@ -29,7 +33,9 @@ func _ready() -> void:
 	# Always-available exit, even when the touch pad is hidden.
 	var close := Button.new()
 	close.text = "×"
-	close.tooltip_text = "Leave · Esc (keyboard) / B (controller or touch) opens the menu"
+	close.tooltip_text = _close_tooltip()
+	# Read on hover, so a key changed in Controls mid-game shows up here too.
+	close.mouse_entered.connect(func(): close.tooltip_text = _close_tooltip())
 	close.add_theme_font_size_override("font_size", 24)
 	close.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	close.offset_left = -68
@@ -38,6 +44,11 @@ func _ready() -> void:
 	close.offset_right = -24
 	close.pressed.connect(func(): finish({"won": false, "quit": true}))
 	add_child(close)
+
+
+static func _close_tooltip() -> String:
+	return "Leave · %s (keyboard) / B (controller or touch) opens the menu" \
+		% preload("res://autoload/key_bindings.gd").label("back")
 
 
 func _unhandled_input(event: InputEvent) -> void:

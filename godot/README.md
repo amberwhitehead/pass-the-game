@@ -115,13 +115,38 @@ verified on Windows.
 
 | Device | Controls |
 | --- | --- |
-| Keyboard | W/S or up/down to walk; A/D or left/right to turn; E, Space, Enter, or F to interact; Escape or Backspace to go back, or open the pause menu when there is nothing to go back from |
-| Mouse | Click-drag to look; click cards and their targets at the table |
+| Keyboard | W/S or up/down to walk; A/D to strafe; left/right to turn; Space to jump; E, Enter, or F to interact; Escape or Backspace to go back, or open the pause menu when there is nothing to go back from. All of these can be changed in Pause → Controls |
+| Mouse | In the hall the game captures the cursor and the mouse looks directly, no button needed; menus, settings and minigames get the cursor back. Click cards and their targets at the table |
 | Touch | On-screen movement/turn pad, A to interact, B to go back; drag elsewhere to look |
 | Gamepad | Left stick to walk/strafe; right stick to look; D-pad to walk/turn; A to interact; B to go back |
 
 The touch pad fades after keyboard/gamepad input and returns on touch. Input
 actions are registered in `autoload/game.gd`.
+
+Mouse capture lives in `scenes/room/mouse_capture.gd`. Browsers only lock the pointer
+from a real click or key press and release it on Escape or when the window loses
+focus, so whenever keyboard/mouse play is waiting for the cursor the hall shows
+**Click to look around** and ignores player input until the click. Keys still held
+from a menu do nothing until released. Touch and gamepad play never need capture.
+Tuning (`scenes/room/player.gd`): walk 3.5 m/s in any direction, mouse 0.005 rad per
+pixel, jump 0.55 m with 20 m/s² gravity, 8 m/s² air steering.
+
+**Credits** (title screen and pause menu) lists who made what and the third-party
+assets. Entries live in `ui/credits.gd`; read the note there before adding one: ask
+the contributor how they want to be credited rather than guessing.
+
+**Controls** (pause menu, hall or minigame) lists every keyboard key, alternates
+included, with a Change button each. Change waits for one key; Escape cancels, and the
+Back / pause row has **Use Escape** to choose Escape itself. A key another action uses is
+refused with a message naming that action; nothing is swapped or unbound. Edits wait
+for **Apply**; **Back** discards them after asking; **Restore defaults** asks first.
+The menu navigates with the built-in `ui_*` keys (arrows, Enter, Escape), so it works
+whatever the game keys are. `autoload/key_bindings.gd` holds the defaults, labels and
+saving; choices go to `user://controls.cfg` (separate from saves and `sound.cfg`) and
+replace only keyboard events, so gamepad and touch stay as they are. A missing,
+corrupt or invalid file falls back to the defaults and is left untouched. Hints (the
+interaction plaque, dialogue, wheel and click-to-look card) read the current keys,
+labelled for the player's keyboard layout.
 
 Skip the intro if desired. Room **01 / Egypt Fractal** is open from the start.
 Its first win reveals two prisms; use them with the movable lenses in the main
@@ -183,6 +208,8 @@ cannot depend on the player's system fonts.
    Use `hub_architecture.gd` if its room/station needs a new position or label.
 4. If it rewards an overworld item or unlock, connect that explicitly in the hub;
    registering a minigame alone does not create the next escape-room step.
+5. If it is the Workshop, Calendar or Observatory stage, connect its ID in the `STAGES`
+   mapping of `scenes/escape/egg_board.gd`; that stage's board piece already exists.
 
 Escape opens the pause menu (Resume, Leave, Sound, Quit to title) unless your
 game handles `back` first. Override `_back_leaves()` to leave directly instead,

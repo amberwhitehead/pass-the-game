@@ -1,11 +1,12 @@
 extends PanelContainer
 ## Shared dialogue typography and frame; callers retain their story/typewriter logic.
 const Style := preload("res://ui/game_style.gd")
+const KeyBindings := preload("res://autoload/key_bindings.gd")
 var speaker: Label
 var copy: RichTextLabel
 var hint: Label
 var _arrival: Tween
-var _key := "E"
+var _key := ""  # Empty = keyboard: the current Interact key.
 
 func _init() -> void:
 	theme = Style.theme()
@@ -42,6 +43,7 @@ func _init() -> void:
 	column.add_child(copy)
 
 func arrive() -> void:
+	_show_hint()  # Keys may have been rebound since the last conversation.
 	if _arrival:
 		_arrival.kill()
 	modulate.a = 0.0
@@ -49,10 +51,15 @@ func arrive() -> void:
 	_arrival.tween_property(self, "modulate:a", 1.0, .18).set_trans(Tween.TRANS_SINE)
 
 func _input(event: InputEvent) -> void:
+	if not visible or event is InputEventMouseMotion:
+		return
 	if event is InputEventKey:
-		_key = "E"
+		_key = ""
 	elif event is InputEventJoypadButton or event is InputEventJoypadMotion:
 		_key = "A"
 	elif event is InputEventScreenTouch and event.device != -1:
 		_key = "TAP"
-	hint.text = _key + "  /  CONTINUE"
+	_show_hint()
+
+func _show_hint() -> void:
+	hint.text = (_key if not _key.is_empty() else KeyBindings.label("interact")) + "  /  CONTINUE"

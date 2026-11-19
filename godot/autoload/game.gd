@@ -4,6 +4,7 @@ extends Node
 ## (later) gamepad all drive the same names.
 const DeckProgression := preload("res://minigames/cards/deck_progression.gd")
 const SaveGame := preload("res://autoload/save_game.gd")
+const KeyBindings := preload("res://autoload/key_bindings.gd")
 const SAVE_DELAY := 0.5  # Batches rapid changes, such as turning a prism wheel, into one write.
 
 signal flag_changed(flag: String, value: Variant)
@@ -151,20 +152,14 @@ func get_flag(flag: String, default: Variant = false) -> Variant:
 
 ## Actions (all devices feed the same names):
 ##   move_up/down     walk forward/back     (W/S, ↑/↓, left stick Y, D-pad)
-##   move_left/right  turn left/right       (A/D, arrows, D-pad)
-##   strafe_left/right sidestep             (gamepad left stick X only)
-##   look_*           look around           (right stick)
-##   interact / back                        (E/Space/Enter/F, pad A) / (Esc/Backspace, pad B)
+##   move_left/right  turn left/right       (arrows, D-pad, touch ◀ ▶)
+##   strafe_left/right sidestep             (A/D, left stick X)
+##   look_*           look around           (right stick; the captured mouse looks directly)
+##   jump                                   (Space)
+##   interact / back                        (E/Enter/F, pad A) / (Esc/Backspace, pad B)
 ## Touch: on-screen pad buttons + drag-to-look (see TouchControls / Player).
+## Keyboard keys come from KeyBindings (defaults, then the player's saved choices).
 func _register_actions() -> void:
-	var keys := {
-		"move_up": [KEY_W, KEY_UP],
-		"move_down": [KEY_S, KEY_DOWN],
-		"move_left": [KEY_LEFT, KEY_A],
-		"move_right": [KEY_RIGHT, KEY_D],
-		"interact": [KEY_E, KEY_SPACE, KEY_ENTER, KEY_F],
-		"back": [KEY_ESCAPE, KEY_BACKSPACE],
-	}
 	var pad_buttons := {
 		"move_up": [JOY_BUTTON_DPAD_UP],
 		"move_down": [JOY_BUTTON_DPAD_DOWN],
@@ -182,12 +177,9 @@ func _register_actions() -> void:
 	]
 	for action in ["look_left", "look_right", "look_up", "look_down", "strafe_left", "strafe_right"]:
 		_ensure(action)
-	for action: String in keys:
-		_ensure(action)
-		for key: int in keys[action]:
-			var ev := InputEventKey.new()
-			ev.physical_keycode = key as Key
-			InputMap.action_add_event(action, ev)
+	for entry: Dictionary in KeyBindings.ACTIONS:
+		_ensure(entry.action)
+	KeyBindings.apply(KeyBindings.defaults())
 	for action: String in pad_buttons:
 		for btn: int in pad_buttons[action]:
 			var ev := InputEventJoypadButton.new()
@@ -198,6 +190,10 @@ func _register_actions() -> void:
 		ev.axis = a[1] as JoyAxis
 		ev.axis_value = a[2]
 		InputMap.action_add_event(a[0], ev)
+	# Saved keyboard choices replace only key events. Headless runs (tests, exports)
+	# keep the defaults so they never depend on, or read, the player's preferences.
+	if DisplayServer.get_name() != "headless":
+		KeyBindings.apply(KeyBindings.load_saved())
 
 
 func _ensure(action: String) -> void:

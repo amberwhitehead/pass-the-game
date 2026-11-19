@@ -1,6 +1,7 @@
 extends Control
 ## A shared instrument readout, with a quiet hierarchy around the physical puzzle.
 const Style := preload("res://ui/game_style.gd")
+const KeyBindings := preload("res://autoload/key_bindings.gd")
 var values: Label
 var hint: Label
 var _hint_copy := ""
@@ -9,8 +10,11 @@ var _button_prompts := false
 func _ready() -> void:
 	_button_prompts = TouchControls.button_prompts
 	_refresh_hint()
+	# Keys can be changed in Controls while this puzzle waits under the pause menu.
+	PauseMenu.closed.connect(_refresh_hint)
 
 ## Puzzle instructions name keyboard keys unless touch/controller input is active.
+## Placeholders: {interact}, {continue}, {steer} (left/right), {reach} (forward/back).
 func set_hint(copy: String) -> void:
 	if copy == _hint_copy:
 		return
@@ -32,9 +36,15 @@ func _input(event: InputEvent) -> void:
 func _refresh_hint() -> void:
 	if hint == null:
 		return
+	if _button_prompts:
+		hint.text = _hint_copy.format({"interact": "A", "continue": "A or B", "steer": "◀ ▶", "reach": "▲ ▼"})
+		return
+	var interact := KeyBindings.labels("interact", 2)
 	hint.text = _hint_copy.format({
-		"interact": "A" if _button_prompts else "Enter / E",
-		"continue": "A or B" if _button_prompts else "Enter / E or Esc",
+		"interact": interact,
+		"continue": "%s or %s" % [interact, KeyBindings.label("back")],
+		"steer": "%s %s" % [KeyBindings.label("strafe_left"), KeyBindings.label("strafe_right")],
+		"reach": "%s %s" % [KeyBindings.label("move_up"), KeyBindings.label("move_down")],
 	})
 
 func setup(number: String, title: String, description: String) -> void:

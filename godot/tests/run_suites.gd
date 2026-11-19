@@ -9,6 +9,7 @@ extends SceneTree
 ## Between suites everything a fresh process would have reset is put back.
 
 const SaveGame := preload("res://autoload/save_game.gd")
+const KeyBindings := preload("res://autoload/key_bindings.gd")
 var _defaults := {}
 var _autoloads: Array[String] = []
 
@@ -103,6 +104,10 @@ func _reset() -> void:
 	dialogue._panel.visible = false
 	root.get_node("SceneManager")._busy = false
 	root.get_node("TouchControls").set_enabled(true)
+	KeyBindings.path = KeyBindings.DEFAULT_PATH
+	KeyBindings.apply(KeyBindings.defaults())
+	if menu.controls.is_open():
+		menu.controls.close()
 	Input.flush_buffered_events()
 	for action in InputMap.get_actions():
 		Input.action_release(action)

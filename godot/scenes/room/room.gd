@@ -10,6 +10,7 @@ const Reveal := preload("res://scenes/escape/reward_reveal.gd")
 const HUD := preload("res://scenes/escape/hub_hud.gd")
 const Soundscape := preload("res://audio/hub_soundscape.gd")
 const CardCache := preload("res://scenes/escape/card_cache.gd")
+const SecretRoom := preload("res://scenes/escape/secret_room.gd")
 
 @onready var _player: Player = $Player
 var inventory: Node
@@ -48,6 +49,9 @@ func _ready() -> void:
 	optics.message.connect(hud.notify)
 	add_child(optics)
 	_create_rewards()
+	var secret := SecretRoom.new()
+	secret.configure(_player)
+	add_child(secret)
 	var held := HeldVisual.new()
 	held.configure(inventory, _player.camera)
 	if held.get_parent() == null:

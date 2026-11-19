@@ -398,7 +398,9 @@ func _process(delta: float) -> void:
 	if Sound.settings_open:
 		return
 	_time += delta
-	var steer := Input.get_axis("move_left", "move_right")   # +1 = right
+	# +1 = right. A/D are strafe actions (the hall's sidestep), arrows/D-pad are move_*.
+	var steer := clampf(Input.get_axis("move_left", "move_right")
+		+ Input.get_axis("strafe_left", "strafe_right"), -1.0, 1.0)
 	if _grabbed >= 0:
 		var c: Dictionary = _controls[_grabbed]
 		var span: float = c.max - c.min
@@ -616,9 +618,9 @@ func _refresh_visuals() -> void:
 	elif _all_lit():
 		_hud.set_hint("Almost… hold still" if not _moving else "That's it! Let go and hold still")
 	elif _grabbed >= 0:
-		_hud.set_hint("◀ ▶ turn %s     {interact} release" % _controls[_grabbed].label)
+		_hud.set_hint("{steer} turn %s     {interact} release" % _controls[_grabbed].label)
 	elif _focus >= 0:
 		_hud.set_hint("{interact} %s %s" % ["press" if _controls[_focus].id == "reset" else "grab",
 			_controls[_focus].label])
 	else:
-		_hud.set_hint("◀ ▶ walk round the table")
+		_hud.set_hint("{steer} walk round the table")

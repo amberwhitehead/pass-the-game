@@ -40,7 +40,8 @@ func play() -> void:
 	_saved_touch = TouchControls._enabled
 	_player.set("cinematic_locked", true)
 	_player._look_finger = -1
-	_player.velocity = Vector3.ZERO
+	_player.velocity.x = 0.0  # Horizontal only: a player in the air still lands.
+	_player.velocity.z = 0.0
 	TouchControls.set_enabled(false)
 	_target_global = _start_global.looking_at(_pedestal.focus_point(), Vector3.UP)
 	# A player may finish the station right beside the reward. Widen rather than

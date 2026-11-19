@@ -2,6 +2,7 @@ extends CanvasLayer
 ## Screen-space exhibit guide. The same brass/enamel vocabulary lives on world signs.
 const Style := preload("res://ui/game_style.gd")
 const Plaque := preload("res://ui/interaction_plaque.gd")
+const KeyBindings := preload("res://autoload/key_bindings.gd")
 var _player: Player
 var _inventory: Node
 var _prompt: PanelContainer
@@ -77,12 +78,13 @@ func _process(delta: float) -> void:
 	var show_prompt := not Sound.settings_open and not Dialogue.active and (_aiming or (is_instance_valid(target) and not _player._frozen()))
 	_prompt.visible = show_prompt
 	if show_prompt:
+		var keyboard := _interact_key == "E"
 		var text: String = target.prompt if not _aiming else _aim_hint.format({
-			"turn": "Drag / A D" if _interact_key == "E" else "◀ ▶",
-			"interact": "Enter / E" if _interact_key == "E" else "A",
-			"back": "Esc" if _interact_key == "E" else "B",
+			"turn": "Drag / %s %s" % [KeyBindings.label("strafe_left"), KeyBindings.label("strafe_right")] if keyboard else "◀ ▶",
+			"interact": KeyBindings.labels("interact", 2) if keyboard else "A",
+			"back": KeyBindings.label("back") if keyboard else "B",
 		})
-		_prompt.present(text, _interact_key, _aiming)
+		_prompt.present(text, KeyBindings.label("interact") if keyboard else "A", _aiming)
 		_prompt.modulate.a = move_toward(_prompt.modulate.a, 1, delta * 8)
 	else:
 		_prompt.modulate.a = 0

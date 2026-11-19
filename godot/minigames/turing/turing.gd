@@ -514,7 +514,9 @@ func _process(delta: float) -> void:
 		return
 	_time += delta
 	_run_reset_flag()
-	var steer := Input.get_axis("move_left", "move_right")   # +1 = right
+	# +1 = right. A/D are strafe actions (the hall's sidestep), arrows/D-pad are move_*.
+	var steer := clampf(Input.get_axis("move_left", "move_right")
+		+ Input.get_axis("strafe_left", "strafe_right"), -1.0, 1.0)
 	if _grabbed >= 0:
 		var c: Dictionary = _controls[_grabbed]
 		var span: float = c.max - c.min
@@ -919,14 +921,14 @@ func _refresh_visuals() -> void:
 	elif all_ok:
 		_hud.set_hint("Connected… hold it   %.1f s" % maxf(HOLD_TO_WIN - (_time - _conn_since), 0.0))
 	elif _grabbed >= 0:
-		_hud.set_hint("◀ ▶ turn %s     {interact} release" % _controls[_grabbed].label)
+		_hud.set_hint("{steer} turn %s     {interact} release" % _controls[_grabbed].label)
 	elif _held != null:
 		if _off_table():
-			_hud.set_hint("{interact} return to tray     ◀ ▶ walk   ▲ ▼ reach")
+			_hud.set_hint("{interact} return to tray     {steer} walk   {reach} reach")
 		elif _blocked():
-			_hud.set_hint("Too close to another cylinder     ◀ ▶ walk   ▲ ▼ reach")
+			_hud.set_hint("Too close to another cylinder     {steer} walk   {reach} reach")
 		else:
-			_hud.set_hint("{interact} put down     ◀ ▶ walk   ▲ ▼ reach")
+			_hud.set_hint("{interact} put down     {steer} walk   {reach} reach")
 	elif _cursor_visible() and _nearest_placed() != null:
 		_hud.set_hint("{interact} pick up")
 	elif _focus >= 0:
@@ -938,4 +940,4 @@ func _refresh_visuals() -> void:
 			_: _hud.set_hint("{interact} take a %s cylinder" % COLOR_NAMES[c.color] if _available(c.color) > 0 \
 				else "The %s tray is empty" % COLOR_NAMES[c.color])
 	else:
-		_hud.set_hint("◀ ▶ walk round the table     ▲ ▼ move the reach marker")
+		_hud.set_hint("{steer} walk round the table     {reach} move the reach marker")

@@ -38,7 +38,9 @@ func begin(id: String, initial: float, snap_targets: Array[float]) -> void:
 		_previous_lock = bool(_player.interaction_locked)
 		_player.interaction_locked = true
 		_player._look_finger = -1
-		_player.velocity = Vector3.ZERO
+		# Stop walking, but let a player who grabbed the wheel mid-jump land.
+		_player.velocity.x = 0.0
+		_player.velocity.z = 0.0
 	_apply_detent()
 
 
@@ -84,7 +86,9 @@ func _process(delta: float) -> void:
 		return
 	if Sound.settings_open:
 		return
-	var input := Input.get_axis("move_right", "move_left") + Input.get_axis("look_right", "look_left")
+	# A/D are strafe in the hall; while the player is locked to the wheel they turn it too.
+	var input := Input.get_axis("move_right", "move_left") + Input.get_axis("strafe_right", "strafe_left") \
+		+ Input.get_axis("look_right", "look_left")
 	if absf(input) > 0.01:
 		var fine := 0.3 if Input.is_key_pressed(KEY_SHIFT) else 1.0
 		nudge(clampf(input, -1, 1) * TURN_SPEED * fine * delta)

@@ -8,7 +8,8 @@ three unimplemented stations retain their original placeholder interactions.
 
 ## Playing
 
-Walk with W/S, turn with A/D or the arrows, and drag to look. Press E (gamepad A)
+Look with the mouse, walk with W/S, strafe with A/D, turn with the arrows, and jump
+with Space (touch: drag to look). Press E (gamepad A)
 on the highlighted control. Aim at LIFT / PLACE to exchange a carried object and
 at TURN to engage a mounted prism's handwheel. Drag horizontally, use A/D or
 left/right arrows, or use the right stick to rotate continuously. E/gamepad A or
@@ -87,3 +88,18 @@ source/turn/lens/placement combinations and admits exactly the two interchangeab
 lens orders on A/B. Scene tests cover exchanges, camera cancellation/restoration,
 reward duplication, physical openings/locks and conservation after room recreation.
 Human playtesting still determines whether the lens relocation insight is clear.
+
+## Easter egg room (spoiler)
+
+`secret_room.gd` lines the hall's east and west walls with a few plain service panels.
+Three are inert cladding (meshes only, no prompt or collision of their own). The one
+on the east wall near the south-east corner has a recessed latch on a rubbed-bright
+patch; it offers "Open service panel" and moves the player to a small empty room 6 m
+below the hall, whose labelled panel returns them to where they stood. The room is
+left for future developers: build inside `SecretRoom.room` (origin = its floor
+centre). Visits are not saved. Covered by `secret_room_test`.
+
+Its travellers' board (`egg_board.gd`) shows a phone for the player plus one piece
+per stage once that stage has a recorded win in `Game.completed_minigames`. The
+stage-to-piece mapping is `STAGES` in that file; Workshop, Calendar and Observatory
+have pieces (`board_pieces.gd`) but no wins wired yet. Covered by `egg_board_test`.
