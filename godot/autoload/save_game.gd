@@ -271,6 +271,6 @@ static func describe(state: Dictionary) -> String:
 	if flags.get("escape_prism_solved", false):
 		parts.append("Door 2 open")
 	var cards: Array = state.get("collected_cards", [])
-	if not cards.is_empty():
-		parts.append("%d/%d cards" % [cards.size(), DeckProgression.COLLECTIBLES.size()])
+	if not DeckProgression.owned(cards).is_empty():
+		parts.append("%d/%d cards" % [DeckProgression.owned(cards).size(), DeckProgression.COLLECTIBLES.size()])
 	return " · ".join(parts) if not parts.is_empty() else "Just started"

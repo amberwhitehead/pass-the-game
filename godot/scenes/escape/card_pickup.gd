@@ -2,6 +2,7 @@ extends Interactable
 ## A found card joins the duel deck directly; it never replaces a carried prism/lens.
 signal message(text: String)
 const Catalog := preload("res://minigames/cards/card_catalog.gd")
+const Progression := preload("res://minigames/cards/deck_progression.gd")
 const CardActor := preload("res://minigames/cards/card_actor.gd")
 const Geometry := preload("res://scenes/escape/hub_geometry.gd")
 const Sign := preload("res://ui/world_sign.gd")
@@ -61,7 +62,10 @@ func interact(_player: Node3D) -> void:
 		return
 	Sound.play_at("pickup", get_focus_position(), get_parent())
 	var card: Dictionary = Catalog.get_card(card_id)
-	message.emit("%s joins your deck. %d / 5 cards found. Take it to Older Brother." % [card.name, Game.collected_cards.size()])
+	if card_id in Progression.BONUS:
+		message.emit("%s joins your deck. Take it to Older Brother." % card.name)
+	else:
+		message.emit("%s joins your deck. %d / 5 cards found. Take it to Older Brother." % [card.name, Progression.owned(Game.collected_cards).size()])
 	interacted.emit()
 	_actor.pulse(Sign.GOLD)
 	var reveal := create_tween().set_parallel(true)

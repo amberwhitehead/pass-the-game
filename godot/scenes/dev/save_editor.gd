@@ -84,7 +84,7 @@ func _ready() -> void:
 	door_box = _check(hall, "Door 2 open (beam solved)", func(on: bool): Edits.set_flag(state, "escape_prism_solved", on))
 	hall.add_child(Style.label("Optics layout: edit in raw JSON (escape_optics_state)", 13, Style.MUTED))
 	var cards := _section(sections, "Found cards")
-	for id: String in Progression.COLLECTIBLES:
+	for id: String in Progression.all_collectible():
 		card_boxes[id] = _check(cards, Edits.card_name(id), func(on: bool): Edits.set_card(state, id, on))
 	var workshop := _section(sections, "Workshop")
 	workshop_picker = OptionButton.new()
