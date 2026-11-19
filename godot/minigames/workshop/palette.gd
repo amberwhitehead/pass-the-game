@@ -1,0 +1,30 @@
+extends RefCounted
+## Colours of the Workshop diorama: a warm 1950s garage-lab.
+
+const WALL := Color("9cc4ae")
+const WALL_STRIPE := Color("8db7a1")
+const WAINSCOT := Color("5f8270")
+const FLOOR := Color("8a5b3d")
+const FLOOR_DARK := Color("6e452d")
+const BASEBOARD := Color("4b3324")
+const CREAM := Color("f2e6c9")
+const CHROME := Color("c7cfd0")
+const STEEL := Color("7d8a8c")
+const RED := Color("c9473a")
+const ORANGE := Color("f08a45")   # the Workshop's accent in the hall
+const BRASS := Color("c99a45")
+const WOOD := Color("a8724a")
+const WOOD_DARK := Color("7a4e32")
+const MINT := Color("bfe3cf")
+const TEAL := Color("3f8c86")
+const SKY_TOP := Color("f5c98a")
+const SKY_BOTTOM := Color("fbe7b8")
+const SUN := Color(1.0, 0.86, 0.5, 0.33)
+const PORTAL := Color("7fe7ff")
+const PORTAL_DEEP := Color("5a3fd0")
+const ALARM := Color("ff3b2f")
+const CAT := Color("e7a35c")        # Fuse: a ginger tabby
+const CAT_STRIPE := Color("c47a3a")
+const CAT_BELLY := Color("f7dcb6")
+const YARN := Color("d8323f")
+const SKIN := Color("f0c39e")
