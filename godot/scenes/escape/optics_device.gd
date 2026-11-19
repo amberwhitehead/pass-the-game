@@ -8,6 +8,7 @@ const Sign := preload("res://ui/world_sign.gd")
 const Art := preload("res://scenes/escape/optics_art.gd")
 const Handle := preload("res://scenes/escape/optics_handle.gd")
 const Model := preload("res://scenes/escape/optics_model.gd")
+const CarryVisual := preload("res://scenes/escape/carry_visual.gd")
 
 var device_id := ""
 var kind := "prism"
@@ -52,6 +53,14 @@ func _ready() -> void:
 		take_handle = _handle("Exchange", Vector3(0, 1.04, .36), false)
 	elif kind == "starter":
 		turn_handle = _handle("Adjust source", Vector3(0, 1.04, .42), true)
+	elif kind == "lamp":
+		# A cradle for a hand lamp: two brass forks either side of the head.
+		for x in [-.12, .12]:
+			Art.line(self, Vector3(x, .99, 0), Vector3(x, 1.18, 0), brass, .03)
+		take_handle = _handle("Exchange", Vector3(-.46, 1.0, .36), false)
+		turn_handle = _handle("Aim lamp", Vector3(.46, 1.0, .36), true)
+		_turn_label = Sign.tag(self, "AIM", Vector3(.46, 1.20, .36), .36, Sign.Style.TEAL, 2.8)
+		Sign.tag(self, "LIFT", Vector3(-.46, 1.20, .36), .36, Sign.GOLD, 2.8)
 	else:
 		take_handle = _handle("Exchange", Vector3(-.46, 1.0, .36), false)
 		turn_handle = _handle("Adjust prism", Vector3(.46, 1.0, .36), true)
@@ -109,12 +118,17 @@ func update_state(item: String, held: String, turn: int, incoming: Vector2 = Vec
 			var port := Art.ring(_contents, .048, .068, Vector3(.39, 1.25, 0), Art.material(Color(.62, .83, .88), true))
 			port.rotation.z = PI / 2.0
 			Art.box(_contents, Vector3(.22, .012, .025), Vector3(.08, 1.028, 0), Art.material(Color(.9, .69, .32), true))
+		elif item == "flashlight":
+			var lamp := CarryVisual.build_item("flashlight")
+			lamp.position = Vector3(0, 1.25, 0)
+			lamp.rotation.y = -PI / 2.0   # Its head (-Z) faces the beam direction (+X).
+			_contents.add_child(lamp)
 		elif item.begins_with("lens_"):
 			var tint: Color = Model.COLORS[1 if item == "lens_yellow" else 2]
 			var glass := Art.cylinder(_contents, .175, .04, Vector3(0, 1.25, 0), Art.glass(tint))
 			glass.quaternion = Quaternion(Vector3.UP, _lens_normal())
 	if is_instance_valid(take_handle):
-		var destination := "prism socket " if kind == "prism" else "lens mount "
+		var destination := "prism socket " if kind == "prism" else ("lamp socket " if kind == "lamp" else "lens mount ")
 		if held.is_empty():
 			take_handle.prompt = ("Take " + _item_name(item) + " from " + device_id) if not item.is_empty() else "Empty " + destination + device_id
 		elif item.is_empty():
@@ -122,15 +136,16 @@ func update_state(item: String, held: String, turn: int, incoming: Vector2 = Vec
 		else:
 			take_handle.prompt = "Swap " + _item_name(held) + " for " + _item_name(item)
 	if is_instance_valid(turn_handle):
-		var enabled := kind == "starter" or item == "prism"
+		var enabled := kind == "starter" or item == "prism" or (kind == "lamp" and item == "flashlight")
 		turn_handle.collision_layer = 1 if enabled else 0
 		turn_handle.visible = enabled
 		if _turn_label:
 			_turn_label.get_parent().visible = enabled
-		turn_handle.prompt = "Adjust source" if kind == "starter" else "Adjust prism " + device_id
-	_status.text = device_id + " · " + ("SOURCE" if kind == "starter" else (("SOCKET" if kind == "prism" else "MOUNT") if item.is_empty() else _item_name(item).to_upper()))
+		turn_handle.prompt = "Adjust source" if kind == "starter" else ("Aim lamp " if kind == "lamp" else "Adjust prism ") + device_id
+	var empty_name := "SOCKET" if kind == "prism" else ("LAMP SOCKET" if kind == "lamp" else "MOUNT")
+	_status.text = device_id + " · " + ("SOURCE" if kind == "starter" else (empty_name if item.is_empty() else _item_name(item).to_upper()))
 	Sign.fit_tag(_status)
-	if incoming != Vector2.ZERO and not item.is_empty() and not _adjusting:
+	if incoming != Vector2.ZERO and not item.is_empty() and not _adjusting and kind != "lamp":
 		var outgoing := Vector2(-incoming.y, incoming.x) * turn
 		set_head_angle(atan2(outgoing.y, outgoing.x), false)
 

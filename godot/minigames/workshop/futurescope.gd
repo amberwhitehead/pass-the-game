@@ -31,6 +31,7 @@ var alarm := false:
 		_refresh()
 
 var future: Node2D
+var _channel: Node2D
 var _viewport: SubViewport
 var _screen: Sprite2D
 var _mat: ShaderMaterial
@@ -64,6 +65,19 @@ func setup(future_world: Node2D) -> void:
 	_screen.material = _mat
 	add_child(_screen)
 	_refresh()
+
+
+## Shows another channel's scene (channels.gd) instead of this room's future, or this
+## room again with `null`.
+func show_channel(scene: Node2D) -> void:
+	if _channel and is_instance_valid(_channel):
+		_channel.queue_free()
+	_channel = scene
+	future.visible = scene == null
+	if scene:
+		scene.scale = future.scale
+		scene.position = future.position
+		_viewport.add_child(scene)
 
 
 func feed_texture() -> Texture2D:

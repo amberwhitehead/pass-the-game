@@ -53,6 +53,17 @@ static func build_item(item: String) -> Node3D:
 		for x: float in [-.16, .16]:
 			Art.rounded_box(visual, Vector3(.055, .11, .33), Vector3(x, -.16, 0), metal, .012)
 		visual.rotation.y = PI / 5.0
+	elif item == "flashlight":
+		# A red 1950s flashlight with a chrome head, pointing forward.
+		var red := Art.material(Color(.75, .16, .12), false, false)
+		var chrome := Art.material(Color(.82, .85, .86), false, true)
+		var body := Art.cylinder(visual, .075, .42, Vector3(0, 0, .05), red)
+		body.rotation.x = PI / 2.0
+		var head := Art.cylinder(visual, .11, .12, Vector3(0, 0, -.2), chrome)
+		head.rotation.x = PI / 2.0
+		var glass := Art.cylinder(visual, .095, .02, Vector3(0, 0, -.265), Art.material(Color(1, .96, .8), true))
+		glass.rotation.x = PI / 2.0
+		Art.box(visual, Vector3(.04, .03, .08), Vector3(0, .08, .08), chrome)
 	else:
 		var tint := Color(1.0, .78, .16) if item == "lens_yellow" else Color(.15, .5, 1.0)
 		var lens := Art.cylinder(visual, .22, .045, Vector3.ZERO, Art.glass(tint))

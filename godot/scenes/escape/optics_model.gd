@@ -1,11 +1,19 @@
 extends RefCounted
 ## Exact point optics. The ceiling-fed starter can choose any horizontal azimuth;
 ## portable prisms always turn left or right by exactly ninety degrees.
+##
+## A second, later light: the 1955 flashlight (sent through the Workshop's ring) fits the
+## lamp socket F. Its own beam is traced separately and only counts at the sun disc by
+## Egypt's doorway, which wants sunlight: yellow. It never opens Door 2.
 
 const SOURCE := Vector2.ZERO
 const RECEIVER := Vector2(10, 0)
 const SOCKETS := {"A": Vector2(2, 2), "B": Vector2(7, -3), "C": Vector2(4, 4), "D": Vector2(9, -1)}
-const MOUNTS := {"J": Vector2(5, 0), "K": Vector2(3, 3), "L": Vector2(1, 1), "M": Vector2(8.5, -1.5)}
+const MOUNTS := {"J": Vector2(5, 0), "K": Vector2(3, 3), "L": Vector2(1, 1), "M": Vector2(8.5, -1.5), "N": Vector2(-7, 5)}
+const LAMP_SOCKET := "F"
+const LAMP := Vector2(-4, 2)
+const SUN_DISC := Vector2(-10.6, 8.6)
+const SUN_COLOR := 1   ## Yellow.
 const OBSTACLE := Rect2(4.8, 0.6, 2.4, 2.6)
 const WORLD_SCALE := 0.72
 const ROOM := Rect2(-20.25, -13.5, 30.5555556, 22.2222222)
@@ -22,7 +30,8 @@ var source_direction := 0:
 # Absent entries preserve the simple clockwise/counter-clockwise arrangement.
 # Once a player adjusts a head, its absolute angle must remain where they left it.
 var head_angles: Dictionary = {}
-var items: Dictionary = {"A": "", "B": "", "C": "", "D": "", "J": "lens_yellow", "K": "lens_blue", "L": "", "M": ""}
+var items: Dictionary = {"A": "", "B": "", "C": "", "D": "", "J": "lens_yellow", "K": "lens_blue", "L": "", "M": "", "N": "", "F": ""}
+var lamp_angle := Vector2(-1, -1).angle()   ## Where the flashlight points; set by its handwheel.
 var turns: Dictionary = {"A": -1, "B": -1, "C": -1, "D": -1}
 
 
@@ -31,7 +40,11 @@ static func world(point: Vector2, height: float = 1.25) -> Vector3:
 
 
 func accepts(id: String, item: String) -> bool:
-	return item.is_empty() or (item == "prism" if SOCKETS.has(id) else item in ["lens_yellow", "lens_blue"])
+	if item.is_empty():
+		return true
+	if id == LAMP_SOCKET:
+		return item == "flashlight"
+	return item == "prism" if SOCKETS.has(id) else item in ["lens_yellow", "lens_blue"]
 
 
 func rotate(id: String) -> void:
@@ -43,7 +56,7 @@ func rotate(id: String) -> void:
 
 
 func save_state() -> Dictionary:
-	return {"source_direction": source_direction, "source_angle": source_angle, "head_angles": head_angles.duplicate(), "items": items.duplicate(), "turns": turns.duplicate()}
+	return {"source_direction": source_direction, "source_angle": source_angle, "head_angles": head_angles.duplicate(), "items": items.duplicate(), "turns": turns.duplicate(), "lamp_angle": lamp_angle}
 
 
 func restore(state: Dictionary) -> void:
@@ -64,11 +77,37 @@ func restore(state: Dictionary) -> void:
 			items[id] = item
 	for id: String in turns:
 		turns[id] = 1 if int(stored_turns.get(id, -1)) > 0 else -1
+	var stored_lamp := float(state.get("lamp_angle", lamp_angle))
+	if is_finite(stored_lamp):
+		lamp_angle = wrapf(stored_lamp, -PI, PI)
 
 
 func trace() -> Dictionary:
-	var origin := SOURCE
-	var direction := Vector2.from_angle(source_angle)
+	return _trace(SOURCE, Vector2.from_angle(source_angle), RECEIVER, 3, [SUN_DISC, LAMP])
+
+
+## The flashlight's beam, if it's in its socket: it wins at the sun disc in yellow.
+func trace_lamp() -> Dictionary:
+	if items.get(LAMP_SOCKET, "") != "flashlight":
+		return {"segments": [], "hit": "none", "color": 0, "won": false, "incoming": {}}
+	return _trace(LAMP, Vector2.from_angle(lamp_angle), SUN_DISC, SUN_COLOR, [RECEIVER])
+
+
+func lamp_snap_angles() -> Array[float]:
+	var angles: Array[float] = []
+	var points: Array = [SUN_DISC]
+	points.append_array(SOCKETS.values())
+	points.append_array(MOUNTS.values())
+	for point: Vector2 in points:
+		angles.append((point - LAMP).angle())
+	return angles
+
+
+## Follows one beam. `goal` is the receiver that counts (as "receiver") when reached in
+## `goal_color`; `stops` are other fixtures that simply block it.
+func _trace(start: Vector2, start_direction: Vector2, goal: Vector2, goal_color: int, stops: Array) -> Dictionary:
+	var origin := start
+	var direction := start_direction
 	var color := 0
 	var segments: Array[Dictionary] = []
 	var incoming: Dictionary = {}
@@ -80,7 +119,9 @@ func trace() -> Dictionary:
 		if blocked > 0.01 and blocked < nearest:
 			nearest = blocked
 			hit = "obstacle"
-		var candidates: Dictionary = {"receiver": RECEIVER}
+		var candidates: Dictionary = {"receiver": goal}
+		for k in stops.size():
+			candidates["stop%d" % k] = stops[k]
 		for id: String in SOCKETS:
 			if items[id] == "prism":
 				candidates[id] = SOCKETS[id]
@@ -95,8 +136,10 @@ func trace() -> Dictionary:
 				hit = id
 		var endpoint := origin + direction * nearest
 		segments.append({"from": origin, "to": endpoint, "color": color})
+		if hit.begins_with("stop"):
+			hit = "obstacle"
 		if hit in ["receiver", "obstacle", "wall"]:
-			return {"segments": segments, "hit": hit, "color": color, "won": hit == "receiver" and color == 3, "incoming": incoming}
+			return {"segments": segments, "hit": hit, "color": color, "won": hit == "receiver" and color == goal_color, "incoming": incoming}
 		var loop_key := "%s:%s:%s" % [hit, direction.snapped(Vector2(0.001, 0.001)), color]
 		if visited.has(loop_key):
 			return {"segments": segments, "hit": "loop", "color": color, "won": false, "incoming": incoming}
@@ -124,7 +167,9 @@ func source_snap_angles() -> Array[float]:
 	var angles: Array[float] = []
 	var points: Array = [RECEIVER]
 	points.append_array(SOCKETS.values())
-	points.append_array(MOUNTS.values())
+	for id: String in MOUNTS:
+		if id != "N":   # The lamp's mount: the ceiling source has no business aiming there.
+			points.append(MOUNTS[id])
 	for point: Vector2 in points:
 		var candidate := point.angle()
 		var duplicate := false

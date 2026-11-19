@@ -65,8 +65,12 @@ func _test_architecture() -> void:
 	var door: Vector3 = _room.architecture.locked_door.global_position
 	_expect(absf(receiver.x - door.x) < 0.4 and absf(receiver.z - door.z) < 2.0, "The optical receiver sits at Door 2's frame")
 	_expect(not _ray(Vector3(-9, 0.6, 0), Vector3(3, 0.6, 0)), "The central hall remains clear for future escape-room interactions")
-	for device: Node3D in _room.optics.devices.values():
-		_expect(device.position.x > 3.0, "Optical hardware stays in the compact east-side installation")
+	# The lamp socket F and its lens mount N are the later, Egypt-bound extension
+	# (docs/INTERCONNECTION.md): their beam runs north-west toward Egypt's door.
+	for id: String in _room.optics.devices:
+		if id in ["F", "N"]:
+			continue
+		_expect(_room.optics.devices[id].position.x > 3.0, "Optical hardware stays in the compact east-side installation")
 	for id: String in _room.architecture.rooms:
 		var at: Vector3 = _room.architecture.rooms[id]
 		_expect(_ray(at + Vector3.UP * 2, at - Vector3.UP), id + " has a supporting floor")

@@ -6,6 +6,7 @@ signal solved
 signal message(text: String)
 signal changed
 signal aiming_changed(active: bool, hint: String)
+signal sun_restored   ## The flashlight's yellow beam reached the sun disc by Egypt's door.
 
 const Model := preload("res://scenes/escape/optics_model.gd")
 const Art := preload("res://scenes/escape/optics_art.gd")
@@ -14,10 +15,15 @@ const Beams := preload("res://scenes/escape/optics_beams.gd")
 const Aiming := preload("res://scenes/escape/optics_aiming.gd")
 const Hardware := preload("res://scenes/escape/optics_hardware.gd")
 const OpticsSound := preload("res://audio/optics_sound.gd")
+const SunDisc := preload("res://scenes/escape/sun_disc.gd")
+const TimeLink := preload("res://autoload/time_link.gd")
 
 var model := Model.new()
 var devices: Dictionary = {}
 var result: Dictionary = {}
+var lamp_result: Dictionary = {}
+var sun_disc: Node3D
+var _lamp_beams: Node3D
 var inventory: Node
 var aiming: Node
 var _player: Node
@@ -47,8 +53,16 @@ func _ready() -> void:
 		_add_device(id, Model.SOCKETS[id], "prism")
 	for id: String in Model.MOUNTS:
 		_add_device(id, Model.MOUNTS[id], "lens")
+	_add_device(Model.LAMP_SOCKET, Model.LAMP, "lamp")
 	_beams = Beams.new()
 	add_child(_beams)
+	_lamp_beams = Beams.new()
+	_lamp_beams.name = "LampBeams"
+	_lamp_beams.feed_from_ceiling = false
+	add_child(_lamp_beams)
+	sun_disc = SunDisc.new()
+	sun_disc.position = Model.world(Model.SUN_DISC, 0)
+	add_child(sun_disc)
 	aiming = Aiming.new()
 	aiming.name = "Aiming"
 	aiming.configure(_player)
@@ -81,10 +95,16 @@ func exchange_item(id: String) -> void:
 	var item := String(model.items[id])
 	if not model.accepts(id, held):
 		Sound.play("unavailable", self)
-		message.emit("That needs a %s. Your held item stays safe." % ["prism" if Model.SOCKETS.has(id) else "colored lens"])
+		if id == Model.LAMP_SOCKET:
+			message.emit("Nothing from this century fits this lamp socket.")
+		else:
+			message.emit("That needs a %s. Your held item stays safe." % ["prism" if Model.SOCKETS.has(id) else "colored lens"])
 		return
 	if held.is_empty() and item.is_empty():
-		message.emit("An empty prism socket. The pyramid's reward will fit here." if Model.SOCKETS.has(id) else "An empty lens mount. Move a colored lens here.")
+		if id == Model.LAMP_SOCKET:
+			message.emit("An empty lamp socket, waiting for a lamp that hasn't arrived yet.")
+		else:
+			message.emit("An empty prism socket. The pyramid's reward will fit here." if Model.SOCKETS.has(id) else "An empty lens mount. Move a colored lens here.")
 		return
 	model.items[id] = inventory.exchange(item)
 	var at: Vector3 = devices[id].global_position + Vector3.UP
@@ -106,7 +126,15 @@ func rotate_prism(id: String) -> void:
 
 
 func begin_aim(id: String) -> void:
-	if not devices.has(id) or (id != "S" and model.items.get(id, "") != "prism"):
+	if not devices.has(id):
+		return
+	if id == Model.LAMP_SOCKET:
+		if model.items.get(id, "") != "flashlight":
+			return
+		devices[id].set_adjusting(true, false)
+		aiming.begin(id, model.lamp_angle, model.lamp_snap_angles())
+		return
+	if id != "S" and model.items.get(id, "") != "prism":
 		return
 	var incoming: Vector2 = result.get("incoming", {}).get(id, Vector2.ZERO)
 	var angle: float = model.source_angle if id == "S" else model.head_angle(id, incoming)
@@ -130,6 +158,8 @@ func _on_aim_adjusted(angle: float, snapped: bool) -> void:
 	var id: String = aiming.active_id
 	if id == "S":
 		model.source_angle = angle
+	elif id == Model.LAMP_SOCKET:
+		model.lamp_angle = angle
 	else:
 		model.head_angles[id] = angle
 	devices[id].set_head_angle(angle, true)
@@ -157,6 +187,10 @@ func refresh(persist := true) -> void:
 		return
 	result = model.trace()
 	_beams.draw_trace(result)
+	lamp_result = model.trace_lamp()
+	_lamp_beams.draw_trace(lamp_result)
+	var sun_lit: bool = lamp_result.get("won", false) or bool(Game.get_flag("egypt_sun_restored", false))
+	sun_disc.set_lit(sun_lit, lamp_result.get("hit", "") == "receiver" and not lamp_result.get("won", false))
 	_refresh_devices()
 	_receiver.material_override = _receiver_materials[result.color if result.hit == "receiver" else -1]
 	_receiver_label.text = "02 · OPEN" if _was_solved else "GREEN REQUIRED"
@@ -169,6 +203,11 @@ func refresh(persist := true) -> void:
 		_receiver_label.text = "02 · OPEN"
 		message.emit("Green received. Door 2 is opening!")
 		solved.emit()
+	if lamp_result.get("won", false) and not bool(Game.get_flag("egypt_sun_restored", false)):
+		TimeLink.fix("egypt_dark")
+		Sound.play_at("receiver", Model.world(Model.SUN_DISC), self)
+		message.emit("Sunlight! The disc by Egypt's door blazes gold.")
+		sun_restored.emit()
 	changed.emit()
 
 
@@ -180,6 +219,10 @@ func _refresh_devices() -> void:
 	var held := String(inventory.held_item) if inventory != null else ""
 	for id: String in devices:
 		var item := "prism" if id == "S" else String(model.items[id])
+		if id == Model.LAMP_SOCKET:
+			devices[id].update_state(item, held, -1, Vector2.ZERO)
+			devices[id].set_head_angle(model.lamp_angle, true)
+			continue
 		var incoming: Vector2 = result.get("incoming", {}).get(id, Vector2.ZERO)
 		# Absolute heads must not briefly tween toward the legacy relative turn
 		# before their saved angle is applied again on every source adjustment.

@@ -134,7 +134,9 @@ class Closeup extends Node2D:
 		Ink.shape(self, Ink.rrect(plate, 8), P.BRASS, 3.0, 862, 0.25)
 		draw_string(Style.font(true), Vector2(plate.position.x, plate.position.y + 26), "FUTURESCOPE", HORIZONTAL_ALIGNMENT_CENTER, plate.size.x, 24, Ink.OUTLINE)
 		if _caption != "":
-			draw_string(Style.font(true), Vector2(SCREEN.position.x + 24, SCREEN.position.y + 44), _caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 0.4, 0.3, 0.6 + 0.4 * sin(Time.get_ticks_msec() / 250.0)))
+			# On the wooden frame above the screen (the picture covers anything drawn on it).
+			draw_circle(Vector2(SCREEN.position.x + 4, SCREEN.position.y - 34), 7, Color(1, 0.3, 0.2, 0.55 + 0.45 * sin(Time.get_ticks_msec() / 250.0)))
+			draw_string(Style.font(true), Vector2(SCREEN.position.x + 20, SCREEN.position.y - 26), _caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Ink.OUTLINE)
 
 
 ## Sirens: a flashing edge glow, a spinning beacon and a lit warning sign.

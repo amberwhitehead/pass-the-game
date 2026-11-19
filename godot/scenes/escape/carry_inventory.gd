@@ -3,7 +3,8 @@ extends Node
 
 signal changed(item: String)
 
-const ITEMS := ["", "prism", "lens_yellow", "lens_blue"]
+## "flashlight" arrives from 1955 through the Workshop's ring (autoload/time_link.gd).
+const ITEMS := ["", "prism", "lens_yellow", "lens_blue", "flashlight"]
 var held_item := ""
 
 
@@ -30,4 +31,5 @@ static func item_name(item: String) -> String:
 		"prism": return "Prism"
 		"lens_yellow": return "Yellow lens"
 		"lens_blue": return "Blue lens"
+		"flashlight": return "1955 flashlight"
 	return "Empty hand"

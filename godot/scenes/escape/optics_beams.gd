@@ -5,6 +5,7 @@ extends Node3D
 const Art := preload("res://scenes/escape/optics_art.gd")
 const Model := preload("res://scenes/escape/optics_model.gd")
 const MAX_SEGMENTS := 24
+var feed_from_ceiling := true   ## Draw the ceiling feed into the source (the main beam only).
 var _materials: Dictionary = {}
 var _segments: Array[MeshInstance3D] = []
 var _endpoint: MeshInstance3D
@@ -27,7 +28,8 @@ func _ready() -> void:
 		part.visible = false
 		add_child(part)
 		_segments.append(part)
-	Art.line(self, Model.world(Model.SOURCE, 4.8), Model.world(Model.SOURCE), _materials[0], 0.016)
+	if feed_from_ceiling:
+		Art.line(self, Model.world(Model.SOURCE, 4.8), Model.world(Model.SOURCE), _materials[0], 0.016)
 	_endpoint = Art.sphere(self, 0.045, Vector3.ZERO, _materials[0])
 	_endpoint.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_impact = Art.label(self, "", Vector3.ZERO, 20, Color(1, 0.76, 0.47), 5.0)

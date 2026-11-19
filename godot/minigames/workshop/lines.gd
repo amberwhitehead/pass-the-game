@@ -49,6 +49,14 @@ const OFFICER_LEAVES := [
 
 const GOODBYE := "Come back any time. Bring sardines."
 
+## Visiting again after the Workshop is won (story.gd epilogue).
+const EPILOGUE := [
+	"Back again! Fuse wandered off through the ring. Toward your century, I'd guess.",
+	"And the Futurescope's been picking up other channels ever since. Strange ones.",
+]
+
+const SENT := "Off it goes. Mind how it lands."
+
 ## What the Engineer mutters when clicked, by phase. Never instructions.
 const MUTTERS := {
 	"setup": [
@@ -64,6 +72,11 @@ const MUTTERS := {
 	"break": [
 		"He's got that look again.",
 		"Don't let him near that lever.",
+	],
+	"epilogue": [
+		"I keep the wire handy now. In case anything needs sending.",
+		"Fuse sends postcards. Well. Hair.",
+		"I wonder what's on the other channels.",
 	],
 	"done": [
 		"Same cat. Older. Wiser? No.",

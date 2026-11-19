@@ -25,6 +25,9 @@ const Person := preload("res://minigames/workshop/person.gd")
 const Small := preload("res://minigames/workshop/small_props.gd")
 const Vision := preload("res://minigames/workshop/vision.gd")
 const Lines := preload("res://minigames/workshop/lines.gd")
+const Channels := preload("res://minigames/workshop/channels.gd")
+const Items := preload("res://minigames/workshop/items.gd")
+const TimeLink := preload("res://autoload/time_link.gd")
 
 const FUSE_NAP := Vector2(450, 330)      ## On top of the icebox.
 const YARN_SPOT := Vector2(870, 764)
@@ -57,6 +60,7 @@ var _box_node: Node2D
 var _w: Dictionary
 var _mutters := 0
 var _twin_in_box := false
+var _channel := -1
 
 
 func _ready() -> void:
@@ -257,6 +261,9 @@ func click(id: String, held: String, at: Vector2) -> void:
 
 func _poke(id: String, at: Vector2) -> void:
 	var f := flags
+	if f.phase == "epilogue" and id in ["tv", "portal", "machine", "fuse", "twin"]:
+		await _poke_epilogue(id)
+		return
 	match id:
 		"engineer":
 			_mutters += 1
@@ -318,6 +325,9 @@ func _poke(id: String, at: Vector2) -> void:
 
 func _use(item: String, id: String, at: Vector2) -> void:
 	var f := flags
+	if f.phase == "epilogue" and id == "portal":
+		await _send(item)
+		return
 	match [item, id]:
 		["tube", "tv"]:
 			use_up("tube")
@@ -866,6 +876,98 @@ class Scrim extends Node2D:
 
 	func _draw() -> void:
 		draw_rect(Rect2(-100, -100, 1800, 1100), Color(0.08, 0.05, 0.04, 0.8))
+
+
+# --- after the win: the epilogue -----------------------------------------------------
+
+## Visiting again once the Workshop is won: a calm room, the wire back in, Fuse off
+## somewhere in the hall, and a Futurescope that picks up other rooms' futures
+## (channels.gd). Things used on the portal go through to the hall's ring tray.
+func epilogue() -> void:
+	flags.phase = "epilogue"
+	flags.wire = "machine"
+	_w.fuse.visible = false
+	_w.machine.powered = true
+	_w.machine.fuse_blown = false
+	_w.wire.taken = true
+	_w.radio.back_open = true
+	_w.radio.has_tube = false
+	_w.tv.has_tube = true
+	_w.tv.on = true
+	_w.tv.tuned = true
+	inventory.items.clear()
+	for item: String in TimeLink.SENDABLE:
+		if not TimeLink.was_sent(item):
+			inventory.add(item)
+	busy = true
+	await wait(0.6)
+	await says("engineer", Lines.EPILOGUE)
+	busy = false
+
+
+func _poke_epilogue(id: String) -> void:
+	match id:
+		"tv":
+			await _next_channel()
+		_:
+			await nope(id)
+
+
+## Each click on the Futurescope turns to the next channel and watches it.
+func _next_channel() -> void:
+	var list := Channels.available()
+	list.append({"id": "workshop", "title": "1955 · THE WORKSHOP", "scene": null})
+	_channel = (_channel + 1) % list.size()
+	var ch: Dictionary = list[_channel]
+	Sound.play("dial_turn", self)
+	if ch.scene == null:
+		_w.tv.show_channel(null)
+		await _watch("calm", ch.title)
+		return
+	var scene: Node2D = ch.scene.new()
+	_w.tv.show_channel(scene)
+	closeup.open(_w.tv.feed_texture(), _w.tv.material(), ch.title)
+	await scene.play()
+	await closeup.close()
+	_w.tv.show_channel(null)
+
+
+## Sends an item through the portal to the hall's ring tray.
+func _send(item: String) -> void:
+	if not TimeLink.SENDABLE.has(item) or TimeLink.tray_item() != "":
+		await nope("portal")
+		return
+	var m: Node2D = _w.machine
+	_engineer_gesture("point", Machine.PORTAL_CENTER)
+	m.lever_down = true
+	Sound.play("dial_snap", self)
+	var tw := create_tween()
+	tw.tween_property(m, "portal", 1.0, 0.7)
+	Sound.play("lens_light", self)
+	await tw.finished
+	use_up(item)
+	var icon := ItemIcon.new()
+	icon.item = item
+	icon.position = Vector2(800, 820)
+	world.add_child(icon)
+	tw = create_tween().set_parallel()
+	tw.tween_property(icon, "position", Machine.PORTAL_CENTER, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(icon, "scale", Vector2(0.2, 0.2), 0.7)
+	await tw.finished
+	icon.queue_free()
+	TimeLink.send_to_hall(item)
+	tw = create_tween()
+	tw.tween_property(m, "portal", 0.0, 0.6)
+	await tw.finished
+	m.lever_down = false
+	await say("engineer", Lines.SENT)
+
+
+class ItemIcon extends Node2D:
+	var item := ""
+
+	func _draw() -> void:
+		Items.draw_icon(self, item, Vector2.ZERO)
 
 
 ## The ball of yarn while it rolls across the floor.

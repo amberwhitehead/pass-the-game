@@ -56,7 +56,9 @@ func _ready() -> void:
 	resized.connect(_fit_stage)
 	_fit_stage()
 	super()
-	if not resume_state.is_empty():
+	if Game.completed_minigames.has("workshop"):
+		_story.epilogue()
+	elif not resume_state.is_empty():
 		_story.load_state(resume_state)
 		_story.apply_flags()
 	else:
@@ -70,7 +72,7 @@ func _fit_stage() -> void:
 
 
 func save_state() -> Dictionary:
-	if _story == null or _story.flags.phase == "done":
+	if _story == null or _story.flags.phase in ["done", "epilogue"]:
 		return {}
 	return _story.save_state()
 
@@ -166,6 +168,9 @@ func debug_step(step: String) -> void:
 				c.displaced = p == "stand"
 				_world.add_child(c)
 				x += 210.0
+		"epilogue":
+			Game.completed_minigames["workshop"] = {"won": true}
+			_story.epilogue()
 		"skip":
 			_bubble.advance()
 			_bubble.advance()
