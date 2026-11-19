@@ -265,7 +265,7 @@ static func describe(state: Dictionary) -> String:
 	var flags: Dictionary = state.get("flags", {})
 	var wins: Dictionary = state.get("completed_minigames", {})
 	var parts: Array[String] = []
-	for entry: Array in [["newton", "Egypt"], ["turing", "Roman Flow"], ["cards", "Little Brother"], ["cards_older", "Older Brother"]]:
+	for entry: Array in [["newton", "Egypt"], ["turing", "Roman Flow"], ["cards", "Little Brother"], ["cards_older", "Older Brother"], ["workshop", "Workshop"]]:
 		if wins.has(entry[0]):
 			parts.append("%s ✓" % entry[1])
 	if flags.get("escape_prism_solved", false):
