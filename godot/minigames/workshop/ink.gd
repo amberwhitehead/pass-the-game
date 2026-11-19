@@ -91,21 +91,23 @@ static func shape(ci: CanvasItem, pts: PackedVector2Array, fill: Color, width :=
 		return
 	if not Geometry2D.triangulate_polygon(w).is_empty():
 		ci.draw_colored_polygon(w, fill)
-		var bounds := _bounds(w)
+		# Light and shade come from the steady (unwobbled) outline, so they don't pop in
+		# and out as the outline boils. Shapes too small to hold them stay flat.
+		var bounds := _bounds(pts)
 		var inset := clampf(minf(bounds.size.x, bounds.size.y) * 0.12, 2.0, 14.0)
-		if shade > 0.0:
-			for poly in Geometry2D.offset_polygon(w, -inset):
-				var moved := _shift(poly, Vector2(-inset * 0.5, -inset * 0.6))
-				var clipped := Geometry2D.clip_polygons(w, moved)
-				for c in clipped:
-					if not Geometry2D.triangulate_polygon(c).is_empty():
-						ci.draw_colored_polygon(c, fill.darkened(shade))
-		if light > 0.0:
-			for poly in Geometry2D.offset_polygon(w, -inset * 1.4):
-				var moved := _shift(poly, Vector2(-inset * 0.35, -inset * 0.5))
-				for c in Geometry2D.intersect_polygons(moved, w):
-					if not Geometry2D.triangulate_polygon(c).is_empty():
-						ci.draw_colored_polygon(c, fill.lightened(light))
+		if minf(bounds.size.x, bounds.size.y) >= 16.0:
+			if shade > 0.0:
+				for poly in Geometry2D.offset_polygon(pts, -inset):
+					var moved := _shift(poly, Vector2(-inset * 0.5, -inset * 0.6))
+					for c in Geometry2D.clip_polygons(pts, moved):
+						if not Geometry2D.triangulate_polygon(c).is_empty():
+							ci.draw_colored_polygon(c, fill.darkened(shade))
+			if light > 0.0:
+				for poly in Geometry2D.offset_polygon(pts, -inset * 1.4):
+					var moved := _shift(poly, Vector2(-inset * 0.35, -inset * 0.5))
+					for c in Geometry2D.intersect_polygons(moved, pts):
+						if not Geometry2D.triangulate_polygon(c).is_empty():
+							ci.draw_colored_polygon(c, fill.lightened(light))
 	if width > 0.0:
 		var loop := w.duplicate()
 		loop.append(w[0])
