@@ -348,3 +348,87 @@ before; the mixer panel itself is unchanged.
 `docs/HANDOFF.md` now describes the game at the end of this turn, including a
 "What changed for you" section for each returning contributor. cee.wtf's handoff
 is kept in `docs/handoffs/2026-11-16-cee.wtf.md`.
+
+## Steve Likes Robots — November 18, 2026
+
+Built using Codex (GPT 6.2 Sol Light) as orchestrator and Claude Opus 5.5 as builder,
+on Windows with Godot 4.7.2.
+
+### `2668650` — Keyboard and mouse movement inspired by Minecraft
+
+- **Mouse look without holding a button.** In the hall the game captures the cursor
+  (`scenes/room/mouse_capture.gd`); menus, Sound settings and minigames get it back.
+  Browsers only lock the pointer after a real click or key press, and drop it on
+  Escape or when the window loses focus, so while keyboard/mouse play is waiting for
+  it a **Click to look around** card shows and the player doesn't move.
+- **W/S walk, A/D strafe, Space jumps.** Walking follows the horizontal facing, so
+  looking up or down never tilts or slows it, and diagonals are no faster. Jumping has
+  gravity, collision and landing, and a press in the air does nothing. Space no
+  longer interacts; E, Enter and F still do. The arrow keys still turn; gamepad and
+  touch controls are unchanged.
+- **Resuming is clean.** Keys held through a menu, dialogue or the click-to-look card
+  do nothing until released, the view comes back exactly as it was, and pausing
+  mid-jump continues the same jump.
+- A/D still turn the prism wheel and steer in Egypt Fractal and Roman Flow. The wheel
+  and the reward camera now stop only horizontal motion, so a player who grabs the
+  wheel mid-jump still lands.
+- `player_movement_test` covers facing, both pitch limits, speed, jumps, walls,
+  falling, a low ceiling, pause, the key changes and the capture gate.
+
+### `6fdd5dc` — Controls menu for changing keys
+
+**Controls** in the pause menu (hall or minigame) lists every keyboard key, extra
+keys included, each with a **Change** button.
+
+- Change waits for one key. Escape cancels; the Back / pause row has **Use Escape** so
+  Escape itself can still be chosen. A key another action uses is refused with a
+  message naming that action. Nothing is swapped or unbound.
+- Changes wait for **Apply**; **Back** asks before discarding them; **Restore
+  defaults** asks first. The menu works with the mouse or the arrow keys, Enter and
+  Escape, whatever the game keys are.
+- `autoload/key_bindings.gd` holds the defaults, key names and saving. Choices are
+  saved in `user://controls.cfg`, separate from saves and sound settings, and replace
+  only keyboard events, so gamepad and touch stay as they were. A missing, damaged or
+  invalid file falls back to the defaults and is left untouched; a failed save says
+  so.
+- `controls_menu_test` drives the real menu with real key and mouse events.
+
+### `d5a4dd3` — Key prompts follow your keys
+
+The interact prompt, dialogue, prism-wheel hint, click-to-look card, Egypt and Roman
+Flow hints, card table rules and the puzzle close button all show the current keys,
+named the way the player's keyboard layout prints them. Puzzle hints update when the
+pause menu closes. On the Web, Godot cannot read the keyboard layout, so key names
+fall back to the key's own name instead of logging an error on every refresh.
+
+### `dae13d0` — More movement checks
+
+The movement test also walks off a ledge (a real fall that keeps its momentum and
+lands) and, in the real hall, checks that Space beside an NPC jumps without starting
+the conversation while E still starts it.
+
+### `ed029d5` — Credits screen
+
+**Credits** on the title screen and in the pause menu: one scrolling page of who made
+what, plus the Kenney sounds, both fonts and Godot. Back or Escape returns to the menu
+that opened it, and the game stays paused. Entries live in `ui/credits.gd`, with a
+note asking future contributors and AI agents to agree each entry with the person it
+credits rather than guessing. `credits_test` covers both menus.
+
+### `0c5364a` — Open credit questions
+
+`ui/credits.gd` lists three attribution questions for the next contributor to
+settle: who "the owner" was in cee.wtf's November 16 playtest, whether "tesseract" or
+the fork account "tessprime" is the right name, and whether the other turns used AI
+tools worth crediting.
+
+### `8952b15`, `be0e801` and `28086b4` — An Easter egg
+
+A small secret room is hidden in the hall for players to find; how to reach it is
+described in the spoiler section of `godot/scenes/escape/README.md`. It holds two signs
+and a decorative travellers' board whose pieces (one per stage, plus a phone for the
+21st-century player) appear as stages are won. The room is left empty on purpose for
+future developers to build on, and the board's Workshop, Calendar and Observatory
+pieces wait for those stages: see `STAGES` in `godot/scenes/escape/egg_board.gd`.
+Nothing about the room is saved and no progress depends on it. `secret_room_test` and
+`egg_board_test` cover it.
