@@ -113,6 +113,24 @@ func _run() -> void:
 	_expect(_won, "Pulling the wire wins the Workshop")
 	_expect(_game.save_state().is_empty(), "A won Workshop saves no progress")
 
+	# The save editor's jump points resume cleanly and play on.
+	var Stages := preload("res://minigames/workshop/dev_stages.gd")
+	for st: Dictionary in Stages.STAGES:
+		_expect(Stages.stage_of(Stages.state_for(st.id)) == st.id, "The editor recognises its own '%s' state" % st.id)
+	_game.queue_free()
+	await process_frame
+	_game = _open(_through_json(Stages.state_for("ready")))
+	await _settle()
+	_expect(_story.flags.phase == "loop" and _story.matches_footage(), "'Ready to send Fuse' matches the footage")
+	await _click("lever", "flashlight")
+	_expect(_story.flags.phase == "break", "From 'Ready to send Fuse' the flashlight closes the loop")
+	_game.queue_free()
+	await process_frame
+	_game = _open(_through_json(Stages.state_for("break")))
+	await _settle()
+	_expect(_story.flags.phase == "break" and _story.twin.position.distance_to(preload("res://minigames/workshop/vision.gd").LEVER_WAIT) < 4.0,
+		"'Loop closed' puts the cat at the lever")
+
 	print("Workshop story: %d checks, %d failures" % [_checks, _failures])
 	_game.queue_free()
 	quit(1 if _failures > 0 else 0)
@@ -126,10 +144,13 @@ func _open(state: Dictionary) -> Control:
 	return g
 
 
+func _through_json(state: Dictionary) -> Dictionary:
+	return SaveGame.decode(JSON.parse_string(JSON.stringify(SaveGame.encode(state))))
+
+
 func _reopen() -> Control:
-	var state: Dictionary = _game.save_state()
 	# Through JSON, as the save file does.
-	state = SaveGame.decode(JSON.parse_string(JSON.stringify(SaveGame.encode(state))))
+	var state := _through_json(_game.save_state())
 	_game.queue_free()
 	await process_frame
 	var g := _open(state)

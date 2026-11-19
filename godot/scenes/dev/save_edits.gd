@@ -77,6 +77,15 @@ static func minigame_progress(state: Dictionary) -> Dictionary:
 	return flag(state, "minigame_progress", {})
 
 
+static func set_progress(state: Dictionary, id: String, value: Dictionary) -> void:
+	var progress := minigame_progress(state).duplicate()
+	if value.is_empty():
+		progress.erase(id)
+	else:
+		progress[id] = value
+	set_flag(state, "minigame_progress", progress)
+
+
 static func clear_progress(state: Dictionary, id: String) -> void:
 	var progress := minigame_progress(state).duplicate()
 	progress.erase(id)

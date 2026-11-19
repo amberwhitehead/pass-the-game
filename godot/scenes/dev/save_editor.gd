@@ -9,6 +9,7 @@ const SaveGame := preload("res://autoload/save_game.gd")
 const Edits := preload("res://scenes/dev/save_edits.gd")
 const Progression := preload("res://minigames/cards/deck_progression.gd")
 const Inventory := preload("res://scenes/escape/carry_inventory.gd")
+const WorkshopStages := preload("res://minigames/workshop/dev_stages.gd")
 const TITLE_SCENE := "res://scenes/title/title.tscn"
 const ROOM_SCENE := "res://scenes/room/room.tscn"
 
@@ -21,6 +22,7 @@ var revealed_box: CheckBox
 var door_box: CheckBox
 var cradle_pickers: Array[OptionButton] = []
 var held_picker: OptionButton
+var workshop_picker: OptionButton
 var raw: TextEdit
 var save_button: Button
 var save_new_button: Button
@@ -84,6 +86,16 @@ func _ready() -> void:
 	var cards := _section(sections, "Found cards")
 	for id: String in Progression.COLLECTIBLES:
 		card_boxes[id] = _check(cards, Edits.card_name(id), func(on: bool): Edits.set_card(state, id, on))
+	var workshop := _section(sections, "Workshop")
+	workshop_picker = OptionButton.new()
+	for st: Dictionary in WorkshopStages.STAGES:
+		workshop_picker.add_item(st.label)
+		workshop_picker.set_item_metadata(workshop_picker.item_count - 1, st.id)
+	workshop_picker.item_selected.connect(func(index: int):
+		Edits.set_progress(state, "workshop", WorkshopStages.state_for(workshop_picker.get_item_metadata(index)))
+		_refresh())
+	workshop.add_child(workshop_picker)
+	workshop.add_child(Style.label("Resumes there when the Workshop opens", 13, Style.MUTED))
 	_progress_list = _section(sections, "Unfinished minigames")
 
 	warning_label = Style.label("", 15, Style.GOLD)
@@ -194,6 +206,7 @@ func _refresh() -> void:
 	for child in _progress_list.get_children().slice(1):
 		child.queue_free()
 	var progress := Edits.minigame_progress(state)
+	_select(workshop_picker, WorkshopStages.stage_of(progress.get("workshop", {})))
 	if progress.is_empty():
 		_progress_list.add_child(Style.label("None", 16, Style.MUTED))
 	for id: String in progress:
