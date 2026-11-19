@@ -31,6 +31,7 @@ func _ready() -> void:
 	floor.hit_rect = Rect2(0, 690, 1600, 210)
 	_add("floor", floor)
 	_add("blinds", Small.Blinds.new())
+	_add("wire", Small.WireCoil.new())
 	_add("clock", Small.Clock.new())
 	_add("tv", Futurescope.new())
 	_add("box", Small.Box.new())

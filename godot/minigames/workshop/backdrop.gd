@@ -77,7 +77,7 @@ func _pegboard() -> void:
 	for i in 11:
 		for j in 11:
 			draw_circle(r.position + Vector2(14 + i * 21.5, 14 + j * 22), 2.0, Color("8a6a46"))
-	# Hanging tools: hammer, saw, pliers, coil of wire.
+	# Hanging tools: hammer, saw, pliers.
 	Ink.shape(self, Ink.rrect(Rect2(590, 250, 12, 110), 4), P.WOOD, 2.5, 21)
 	Ink.shape(self, Ink.rrect(Rect2(572, 244, 48, 20), 4), P.STEEL, 2.5, 22)
 	Ink.shape(self, PackedVector2Array([Vector2(640, 250), Vector2(700, 250), Vector2(700, 268), Vector2(690, 380), Vector2(640, 268)]), P.CHROME, 2.5, 23)
@@ -86,10 +86,8 @@ func _pegboard() -> void:
 	Ink.line(self, PackedVector2Array([Vector2(752, 250), Vector2(762, 340)]), P.STEEL, 5.0, 26)
 	Ink.shape(self, Ink.rrect(Rect2(728, 330, 16, 50), 6), P.RED, 2.5, 27)
 	Ink.shape(self, Ink.rrect(Rect2(756, 330, 16, 50), 6), P.RED, 2.5, 28)
-	for k in 3:
-		var ring := Ink.ellipse(Vector2(620, 410), Vector2(26 - k * 6, 26 - k * 6), 20)
-		ring.append(ring[0])
-		Ink.line(self, ring, Color("b5643a"), 3.0, 29 + k)
+	# (The coil of copper wire on its hook is a hotspot: small_props.gd WireCoil.)
+	Ink.dot(self, Vector2(620, 382), 4, P.STEEL, 2.0, 29)
 
 
 func _shelf() -> void:

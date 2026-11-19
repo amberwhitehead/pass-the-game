@@ -10,12 +10,14 @@ signal dismissed
 const MAX_WIDTH := 460.0
 const PAD := Vector2(22, 16)
 const FONT_SIZE := 22
+const LINE_H := 29.0
 
 var _text := ""
 var _speaker := ""
 var _anchor := Vector2.ZERO       ## Where the tail points (the speaker's mouth).
 var _shown := 0.0
 var _box := Rect2()
+var _lines: PackedStringArray = []   ## The text, already wrapped.
 var _tint := Color("fffaf0")
 var _waiting := false
 var _auto := 0.0
@@ -81,15 +83,34 @@ func _process(delta: float) -> void:
 
 
 func _layout() -> void:
-	var font := Style.font()
-	var size := font.get_multiline_string_size(_text, HORIZONTAL_ALIGNMENT_LEFT, MAX_WIDTH, FONT_SIZE)
+	_lines = wrap_words(_text, Style.font(), FONT_SIZE, MAX_WIDTH)
+	var widest := 0.0
+	for l in _lines:
+		widest = maxf(widest, Style.font().get_string_size(l, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x)
 	var name_h := 24.0 if _speaker != "" else 0.0
-	var box_size := size + PAD * 2.0 + Vector2(0, name_h)
+	# A little slack: glyphs drawn at the stage's scale can come out a touch wider.
+	var box_size := Vector2(widest * 1.06 + 8.0, _lines.size() * LINE_H) + PAD * 2.0 + Vector2(0, name_h)
 	box_size.x = maxf(box_size.x, 210.0)
 	var pos := _anchor + Vector2(60.0 if _side > 0.0 else -60.0 - box_size.x, -box_size.y * 0.75)
 	pos.x = clampf(pos.x, 20, 1580 - box_size.x)
 	pos.y = clampf(pos.y, 16, 880 - box_size.y)
 	_box = Rect2(pos, box_size)
+
+
+## Splits `text` into lines no wider than `width`, breaking between words.
+static func wrap_words(text: String, font: Font, size: int, width: float) -> PackedStringArray:
+	var out := PackedStringArray()
+	var line := ""
+	for word in text.split(" ", false):
+		var trial := word if line == "" else line + " " + word
+		if line != "" and font.get_string_size(trial, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
+			out.append(line)
+			line = word
+		else:
+			line = trial
+	if line != "":
+		out.append(line)
+	return out
 
 
 func _draw() -> void:
@@ -108,8 +129,14 @@ func _draw() -> void:
 	if _speaker != "":
 		draw_string(Style.font(true), Vector2(_box.position.x + PAD.x, y + 16), _speaker.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("b0552a"))
 		y += 24.0
-	draw_multiline_string(Style.font(), Vector2(_box.position.x + PAD.x, y + FONT_SIZE), _text.substr(0, int(_shown)),
-		HORIZONTAL_ALIGNMENT_LEFT, MAX_WIDTH, FONT_SIZE, -1, Ink.OUTLINE)
+	# Type the wrapped lines out character by character, each drawn without re-wrapping.
+	var left := int(_shown)
+	for l in _lines:
+		if left <= 0:
+			break
+		y += LINE_H
+		draw_string(Style.font(), Vector2(_box.position.x + PAD.x, y - 6.0), l.substr(0, left), HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, Ink.OUTLINE)
+		left -= l.length() + 1
 	if _shown >= _text.length() and _auto <= 0.0:
 		var p := Vector2(_box.end.x - 22, _box.end.y - 14 + sin(Time.get_ticks_msec() / 200.0) * 2.0)
 		draw_colored_polygon(PackedVector2Array([p + Vector2(-6, -4), p + Vector2(6, -4), p + Vector2(0, 4)]), Color("b0552a"))

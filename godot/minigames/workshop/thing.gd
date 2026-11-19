@@ -15,7 +15,7 @@ var hovered := false:
 	set(v):
 		if hovered != v:
 			hovered = v
-			queue_redraw()
+			_hover_tint(v)
 var enabled := true             ## False hides the hotspot from the cursor.
 
 var _boil := -1
@@ -36,8 +36,6 @@ func _tick(_delta: float) -> void:
 
 func _draw() -> void:
 	_paint()
-	if hovered and enabled and id != "":
-		_paint_hover()
 
 
 ## Subclasses draw here.
@@ -45,13 +43,10 @@ func _paint() -> void:
 	pass
 
 
-## A soft glow ring around the hotspot while hovered.
-func _paint_hover() -> void:
-	if hit_rect.size == Vector2.ZERO:
-		return
-	var pts := Ink.rrect(hit_rect.grow(6.0), 14.0)
-	pts.append(pts[0])
-	draw_polyline(Ink.wobble(pts, 1.5, 99), Color(1.0, 0.93, 0.6, 0.85), 3.0, true)
+## Hovered things brighten a little. Colours above 1 lighten everything drawn here.
+func _hover_tint(on: bool) -> void:
+	var tw := create_tween()
+	tw.tween_property(self, "self_modulate", Color(1.22, 1.18, 1.1) if on else Color.WHITE, 0.12)
 
 
 ## True when the global canvas point lies on this hotspot.

@@ -66,12 +66,6 @@ func hit_test(global_point: Vector2) -> bool:
 	return Rect2(-70, -110, 150, 116).has_point(p)
 
 
-func _paint_hover() -> void:
-	var pts := Ink.ellipse(Vector2(0, -40), Vector2(80, 58), 24)
-	pts.append(pts[0])
-	draw_polyline(Ink.wobble(pts, 1.5, 98), Color(1.0, 0.93, 0.6, 0.85), 3.0, true)
-
-
 # --- movement --------------------------------------------------------------------------
 
 ## Walks along the ground to `x` (and `y`, if given), then stands.

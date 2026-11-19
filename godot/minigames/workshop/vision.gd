@@ -44,8 +44,8 @@ static func _reset(future: Node2D) -> void:
 	t.tv.has_tube = true
 	t.radio.back_open = true
 	t.radio.has_tube = false
-	t.can.has_fuse = false
-	t.basket.has_yarn = false
+	t.wire.taken = true
+	t.machine.fuse_blown = false
 	t.fuse.visible = true
 	t.fuse.modulate.a = 1.0
 	t.fuse.scale = Vector2.ONE

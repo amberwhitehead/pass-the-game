@@ -87,31 +87,53 @@ class CoffeeCan extends Thing:
 
 ## A wicker basket of knitting. Its ball of red yarn rolls out when nudged.
 class Basket extends Thing:
-	var has_yarn := true:
-		set(v):
-			has_yarn = v
-			queue_redraw()
-
+	## Knitting in progress: a grey tea cosy on its needles. No red yarn left.
 	func _init() -> void:
 		id = "basket"
 		hover_name = "Knitting basket"
-		hit_rect = Rect2(890, 590, 120, 76)
+		hit_rect = Rect2(890, 560, 120, 106)
 
 	func _paint() -> void:
-		if has_yarn:
-			yarn_ball(self, Vector2(935, 600), 22, 130)
-			Ink.line(self, PackedVector2Array([Vector2(960, 590), Vector2(985, 560), Vector2(1000, 565)]), P.STEEL, 3.0, 131)
-			Ink.line(self, PackedVector2Array([Vector2(966, 594), Vector2(996, 552)]), P.STEEL, 3.0, 132)
+		Ink.shape(self, Ink.smooth(PackedVector2Array([Vector2(912, 606), Vector2(918, 584), Vector2(944, 574),
+			Vector2(972, 580), Vector2(986, 606)])), Color("9a9a96"), 2.5, 130, 0.2, 0.1)
+		for k in 3:
+			Ink.line(self, PackedVector2Array([Vector2(924 + k * 20, 600), Vector2(930 + k * 20, 582)]), Color("7a7a76"), 2.0, 131 + k)
+		Ink.line(self, PackedVector2Array([Vector2(960, 590), Vector2(985, 560), Vector2(1000, 565)]), P.STEEL, 3.0, 134)
+		Ink.line(self, PackedVector2Array([Vector2(966, 594), Vector2(996, 552)]), P.STEEL, 3.0, 135)
 		var b := PackedVector2Array([Vector2(890, 606), Vector2(1010, 606), Vector2(996, 664), Vector2(904, 664)])
-		Ink.shape(self, b, Color("c99a5c"), 3.0, 133, 0.15, 0.15)
+		Ink.shape(self, b, Color("c99a5c"), 3.0, 136, 0.15, 0.15)
 		for k in 4:
-			Ink.line(self, PackedVector2Array([Vector2(896 + k * 2, 618 + k * 12), Vector2(1004 - k * 2, 618 + k * 12)]), Color("8a6236"), 2.0, 134 + k)
+			Ink.line(self, PackedVector2Array([Vector2(896 + k * 2, 618 + k * 12), Vector2(1004 - k * 2, 618 + k * 12)]), Color("8a6236"), 2.0, 137 + k)
 
 	static func yarn_ball(ci: CanvasItem, c: Vector2, r: float, seed: int) -> void:
 		Ink.dot(ci, c, r, P.YARN, 3.0, seed, 0.2, 0.15)
 		for k in 3:
 			var a := 0.6 + k * 0.9
 			Ink.line(ci, Ink.ellipse(c, Vector2(r * 0.85, r * 0.35), 14, a, a + PI).duplicate(), P.YARN.darkened(0.3), 2.0, seed + k + 1)
+
+
+## A coil of copper wire hanging on the pegboard. Good for bridging a blown fuse.
+class WireCoil extends Thing:
+	var taken := false:
+		set(v):
+			taken = v
+			queue_redraw()
+
+	func _init() -> void:
+		id = "wire"
+		hover_name = "Copper wire"
+		hit_rect = Rect2(588, 378, 64, 62)
+
+	func _paint() -> void:
+		if taken:
+			return
+		coil(self, Vector2(620, 410), 1.0, 150)
+
+	static func coil(ci: CanvasItem, c: Vector2, s: float, seed: int) -> void:
+		for k in 3:
+			var ring := Ink.ellipse(c, Vector2(26 - k * 6, 26 - k * 6) * s, 20)
+			ring.append(ring[0])
+			Ink.line(ci, ring, Color("c8703f"), 3.5 * s, seed + k)
 
 
 ## The sardine tin once it is on the floor; the can opener opens it.
@@ -173,10 +195,16 @@ class Box extends Thing:
 
 ## Venetian blinds on the window: closed blinds keep the sunbeam off the floor.
 class Blinds extends Thing:
+	## Where the sunbeam lands on the floor when the blinds are open.
+	const SUNBEAM := [Vector2(70, 420), Vector2(330, 420), Vector2(640, 800), Vector2(260, 800)]
 	var open := false:
 		set(v):
 			open = v
 			queue_redraw()
+
+	## True when a floor point is in the sunbeam (and the blinds are open).
+	func lit(p: Vector2) -> bool:
+		return open and Geometry2D.is_point_in_polygon(p, PackedVector2Array(SUNBEAM))
 
 	func _init() -> void:
 		id = "blinds"
@@ -187,7 +215,7 @@ class Blinds extends Thing:
 		if open:
 			Ink.shape(self, Ink.rrect(Rect2(66, 102, 268, 36), 4), Color("efe4c8"), 2.5, 160, 0.1)
 			# The sunbeam reaching across the floor.
-			draw_colored_polygon(PackedVector2Array([Vector2(70, 420), Vector2(330, 420), Vector2(640, 800), Vector2(260, 800)]), P.SUN)
+			draw_colored_polygon(PackedVector2Array(SUNBEAM), P.SUN)
 		else:
 			for k in 16:
 				Ink.shape(self, Ink.rrect(Rect2(66, 104 + k * 20, 268, 16), 4), Color("efe4c8"), 2.0, 161 + k, 0.08, 0.15)

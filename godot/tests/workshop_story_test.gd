@@ -24,8 +24,6 @@ func _run() -> void:
 	_expect(_w().fuse.pose == "sleep", "Fuse starts asleep on the icebox")
 
 	# Setup: the radio gives up its tube to the Futurescope.
-	await _click("icebox")
-	_expect(not _w().icebox.open, "Setup keeps the icebox for later")
 	await _click("tv")
 	_expect(not _w().tv.on, "The Futurescope needs a tube first")
 	await _click("radio")
@@ -41,7 +39,7 @@ func _run() -> void:
 	_expect(_story.twin != null and _story.twin.displaced, "A second, shimmering Fuse walked out of the portal")
 	_expect(_story.twin.lid and _story.twin.yarn, "It wears the lid and the yarn")
 	_expect(_story.alarm.mode == "violation", "The temporal violation alarm sounds")
-	_expect(_w().clock.frozen, "The clock is stuck")
+	_expect(_w().clock.frozen and _story.flags.arrival >= 0, "The clock stopped at the arrival minute")
 	_expect(not _w().has("officer"), "The Officer has gone again")
 
 	# Save and resume mid-phase.
@@ -51,30 +49,37 @@ func _run() -> void:
 	_game = await _reopen()
 	_expect(_story.flags.phase == "loop" and _inv().has("sardines"), "Resuming keeps the phase and the items")
 	_expect(_story.twin != null and _story.alarm.mode == "violation", "Resuming restores the twin and the alarm")
+	_expect(_w().clock.frozen and int(_w().clock.seconds / 60.0) % 720 == _story.flags.arrival, "Resuming keeps the stopped clock")
 
-	# The flashlight refuses until everything matches the footage.
 	await _click("drawer")
 	await _click("drawer")
 	_expect(_inv().has("opener") and _inv().has("flashlight"), "Opener and flashlight from the drawer")
 	await _click("lever", "flashlight")
-	_expect(_w().fuse.visible and _inv().has("flashlight"), "The lure waits until the scene matches")
+	_expect(_w().fuse.pose == "sleep", "A sleeping cat ignores the flashlight")
 	await _click("basket")
-	_expect(not _story.flags.yarn, "Yarn can't wake a sleeping cat")
+	_expect(not _inv().has("yarn"), "The basket has no red yarn")
+	await _click("twin")
+	_expect(_inv().has("yarn") and not _story.twin.yarn, "The red yarn comes off the cat from the future")
+	await _click("fuse", "yarn")
+	_expect(_inv().has("yarn") and not _story.flags.yarn, "A sleeping Fuse won't play with yarn")
 
 	await _click("floor", "sardines", Vector2(700, 740))
 	_expect(_w().tin.visible, "The tin is on the floor")
 	await _click("tin", "opener")
 	_expect(_story.flags.lid and _w().fuse.lid, "Fuse ate the sardines and wears the lid")
-	await _click("basket")
-	_expect(_story.flags.yarn and _w().fuse.yarn, "Fuse is tangled in yarn")
-	await _click("can")
-	_expect(_inv().has("fuse"), "The fuse from the coffee can")
-	await _click("machine", "fuse")
-	_expect(_w().machine.powered, "The machine is powered")
+	await _click("fuse", "yarn")
+	_expect(_story.flags.yarn and _w().fuse.yarn, "Fuse is tangled in the yarn")
 	await _click("lever", "flashlight")
-	_expect(_w().fuse.visible, "A wrong dial setting still stops the lure")
-	while _w().machine.dial != 1:
-		await _click("dial")
+	_expect(_w().fuse.visible and not _w().machine.powered, "Without power the lever does nothing")
+	await _click("wire")
+	await _click("machine", "wire")
+	_expect(_w().machine.powered, "The copper wire bridges the blown fuse")
+	_story.flags.dial = (_story.flags.arrival + 1) % 720
+	_w().machine.dial = _story.flags.dial
+	await _click("lever", "flashlight")
+	_expect(_w().fuse.visible and _story.flags.phase == "loop", "The wrong destination: the portal spits Fuse back out")
+	await _set_dial(_story.flags.arrival)
+	_expect(_story.flags.dial == _story.flags.arrival, "The counter's wheels reach the stopped minute")
 	await _click("lever", "flashlight")
 	_expect(not _w().fuse.visible, "Fuse leapt on the lever and went through the portal")
 	_expect(_story.flags.phase == "break", "The loop closed, and the cascade begins")
@@ -82,18 +87,23 @@ func _run() -> void:
 	_expect(not _w().clock.frozen, "The clock runs again")
 	_expect(_story.twin.position.distance_to(preload("res://minigames/workshop/vision.gd").LEVER_WAIT) < 4.0, "The remaining cat waits by the lever")
 
-	# Break: pulling the fuse with the cat at the lever is refused; a box lures it away.
+	# Break: the cat guards the lever; a box only works in the sun.
 	await _click("machine")
-	_expect(_w().machine.powered, "No pulling the fuse while the cat eyes the lever")
+	_expect(_w().machine.powered, "No pulling the wire while the cat eyes the lever")
 	await _click("box")
-	_expect(_inv().has("box"), "The box is taken")
+	await _click("floor", "box", Vector2(900, 760))
+	_expect(_story.flags.box == "floor" and not _story._twin_in_box, "A box in the shade doesn't tempt the cat")
 	_game = await _reopen()
 	_expect(_story.flags.phase == "break" and _story.twin.pose == "sit", "Resuming the break phase puts the cat by the lever")
-	await _click("floor", "box", Vector2(760, 760))
-	_expect(_story.flags.box == "floor" and _story.twin.position.distance_to(Vector2(760, 748)) < 4.0, "The cat sits in the box")
+	await _click("blinds")
+	_expect(not _story._twin_in_box, "Sunlight alone doesn't either")
+	await _click("placed_box")
+	_expect(_inv().has("box"), "The box can be picked up again")
+	await _click("floor", "box", Vector2(450, 770))
+	_expect(_story._twin_in_box, "A box in the sunbeam: the cat climbs in")
 	_game.finished.connect(func(r: Dictionary): _won = r.get("won", false))
 	await _click("machine")
-	_expect(_won, "Pulling the fuse wins the Workshop")
+	_expect(_won, "Pulling the wire wins the Workshop")
 	_expect(_game.save_state().is_empty(), "A won Workshop saves no progress")
 
 	print("Workshop story: %d checks, %d failures" % [_checks, _failures])
@@ -133,6 +143,20 @@ func _inv() -> Node:
 func _click(id: String, held := "", at := Vector2(700, 740)) -> void:
 	_story.click(id, held, at)
 	await _settle()
+
+
+## Turns the counter's wheels, by clicking them, until it reads `minutes`.
+func _set_dial(minutes: int) -> void:
+	var wheels: Array = _w().machine.dial_part.WHEELS
+	for k in 3:
+		var guard := 0
+		while _digit(_story.flags.dial, k) != _digit(minutes, k) and guard < 12:
+			await _click("dial", "", wheels[k].get_center())
+			guard += 1
+
+
+func _digit(m: int, wheel: int) -> int:
+	return [m / 60, (m % 60) / 10, m % 10][wheel]
 
 
 func _settle() -> void:

@@ -10,7 +10,8 @@ const NAMES := {
 	"sardines": "Tin of sardines",
 	"opener": "Can opener",
 	"flashlight": "Flashlight",
-	"fuse": "Fuse (the electrical kind)",
+	"yarn": "Red yarn",
+	"wire": "Copper wire",
 	"box": "Flattened box",
 }
 
@@ -30,11 +31,10 @@ static func draw_icon(ci: CanvasItem, id: String, c: Vector2) -> void:
 		"flashlight":
 			Ink.shape(ci, Transform2D(-0.4, c) * Ink.rrect(Rect2(-30, -9, 46, 18), 6), P.RED, 2.5, 706, 0.3)
 			Ink.shape(ci, Transform2D(-0.4, c) * PackedVector2Array([Vector2(14, -10), Vector2(30, -15), Vector2(30, 15), Vector2(14, 10)]), P.CHROME, 2.5, 707)
-		"fuse":
-			Ink.shape(ci, Ink.rrect(Rect2(c + Vector2(-26, -10), Vector2(52, 20)), 9), Color(0.85, 0.95, 1.0, 0.9), 2.5, 708, 0.4)
-			Ink.shape(ci, Ink.rrect(Rect2(c + Vector2(-32, -11), Vector2(10, 22)), 3), P.BRASS, 2.0, 709)
-			Ink.shape(ci, Ink.rrect(Rect2(c + Vector2(22, -11), Vector2(10, 22)), 3), P.BRASS, 2.0, 710)
-			Ink.line(ci, PackedVector2Array([c + Vector2(-20, 0), c + Vector2(-8, -4), c + Vector2(4, 4), c + Vector2(20, 0)]), P.ORANGE, 2.0, 711)
+		"yarn":
+			Small.Basket.yarn_ball(ci, c, 24, 708)
+		"wire":
+			Small.WireCoil.coil(ci, c, 1.0, 709)
 		"box":
 			Ink.shape(ci, PackedVector2Array([c + Vector2(-26, -26), c + Vector2(22, -30), c + Vector2(26, 28), c + Vector2(-24, 26)]), Color("c49a62"), 2.5, 712, 0.12)
 			Ink.line(ci, PackedVector2Array([c + Vector2(-24, 0), c + Vector2(24, -2)]), Color("8a6236"), 2.0, 713)

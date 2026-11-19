@@ -8,30 +8,43 @@ the future (the **Futurescope**) and a homemade time machine (the
 
 Everything is drawn from code; there are no image assets.
 
+## How you get there
+
+The Workshop's station in the hall is a brass portal ring, twin of the one in the
+Engineer's workshop. Through it is 1955, and from the hall the past looks hand-drawn.
+"Nobody knows why," says the Engineer.
+
 ## The story (spoilers)
 
-1. **Setup.** The Futurescope is missing a tube. Click the radio three times (play it,
-   open its back, take the tube), put the tube in the Futurescope and click it again to
-   tune it.
-2. **The vision.** The Futurescope shows the room's future: Fuse, tangled in yarn with a
-   sardine-tin lid on one ear, leaps on the machine's lever and walks into the portal.
-   Then, live, the portal opens by itself and that same scruffy cat walks *out*. Two
-   cats. Sirens. The Officer from the intro arrives to gloat.
-3. **Make the loop.** Make the footage come true:
-   - icebox → sardines; drop them on the floor; the drawer's can opener opens them. Fuse
-     wakes, eats, and gets the lid stuck on his ear.
-   - the knitting basket → the yarn ball rolls out and Fuse gets tangled.
-   - the coffee can → the fuse; put it in the machine.
-   - set the dial to what the footage showed (**A MOMENT AGO**). Click the Futurescope
-     to watch the footage again.
-   - the flashlight on the lever → Fuse pounces, the portal opens, in he goes. The
-     flashlight refuses (with the Engineer saying what's still different) until every
-     detail matches.
-4. **Break the loop.** The Futurescope now shows the remaining cat doing it again and
-   again: cats pouring out of the portal. Lure it away with the flattened box (put it on
-   the floor: if it fits, it sits), then pull the fuse out of the machine.
+The Workshop is for poking at things, not for being told what to do: the Engineer
+mostly mutters, the Officer only scoffs, and things that can't be done just wiggle.
 
-Clicking the Engineer always gives a hint for the next step.
+1. **Setup.** The Futurescope is missing a tube. The radio has one (play it, open its
+   back, take it). Put it in the Futurescope and tune it.
+2. **The vision.** The Futurescope shows the room's future: Fuse, tangled in red yarn
+   with a sardine-tin lid on one ear, leaps on the machine's lever and walks into the
+   portal. Then, live, the portal opens by itself and that same scruffy cat walks *out*.
+   The wall clock stops at that minute. Sirens. The Officer arrives, scoffs, and
+   announces that this timeline is scheduled for deletion.
+3. **Make the loop.** Make the footage come true:
+   - **Lid:** sardines from the icebox, put on the floor, opened with the can opener
+     from the drawer. Fuse wakes, eats, and wears the lid.
+   - **Yarn:** the knitting basket has only grey wool. The only red yarn in the room is
+     wrapped around the cat from the future: unwind it off him and give it to Fuse.
+     (Nobody ever made that yarn.)
+   - **Power:** the machine's fuse is blown and there is no spare. The coil of copper
+     wire on the pegboard bridges the socket.
+   - **Destination:** turn the counter's wheels to the minute the clock stopped (it is
+     also in the footage).
+   - **The lever:** you can't pull it (in the footage the cat did). A flashlight spot
+     on it and Fuse pounces. If anything doesn't match the footage, the portal flares
+     red and throws him back out.
+4. **Break the loop.** The Futurescope now shows the remaining cat doing it again and
+   again. Reaching for the wire while he watches makes him jump on the lever first. A
+   box in the shade doesn't interest him; open the blinds and put the box in the
+   sunbeam, and in he goes. Then pull the wire.
+
+The Futurescope can be rewatched at any time.
 
 ## Controls
 
@@ -69,7 +82,10 @@ Stage space is 1600 × 900 (floor line at y = 660), scaled to fit the window.
 
 ## Ideas not reached
 
+- Sending things from the workshop through the Chrono-Oscillator into the 3D hall
+  (out of the hall's ring), and the Futurescope showing problems in other rooms: a
+  way to make earlier rooms worth revisiting.
+
 - Sound design: a proper siren, purring, the portal's hum, the Futurescope's static.
 - The Officer could appear on the Futurescope instead of in person.
 - More cat business (the sunbeam, the blinds, the radio's music).
-- A reward item for a future hall puzzle (the fuse? the Futurescope's tube?).

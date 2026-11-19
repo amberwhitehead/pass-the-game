@@ -1,7 +1,8 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scenes/room/room.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/room/brothers_station.gd" id="s_cards_station"]
+[ext_resource type="Script" path="res://scenes/room/workshop_station.gd" id="s_workshop_station"]
 [ext_resource type="PackedScene" path="res://scenes/room/player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/room/npc.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/room/prop.tscn" id="4"]
@@ -83,8 +84,9 @@ model = ExtResource("m_egyptian")
 label_height = 2.4
 
 [node name="Challenge1" parent="." instance=ExtResource("4")]
+script = ExtResource("s_workshop_station")
 transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, -3.6, 0.0, 3.6)
-prompt = "Step up to the workbench"
+prompt = "Step through the ring"
 minigame_id = "workshop"
 label_text = "Workshop"
 color = Color(1, 0.55, 0.2, 1)
@@ -96,8 +98,8 @@ model = ExtResource("m_mainframe_platform")
 [node name="Engineer" parent="." instance=ExtResource("3")]
 transform = Transform3D(-0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, -0.94386, -5.15, 0.0, 3.6)
 npc_name = "50s Engineer"
-lines = Array[String](["Don't touch the panels without a slide rule. Nobody respects slide rules anymore.", "My workbench is just there. Come and see the Futurescope. Mind the cat."])
-lines_repeat = Array[String](["The bench is right there. Fuse is probably asleep on the icebox again.", "Slide rule. Remember that."])
+lines = Array[String](["Don't touch the panels without a slide rule. Nobody respects slide rules anymore.", "My workshop's through that ring. Nineteen fifty-five. Everything looks a bit hand-drawn back there. Nobody knows why."])
+lines_repeat = Array[String](["Through the ring. Fuse is probably asleep on the icebox again.", "Slide rule. Remember that."])
 model = ExtResource("m_engineer")
 
 [node name="Challenge2" parent="." instance=ExtResource("4")]
