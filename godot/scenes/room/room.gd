@@ -54,7 +54,7 @@ func _ready() -> void:
 	# Changes in the hall after other rooms are won; see docs/INTERCONNECTION.md.
 	revisits = Revisits.new()
 	add_child(revisits)
-	revisits.configure(inventory, $Challenge1, $Egyptian)
+	revisits.configure(inventory, $Challenge1, $Egyptian, $Engineer)
 	revisits.message.connect(hud.notify)
 	optics.sun_restored.connect(revisits.refresh)
 	var secret := SecretRoom.new()

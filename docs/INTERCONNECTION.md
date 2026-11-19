@@ -26,28 +26,29 @@ Rules of thumb:
 | Piece | Where | What it does |
 | --- | --- | --- |
 | `TimeLink` | `godot/autoload/time_link.gd` | Static helper over `Game` flags. `PROBLEMS` registry (`is_active`, `fix`, `active_problems`), the ring tray (`send_to_hall`, `tray_item`), and `SENDABLE` (what 1955 can send). Listen with `Game.flag_changed`. |
-| Hall revisits | `godot/scenes/escape/revisits.gd` | The hall's side: the ring tray (a carry slot by the Workshop's ring), Fuse napping on the relay cabinet, Egypt's darkness and its reward. `room.gd` adds it with three lines. |
+| Hall revisits | `godot/scenes/escape/revisits.gd` | The hall's side: the ring tray (a carry slot on the Workshop's tabletop, under the ring), Fuse napping behind the relay cabinet, Egypt's darkness and its reward, and the Engineer's changing lines. `room.gd` adds it with three lines. |
 | Futurescope channels | `godot/minigames/workshop/channels.gd` | One hand-drawn scene per problem, shown when the won Workshop's TV is clicked. |
 | Workshop epilogue | `godot/minigames/workshop/story.gd` (`epilogue()`) | A won Workshop reopens calm: channels on the TV, and sendable items used on the portal go to the hall's ring tray. |
 | Bonus cards | `godot/minigames/cards/deck_progression.gd` (`BONUS`) | Join Older Brother's deck like hall discoveries but aren't counted in "N / 5 found". Defined in `card_catalog.gd`. |
 | Carry items | `godot/scenes/escape/carry_inventory.gd` (`ITEMS`), `carry_visual.gd` | Hall items, now including the 1955 flashlight. |
-| Optics lamp | `godot/scenes/escape/optics_model.gd`, `optics_controller.gd`, `sun_disc.gd` | A second light: the flashlight in lamp socket F, its own beam traced separately, the sun disc by Egypt's door as its receiver. It never opens Door 2. |
+| Optics lamp | `godot/scenes/escape/optics_model.gd`, `optics_controller.gd`, `sun_disc.gd` | A second light: the flashlight in lamp socket F, its own beam traced separately, through Egypt's doorway (the model lets a beam continue into that room) to the sun disc on its east wall. It never opens Door 2. |
 
 ## What exists now (spoilers)
 
 After the Workshop is won:
 
 1. **Fuse on the loose** (`fuse_loose`). The cat wanders out of the ring and naps on the
-   warm optical relay cabinet in the hall. Pet him: a card was stuck in his fur. The
+   floor in the warm exhaust behind the hall's optical relay cabinet. Pet him: a card
+   was stuck in his fur. The
    **Fuse** bonus card (a 1-cost diagonal attacker) joins the deck.
 2. **Egypt's lost sun** (`egypt_dark`). Egypt's room goes dark; the Egyptian complains
    that "Ra does not travel well these days. Perhaps he needs... a lamp." The
    Futurescope's Egypt channel shows a flashlight on a stand shining through yellow glass
    onto a sun disc. Fix: send the flashlight through the Workshop's portal, take it from
    the ring tray, set it in the hall's lamp socket **F**, move the yellow lens to mount
-   **N**, and aim the lamp at the sun disc beside Egypt's door. White light isn't enough;
-   it has to be yellow. The room lights up and the **Sun Scarab** bonus card waits at
-   the disc.
+   **N**, and aim the lamp through Egypt's doorway at the sun disc inside. White light
+   isn't enough; it has to be yellow. The room lights up and the **Sun Scarab** bonus
+   card waits under the disc. F, N and the disc lie on one line through the doorway.
 
 ## Adding a revisit
 

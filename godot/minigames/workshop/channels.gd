@@ -124,7 +124,7 @@ class EgyptSun extends ChannelScene:
 			draw_circle(head + Vector2(x, 2), 3.0, Ink.OUTLINE)
 
 
-## The hall, blue and dim, and Fuse asleep on top of a warm relay cabinet.
+## The hall, blue and dim, and Fuse asleep on the floor in a relay cabinet's warm exhaust.
 class HallNap extends ChannelScene:
 	var _cat: Node2D
 
@@ -137,7 +137,7 @@ class HallNap extends ChannelScene:
 		_cat.pose = "sleep"
 		_cat.lid = true
 		_cat.yarn = true
-		_cat.position = Vector2(1020, 430)
+		_cat.position = Vector2(1300, 760)
 		_cat.scale = Vector2(1.4, 1.4)
 		add_child(_cat)
 
@@ -155,9 +155,11 @@ class HallNap extends ChannelScene:
 			draw_circle(Vector2(890 + k * 50, 640), 7, [Color("ff6a4a"), Color("6aff9a"), Color("ffd84a")][k % 3].darkened(0.2 if int(t * 3.0 + k) % 2 == 0 else 0.6))
 		# A green beam far behind, for scale.
 		draw_line(Vector2(380, 330), Vector2(1680, 300), Color(0.2, 1, 0.47, 0.35), 5.0)
-		# Warm air rising off the cabinet.
+		# Warm air blowing out of the cabinet's side vent, over the cat.
+		for k in 4:
+			Ink.line(self, PackedVector2Array([Vector2(1200, 600 + k * 22), Vector2(1240, 600 + k * 22)]), Color("1e2c30"), 4.0, 730 + k)
 		for k in 4:
 			var ph := fmod(t * 0.5 + k * 0.25, 1.0)
-			var x := 880.0 + k * 90.0
-			Ink.line(self, PackedVector2Array([Vector2(x, 430 - ph * 120), Vector2(x + 10, 400 - ph * 120), Vector2(x, 370 - ph * 120)]),
+			var y := 610.0 + k * 22.0
+			Ink.line(self, PackedVector2Array([Vector2(1210 + ph * 140, y), Vector2(1240 + ph * 140, y - 10), Vector2(1270 + ph * 140, y)]),
 				Color(1, 0.8, 0.5, 0.35 * (1.0 - ph)), 3.0, 720 + k)

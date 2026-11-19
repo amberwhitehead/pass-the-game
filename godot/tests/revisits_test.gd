@@ -45,7 +45,8 @@ func _run() -> void:
 	_expect(egypt_light and egypt_light.light_energy < full * 0.5, "Egypt's room has gone dark")
 	_expect(revisits.cat != null, "Fuse naps in the hall")
 
-	# Fuse.
+	# Fuse, reached the way a player would: standing near him and looking at him.
+	_expect(await _targets(revisits.cat), "Standing by Fuse and looking at him, E would pet him")
 	revisits.cat.interact(null)
 	_expect("fuse" in _game.collected_cards and not TimeLink.is_active("fuse_loose"), "Petting Fuse finds the Fuse card")
 	_expect(Progression.owned(_game.collected_cards).is_empty(), "The bonus card isn't counted among the hall's five")
@@ -75,6 +76,7 @@ func _run() -> void:
 	revisits = _room.revisits
 	var hand: Node = _room.inventory
 	_expect(revisits.tray.slot_item == "flashlight", "The flashlight waits in the ring tray")
+	_expect(await _targets(revisits.tray), "The tray on the tabletop can be reached")
 	revisits.tray.interact(null)
 	_expect(hand.held_item == "flashlight" and TimeLink.tray_item() == "", "Taking it empties the tray")
 	var optics: Node3D = _room.optics
@@ -123,6 +125,26 @@ func _load_room() -> void:
 	for i in 4:
 		await physics_frame
 		await process_frame
+
+
+## Puts the player 1.3 m from `thing`, looking at it, and asks who E would use.
+func _targets(thing: Node3D) -> bool:
+	var player: Node3D = _room.get_node("Player")
+	var point: Vector3 = thing.get_focus_position()
+	var away := Vector3(point.x - 1.3, 0.0, point.z + 0.4)
+	for candidate in [Vector3(-1.3, 0, 0.4), Vector3(1.3, 0, 0.4), Vector3(0, 0, 1.3), Vector3(0, 0, -1.3), Vector3(0.9, 0, 0.9), Vector3(-0.9, 0, -0.9)]:
+		away = Vector3(point.x, 0.0, point.z) + candidate
+		player.global_position = away
+		var flat := Vector3(point.x - away.x, 0, point.z - away.z)
+		player.rotation.y = atan2(-flat.x, -flat.z)
+		var eye: Vector3 = player.camera.global_position
+		player.camera.rotation.x = clampf(atan2(point.y - eye.y, flat.length()), -player.max_pitch, player.max_pitch)
+		for i in 3:
+			await physics_frame
+			await process_frame
+		if player.target == thing:
+			return true
+	return false
 
 
 func _egypt_light(revisits: Node3D) -> OmniLight3D:

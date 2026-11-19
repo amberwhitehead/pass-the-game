@@ -62,6 +62,7 @@ func _ready() -> void:
 	add_child(_lamp_beams)
 	sun_disc = SunDisc.new()
 	sun_disc.position = Model.world(Model.SUN_DISC, 0)
+	sun_disc.rotation.y = -PI / 2.0   # On Egypt's east wall, facing west into the room.
 	add_child(sun_disc)
 	aiming = Aiming.new()
 	aiming.name = "Aiming"
@@ -206,7 +207,7 @@ func refresh(persist := true) -> void:
 	if lamp_result.get("won", false) and not bool(Game.get_flag("egypt_sun_restored", false)):
 		TimeLink.fix("egypt_dark")
 		Sound.play_at("receiver", Model.world(Model.SUN_DISC), self)
-		message.emit("Sunlight! The disc by Egypt's door blazes gold.")
+		message.emit("Sunlight pours through Egypt's doorway. The sun disc blazes gold.")
 		sun_restored.emit()
 	changed.emit()
 

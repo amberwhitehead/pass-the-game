@@ -3,16 +3,23 @@ extends RefCounted
 ## portable prisms always turn left or right by exactly ninety degrees.
 ##
 ## A second, later light: the 1955 flashlight (sent through the Workshop's ring) fits the
-## lamp socket F. Its own beam is traced separately and only counts at the sun disc by
-## Egypt's doorway, which wants sunlight: yellow. It never opens Door 2.
+## lamp socket F. Its own beam is traced separately and only counts at the sun disc on
+## the east wall inside Egypt's room, through its doorway; the disc wants sunlight:
+## yellow. It never opens Door 2. F, N and the disc lie on one line through the doorway.
 
 const SOURCE := Vector2.ZERO
 const RECEIVER := Vector2(10, 0)
 const SOCKETS := {"A": Vector2(2, 2), "B": Vector2(7, -3), "C": Vector2(4, 4), "D": Vector2(9, -1)}
-const MOUNTS := {"J": Vector2(5, 0), "K": Vector2(3, 3), "L": Vector2(1, 1), "M": Vector2(8.5, -1.5), "N": Vector2(-7, 5)}
+const SUN_DISC := Vector2(-9.2, 12.85)            ## Inside Egypt's room, on its east wall.
+const EGYPT_DOOR := Vector2(-11.8, 8.7222222)      ## Where the line crosses Egypt's doorway.
+const MOUNTS := {"J": Vector2(5, 0), "K": Vector2(3, 3), "L": Vector2(1, 1), "M": Vector2(8.5, -1.5),
+	"N": EGYPT_DOOR - (SUN_DISC - EGYPT_DOOR) * 0.5}
 const LAMP_SOCKET := "F"
-const LAMP := Vector2(-4, 2)
-const SUN_DISC := Vector2(-10.6, 8.6)
+const LAMP := EGYPT_DOOR - (SUN_DISC - EGYPT_DOOR) * 1.3
+## Egypt's room (beyond the hall's north wall) and the span of its doorway, in model units:
+## a beam leaving the hall through the doorway carries on inside the room.
+const EGYPT_ROOM := Rect2(-17.5, 8.7222222, 8.4, 8.6)
+const EGYPT_DOORWAY := Vector2(-15.3, -11.3)
 const SUN_COLOR := 1   ## Yellow.
 const OBSTACLE := Rect2(4.8, 0.6, 2.4, 2.6)
 const WORLD_SCALE := 0.72
@@ -189,10 +196,22 @@ func head_angle(id: String, incoming: Vector2 = Vector2.ZERO) -> float:
 
 
 func _room_distance(origin: Vector2, direction: Vector2) -> float:
+	var inside_egypt := EGYPT_ROOM.has_point(origin) and origin.y > ROOM.end.y + 0.001
+	var distance := _rect_exit(origin, direction, EGYPT_ROOM if inside_egypt else ROOM)
+	if not inside_egypt and direction.y > 0.0001:
+		var exit := origin + direction * distance
+		if absf(exit.y - ROOM.end.y) < 0.01 and exit.x > EGYPT_DOORWAY.x and exit.x < EGYPT_DOORWAY.y:
+			# Through Egypt's doorway: on to that room's far walls.
+			var through := EGYPT_ROOM.merge(Rect2(exit.x, ROOM.position.y, 0, ROOM.size.y)).expand(origin)
+			distance = _rect_exit(origin, direction, through)
+	return distance
+
+
+func _rect_exit(origin: Vector2, direction: Vector2, box: Rect2) -> float:
 	var distance := 100.0
 	for axis in 2:
 		if absf(direction[axis]) > 0.0001:
-			var edge: float = ROOM.end[axis] if direction[axis] > 0 else ROOM.position[axis]
+			var edge: float = box.end[axis] if direction[axis] > 0 else box.position[axis]
 			var candidate := (edge - origin[axis]) / direction[axis]
 			if candidate > 0.01:
 				distance = minf(distance, candidate)

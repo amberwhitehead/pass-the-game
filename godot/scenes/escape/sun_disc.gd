@@ -1,6 +1,5 @@
 extends Node3D
-## The sun disc beside Egypt's doorway: a bronze disc on the hall's north wall that
-## wants sunlight. Dark until the 1955 flashlight's beam reaches it through the yellow
+## The sun disc inside Egypt's room, on its east wall: a bronze disc that wants sunlight. Dark until the 1955 flashlight's beam reaches it through the yellow
 ## lens; then it blazes, and Egypt's room has its light back (autoload/time_link.gd).
 
 const Geometry := preload("res://scenes/escape/hub_geometry.gd")

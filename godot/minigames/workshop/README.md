@@ -69,7 +69,6 @@ otherwise opens the pause menu (Leave, Sound, Quit to title).
 | `person.gd` | The Engineer and the Officer. |
 | `bubble.gd`, `items.gd`, `overlays.gd` | Speech bubbles, item icons, inventory tray, cursor label, Futurescope close-up, alarm. |
 | `crt.gdshader` | The Futurescope's picture. |
-| `workshop_trophy.gd` | The 3D trophy on the hall platform after a win. |
 
 Stage space is 1600 × 900 (floor line at y = 660), scaled to fit the window.
 

@@ -4,10 +4,12 @@ extends Node3D
 ##
 ##  - The ring tray: where things sent from the Engineer's 1955 workshop arrive, beside
 ##    the Workshop's portal ring. A carry slot, kept in step with TimeLink's tray flag.
-##  - Fuse: after the Workshop is won, the cat wanders out of the ring and naps on the
-##    warm optical relay cabinet. Petting him finds a card in his fur (a bonus card).
+##  - Fuse: after the Workshop is won, the cat wanders out of the ring and naps in the
+##    warm air behind the optical relay cabinet. Petting him finds a bonus card in his fur.
 ##  - Egypt's lost sun: after the Workshop is won, Egypt's room goes dark until the
-##    flashlight's yellow beam reaches the sun disc by its door (see optics_model.gd).
+##    flashlight's yellow beam, through its doorway, reaches the sun disc on its east
+##    wall (see optics_model.gd).
+##  - The Engineer's lines in the hall follow along.
 ##    Then the Egyptian's thanks, the Sun Scarab card, waits at the disc.
 ##
 ## room.gd adds this node and calls configure(); everything else happens here.
@@ -29,13 +31,15 @@ var cat: Interactable
 var scarab: Interactable
 var _inventory: Node
 var _egyptian: Node
+var _engineer: Node
 var _egypt_lights := {}   ## OmniLight3D -> its normal energy
 var _darkness: MeshInstance3D   ## A shadow volume over Egypt's room while its sun is out.
 
 
-func configure(inventory: Node, workshop_station: Node3D, egyptian: Node) -> void:
+func configure(inventory: Node, workshop_station: Node3D, egyptian: Node, engineer: Node = null) -> void:
 	_inventory = inventory
 	_egyptian = egyptian
+	_engineer = engineer
 	name = "Revisits"
 	_build_tray(workshop_station)
 	MiniGames.ended.connect(func(_id: String, _r: Dictionary): refresh())
@@ -57,6 +61,7 @@ func refresh() -> void:
 		tray.set_item(TimeLink.tray_item())
 	_refresh_cat()
 	_refresh_egypt()
+	_refresh_engineer()
 
 
 # --- the ring tray ----------------------------------------------------------------------
@@ -66,8 +71,11 @@ func _build_tray(station: Node3D) -> void:
 	tray.name = "RingTray"
 	add_child(tray)
 	tray.configure(_inventory, TimeLink.tray_item(), "any", "From 1955")
-	# On the floor in front of the platform, to the left: under the ring, in reach.
-	tray.global_transform = station.global_transform.translated_local(Vector3(-1.05, 0, 0.55))
+	# On the platform's tabletop, at its front edge, under the ring.
+	var top := station.get_node_or_null("Platform")
+	var height: float = top.global_position.y if top else 0.8
+	tray.global_transform = station.global_transform.translated_local(Vector3(0, 0, 0.5))
+	tray.global_position.y = height
 	tray.changed.connect(func(item: String): TimeLink.set_tray_item(item))
 	tray.message.connect(func(text: String): message.emit(text))
 
@@ -80,9 +88,10 @@ func _refresh_cat() -> void:
 		cat = HallCat.new()
 		cat.name = "Fuse"
 		add_child(cat)
-		var engine_top := Model.world(Model.OBSTACLE.get_center(), 2.4)
-		cat.global_position = engine_top + Vector3(-0.2, 0, 0.3)
-		cat.rotation.y = PI - 0.4   # Facing back into the hall.
+		# On the floor behind the relay cabinet, in its warm exhaust: in reach, out of the way.
+		var engine := Model.world(Model.OBSTACLE.get_center(), 0)
+		cat.global_position = engine + Vector3(0.3, 0, -1.35)
+		cat.rotation.y = PI * 0.75
 		cat.petted.connect(_on_cat_petted)
 	elif not loose and cat != null:
 		cat.queue_free()
@@ -96,6 +105,24 @@ func _on_cat_petted() -> void:
 		message.emit("Fuse rolls over. A card was stuck in his fur: Fuse joins your deck. Take it to Older Brother.")
 	else:
 		message.emit("Fuse purrs, and doesn't open his eyes.")
+
+
+# --- the Engineer ----------------------------------------------------------------------
+
+func _refresh_engineer() -> void:
+	if _engineer == null or not Game.completed_minigames.has("workshop"):
+		return
+	var lines: Array[String] = []
+	if TimeLink.is_active("fuse_loose"):
+		lines.append("Fuse slipped out through the ring. Ginger, lid on one ear. He likes warm machinery.")
+	else:
+		lines.append("You found Fuse! He's taken to the hall, apparently. Very modern of him.")
+	if TimeLink.is_active("egypt_dark"):
+		lines.append("The Futurescope picks up other rooms now. Come through and have a look.")
+	elif bool(Game.get_flag("egypt_sun_restored", false)):
+		lines.append("Sunlight from my flashlight! I always said it had a good beam.")
+	_engineer.lines.assign(lines)
+	_engineer.lines_repeat.assign(lines)
 
 
 # --- Egypt's sun ------------------------------------------------------------------------
@@ -129,8 +156,8 @@ func _refresh_egypt() -> void:
 		scarab.name = "ScarabCard"
 		scarab.configure("scarab")
 		add_child(scarab)
-		scarab.global_position = Model.world(Model.SUN_DISC, 0.7) + Vector3(0.75, 0, 0.35)
-		scarab.rotation.y = 0.0
+		scarab.global_position = Model.world(Model.SUN_DISC, 0.5) + Vector3(-0.1, 0, 0.75)
+		scarab.rotation.y = -PI / 2.0
 		scarab.message.connect(func(text: String): message.emit(text))
 
 
