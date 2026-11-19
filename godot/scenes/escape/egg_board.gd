@@ -20,7 +20,7 @@ const STAGES := [
 	# Record the win through the game's normal persistent completion path, then update
 	# this mapping. Do not require the player to discover the secret room first, and do
 	# not award the piece for merely entering or leaving the stage.
-	{"stage": "Workshop", "piece": "mainframe", "wins": []},  # Unwired: no Workshop stage yet.
+	{"stage": "Workshop", "piece": "mainframe", "wins": ["workshop"]},
 	{"stage": "Calendar", "piece": "maya_temple", "wins": []},  # Unwired: no Calendar stage yet.
 	{"stage": "Observatory", "piece": "metric", "wins": []},  # Unwired: no Observatory stage yet.
 ]

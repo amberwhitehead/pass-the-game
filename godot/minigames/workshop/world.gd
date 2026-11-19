@@ -26,6 +26,10 @@ var is_future := false
 
 func _ready() -> void:
 	_add("backdrop", Backdrop.new())
+	var floor := Thing.new()
+	floor.id = "floor"
+	floor.hit_rect = Rect2(0, 690, 1600, 210)
+	_add("floor", floor)
 	_add("blinds", Small.Blinds.new())
 	_add("clock", Small.Clock.new())
 	_add("tv", Futurescope.new())
@@ -43,12 +47,16 @@ func _ready() -> void:
 	fuse.position = ICEBOX_TOP
 	fuse.pose = "sleep"
 	fuse.facing = 1.0
+	fuse.id = "fuse"
 	_add("fuse", fuse)
 	var engineer := Person.new()
 	engineer.kind = "engineer"
 	engineer.position = Vector2(236, 760)
 	_add("engineer", engineer)
-	if not is_future:
+	if is_future:
+		for t in hotspots():
+			t.id = ""
+	else:
 		var future: Node2D = get_script().new()
 		future.is_future = true
 		things.tv.setup(future)

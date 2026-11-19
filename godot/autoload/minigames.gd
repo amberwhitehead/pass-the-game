@@ -19,6 +19,7 @@ const REGISTRY := {
 		"trophy": "res://minigames/newton/newton_trophy.gd"},
 	"turing": {"title": "Roman Flow", "scene": "res://minigames/turing/turing.tscn",
 		"trophy": "res://minigames/turing/aqueduct.gd"},
+	"workshop": {"title": "The Engineer's Workshop", "scene": "res://minigames/workshop/workshop.tscn"},
 }
 
 var current: Node = null
