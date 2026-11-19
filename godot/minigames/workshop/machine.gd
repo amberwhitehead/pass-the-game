@@ -29,6 +29,7 @@ var lever_down := false:
 		_redraw()
 var fuse_blown := true      ## The socket holds a burnt-out fuse until the wire replaces it.
 var portal := 0.0           ## 0 closed .. 1 fully open
+var dial_wrong := 0.0       ## Seconds left to flash the counter red: the destination didn't match.
 var portal_unstable := false
 
 var cabinet: Thing
@@ -53,6 +54,9 @@ func _part(t: Thing) -> Thing:
 
 func _process(delta: float) -> void:
 	_t += delta
+	if dial_wrong > 0.0:
+		dial_wrong = maxf(0.0, dial_wrong - delta)
+		dial_part.queue_redraw()
 
 
 func time() -> float:
@@ -170,6 +174,8 @@ class Dial extends Thing:
 		var parts := label.split(":")
 		var texts := [parts[0], parts[1].substr(0, 1), parts[1].substr(1, 1)]
 		var lit := Color("9dffb0") if m.powered else Color("6f8a72")
+		if m.dial_wrong > 0.0 and fmod(m.time() * 4.0, 1.0) < 0.6:
+			lit = Color("ff5a4a")
 		for k in 3:
 			var r: Rect2 = WHEELS[k]
 			Ink.shape(self, Ink.rrect(r, 4), Color("2c3a3c"), 1.5, 226 + k, 0.15, 0.0)

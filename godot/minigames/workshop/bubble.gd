@@ -48,6 +48,18 @@ func show_line(speaker: String, text: String, anchor: Vector2, tint := Color("ff
 	visible = false
 
 
+## Waits for a click without showing anything (e.g. while something is zoomed in).
+func wait_click() -> void:
+	_text = ""
+	_lines = PackedStringArray()
+	_box = Rect2()
+	_shown = 0.0
+	_auto = 0.0
+	_waiting = true
+	queue_redraw()
+	await dismissed
+
+
 ## Click: finish typing first, then dismiss.
 func advance() -> bool:
 	if not _waiting:

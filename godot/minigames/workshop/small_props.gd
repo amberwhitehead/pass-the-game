@@ -248,9 +248,13 @@ class Clock extends Thing:
 		Ink.dot(self, c, 46, Color("f6efdc"), 3.5, 190, 0.1, 0.12)
 		Ink.dot(self, c, 52, P.BRASS, 0.0, 191, 0.0, 0.0)
 		Ink.dot(self, c, 44, Color("f6efdc") if not alarm else Color("ffd4cc"), 3.0, 192, 0.1, 0.12)
-		for k in 12:
-			var a := TAU * k / 12.0
-			draw_circle(c + Vector2(cos(a), sin(a)) * 36, 2.5, Ink.OUTLINE)
+		for k in 60:
+			var a := TAU * k / 60.0
+			var d := Vector2(cos(a), sin(a))
+			if k % 5 == 0:
+				draw_circle(c + d * 36, 2.5, Ink.OUTLINE)
+			else:
+				draw_line(c + d * 38, c + d * 42, Ink.OUTLINE, 0.8)
 		var h := fmod(seconds / 3600.0, 12.0)
 		var m := fmod(seconds / 60.0, 60.0)
 		var s := fmod(seconds, 60.0)

@@ -28,6 +28,8 @@ var lid := false:
 		lid = v
 		queue_redraw()
 var displaced := false
+## Seconds left to show what's missing (lid / yarn) as a ghostly outline.
+var ghost := 0.0
 var tail_mood := 1.0            ## Tail swish speed: higher looks more excited.
 var jump_lean := 0.0            ## Body tilt during a jump, radians.
 
@@ -55,6 +57,7 @@ func _tick(delta: float) -> void:
 		if randf() < 0.4:
 			_ear_flick = 0.3
 	_blink = maxf(0.0, _blink - delta)
+	ghost = maxf(0.0, ghost - delta)
 	_ear_flick = maxf(0.0, _ear_flick - delta)
 	queue_redraw()
 
@@ -188,10 +191,23 @@ func _head(c: Vector2, tilt := 0.0, eyes_closed := false) -> void:
 		var l := t * Transform2D(-0.5, Vector2(18, -36)) * Ink.ellipse(Vector2.ZERO, Vector2(16, 6), 14)
 		Ink.shape(self, l, P.CHROME, 2.5, 56, 0.35, 0.1)
 		Ink.line(self, t * PackedVector2Array([Vector2(24, -46), Vector2(34, -54), Vector2(30, -60)]), P.CHROME.darkened(0.3), 2.5, 57)
+	elif ghost > 0.0:
+		var l := t * Transform2D(-0.5, Vector2(18, -36)) * Ink.ellipse(Vector2.ZERO, Vector2(16, 6), 14)
+		l.append(l[0])
+		draw_polyline(l, _ghost_color(), 3.0, true)
+
+
+func _ghost_color() -> Color:
+	return Color(P.PORTAL, 0.4 + 0.5 * absf(sin(_t * 9.0)))
 
 
 func _yarn_over(center: Vector2, r: Vector2) -> void:
+	if not yarn and ghost <= 0.0:
+		return
 	if not yarn:
+		for k in 3:
+			var a := 0.4 + k * 0.8
+			draw_polyline(Ink.ellipse(center + Vector2(k * 6 - 9, 0), Vector2(r.x * (0.5 + 0.15 * k), r.y), 16, a, a + PI * 1.3), _ghost_color(), 3.0, true)
 		return
 	for k in 4:
 		var a := 0.4 + k * 0.8

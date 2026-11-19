@@ -78,6 +78,9 @@ func _run() -> void:
 	_w().machine.dial = _story.flags.dial
 	await _click("lever", "flashlight")
 	_expect(_w().fuse.visible and _story.flags.phase == "loop", "The wrong destination: the portal spits Fuse back out")
+	_expect(_w().machine.dial_wrong > 0.0, "The counter flashes: the destination is what differs")
+	await _click("clock")
+	_expect(_w().clock.scale == Vector2.ONE and _w().clock.z_index == 0, "The clock zooms in and back on a click")
 	await _set_dial(_story.flags.arrival)
 	_expect(_story.flags.dial == _story.flags.arrival, "The counter's wheels reach the stopped minute")
 	await _click("lever", "flashlight")

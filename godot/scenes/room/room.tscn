@@ -86,7 +86,7 @@ label_height = 2.4
 [node name="Challenge1" parent="." instance=ExtResource("4")]
 script = ExtResource("s_workshop_station")
 transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, -3.6, 0.0, 3.6)
-prompt = "Step through the ring"
+prompt = "Enter the workshop"
 minigame_id = "workshop"
 label_text = "Workshop"
 color = Color(1, 0.55, 0.2, 1)

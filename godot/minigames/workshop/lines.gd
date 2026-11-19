@@ -6,7 +6,16 @@ extends RefCounted
 
 const INTRO := [
 	"Oh! A visitor. Mind the cat.",
+	"My Futurescope's been dark all week. A man likes to know what's coming.",
 ]
+
+const TUBE := "The radio's tube! Why didn't I think of that?"
+
+const UNWOUND := "That's my yarn. From... later?"
+
+const WIRED := "Copper wire across a fuse socket. My father would be appalled. Brilliant."
+
+const REJECTED := "It spat him out! Something's not the same."
 
 const AFTER_VISION := [
 	"Was... was that Fuse? Wearing a sardine lid?",

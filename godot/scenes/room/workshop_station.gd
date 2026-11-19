@@ -34,26 +34,27 @@ func _process(_delta: float) -> void:
 	pass  # The Prop's floating shape is hidden; nothing to bob.
 
 
+## A door-sized oval ring mounted on the chamber's back wall, behind the platform.
 func _build_ring() -> void:
 	_ring = Node3D.new()
 	_ring.name = "PortalRing"
-	_ring.position = Vector3(0, 1.62, -0.15)
+	_ring.position = Vector3(0, 1.45, -2.06)   # Station-local: the back wall is ~2.15 m behind.
+	_ring.scale = Vector3(1.15, 2.0, 1.0)
 	add_child(_ring)
 	var brass := Geometry.material(Color("c99a45"), 0.75)
 	var torus := TorusMesh.new()
-	torus.inner_radius = 0.5
-	torus.outer_radius = 0.6
-	torus.rings = 48
+	torus.inner_radius = 0.62
+	torus.outer_radius = 0.7
+	torus.rings = 64
 	torus.ring_segments = 12
 	var ring := MeshInstance3D.new()
 	ring.mesh = torus
 	ring.material_override = brass
 	ring.rotation.x = PI / 2.0
-	ring.scale = Vector3(0.8, 1.0, 1.1)   # A tall oval, like the workshop's.
 	_ring.add_child(ring)
 	var disc := MeshInstance3D.new()
 	var quad := QuadMesh.new()
-	quad.size = Vector2(0.84, 1.14)
+	quad.size = Vector2(1.26, 1.26)
 	disc.mesh = quad
 	var mat := ShaderMaterial.new()
 	var shader := Shader.new()
@@ -61,5 +62,9 @@ func _build_ring() -> void:
 	mat.shader = shader
 	disc.material_override = mat
 	_ring.add_child(disc)
-	for x in [-0.3, 0.3]:
-		Geometry.box(_ring, Vector3(x, -0.6, 0), Vector3(0.1, 0.12, 0.16), Geometry.material(Color("3c3c3c"), 0.5))
+	var glow := OmniLight3D.new()
+	glow.light_color = Color("7fe7ff")
+	glow.light_energy = 0.8
+	glow.omni_range = 3.0
+	glow.position = Vector3(0, 0, 0.6)
+	_ring.add_child(glow)

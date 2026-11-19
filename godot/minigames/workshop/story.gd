@@ -300,6 +300,8 @@ func _poke(id: String, at: Vector2) -> void:
 				take("box")
 				_box_node.visible = false
 				f.box = "held"
+		"clock":
+			await _zoom_clock()
 		"blinds":
 			f.blinds = not f.blinds
 			_w.blinds.open = f.blinds
@@ -320,6 +322,8 @@ func _use(item: String, id: String, at: Vector2) -> void:
 			_w.tv.has_tube = true
 			_w.tv.on = true
 			Sound.play("place", self)
+			_engineer_gesture("cheer")
+			await say("engineer", Lines.TUBE)
 		["sardines", "floor"]:
 			use_up("sardines")
 			f.tin = "floor"
@@ -335,6 +339,8 @@ func _use(item: String, id: String, at: Vector2) -> void:
 			_w.machine.fuse_blown = false
 			_w.machine.powered = true
 			Sound.play("lens_light", self)
+			await wait(0.4)
+			await say("engineer", Lines.WIRED)
 		["yarn", "fuse"], ["yarn", "floor"]:
 			await _tangle(at)
 		["flashlight", "lever"]:
@@ -578,6 +584,7 @@ func _unwind_twin() -> void:
 	await wait(0.4)
 	twin.tail_mood = 1.0
 	twin.pose = "sleep"
+	await say("engineer", Lines.UNWOUND)
 
 
 ## Red yarn for an awake Fuse: a ball rolls, a cat pounces, a cat is tangled.
@@ -689,7 +696,13 @@ func matches_footage() -> bool:
 
 ## The portal flares red and throws the cat back out.
 func _rejected(fuse: Node2D) -> void:
+	var f := flags
 	_w.machine.portal_unstable = true
+	# Whatever differs from the footage flickers for a moment.
+	if f.dial != f.arrival:
+		_w.machine.dial_wrong = 4.0
+	if not f.yarn or not f.lid:
+		fuse.ghost = 4.0
 	Sound.play("unavailable", self, 0.0, 0.7)
 	await wait(0.5)
 	fuse.facing = -1.0
@@ -703,6 +716,8 @@ func _rejected(fuse: Node2D) -> void:
 	await wait(0.4)
 	fuse.pose = "sit"
 	fuse.tail_mood = 1.0
+	_engineer_gesture("shrug")
+	await say("engineer", Lines.REJECTED)
 
 
 # --- breaking the loop ------------------------------------------------------------------
@@ -813,6 +828,36 @@ func _finale() -> void:
 	_engineer_gesture("idle")
 	await say("engineer", Lines.GOODBYE)
 	won.emit()
+
+
+## A close look at the clock: it grows to fill the room until the next click.
+func _zoom_clock() -> void:
+	var clock: Node2D = _w.clock
+	var scrim := Scrim.new()
+	world.add_child(scrim)
+	clock.z_index = 45
+	var s := 4.2
+	var tw := create_tween().set_parallel()
+	tw.tween_property(clock, "scale", Vector2(s, s), 0.35)
+	tw.tween_property(clock, "position", Vector2(800, 450) - Vector2(1150, 150) * s, 0.35)
+	tw.tween_property(scrim, "modulate:a", 1.0, 0.35).from(0.0)
+	await tw.finished
+	await bubble.wait_click()
+	tw = create_tween().set_parallel()
+	tw.tween_property(clock, "scale", Vector2.ONE, 0.3)
+	tw.tween_property(clock, "position", Vector2.ZERO, 0.3)
+	tw.tween_property(scrim, "modulate:a", 0.0, 0.3)
+	await tw.finished
+	clock.z_index = 0
+	scrim.queue_free()
+
+
+class Scrim extends Node2D:
+	func _ready() -> void:
+		z_index = 44
+
+	func _draw() -> void:
+		draw_rect(Rect2(-100, -100, 1800, 1100), Color(0.08, 0.05, 0.04, 0.8))
 
 
 ## The ball of yarn while it rolls across the floor.
