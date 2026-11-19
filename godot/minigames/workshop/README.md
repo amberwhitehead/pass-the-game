@@ -1,7 +1,7 @@
 # 04 Workshop: the Engineer's time loop
 
-A hand-drawn 2D point-and-click story in the spirit of *Lost in Play*. Walk up to the
-Workshop's bench in the hall (room 04) and the scene switches to the Engineer's garage
+A hand-drawn 2D point-and-click story in the spirit of *Lost in Play*. Step through the
+Workshop's portal ring in the hall (room 04) and the scene switches to the Engineer's garage
 lab: a 1950s workshop with a sleeping ginger cat called Fuse, a television that shows
 the future (the **Futurescope**) and a homemade time machine (the
 **Chrono-Oscillator**).

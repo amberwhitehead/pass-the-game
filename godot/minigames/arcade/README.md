@@ -49,9 +49,13 @@ This is a **foundation**: one stage, one boss, three weapons, ready for a design
 | `background.gd` | Parallax timestream: clocks, drifting years, stars, streaks |
 | `hud.gd`, `pixel_art.gd`, `sprites.gd` | Text and screens; ASCII sprite textures and the 5x7 font; the sprites |
 | `high_score.gd` | The cabinet's high score file |
+| `songs.gd` | The soundtrack, in the music module's MML |
 | `../../scenes/escape/arcade_cabinet.gd` | The 3D cabinet in the secret room, running the attract screen live while on camera |
 
 Sounds are the `arcade_*` cues in `assets/audio/cues.json` (existing CC0 files).
+Music is procedural (`res://audio/music`, see its README): `songs.gd` holds the title,
+stage and boss tunes and the stage-clear and game-over jingles; `arcade.gd` picks one per
+mode (`song_for()`) and pauses it with the pause menu.
 `tools/arcade_shot.tscn` renders the title, play, boss and cabinet to PNGs;
 `tests/arcade_test.gd` covers the rules, the launcher and the cabinet.
 
@@ -59,7 +63,6 @@ Sounds are the `arcade_*` cues in `assets/audio/cues.json` (existing CC0 files).
 
 - More stages, each a different era of the timestream (Roman, Egyptian, Mayan,
   the 1950s workshop?), with midbosses and terrain.
-- Music: a chiptune loop (the original STARLOOM sequenced its own).
 - Overdrive / grazing, drones, shields, name entry on the high-score table, an attract
   demo that plays itself, difficulty levels.
 - Balance: enemy HP, fire rates and the timeline are all first guesses.

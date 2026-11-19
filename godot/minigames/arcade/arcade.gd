@@ -6,8 +6,12 @@ extends MiniGame
 
 const Shooter := preload("res://minigames/arcade/shooter.gd")
 const CRT := preload("res://minigames/arcade/arcade_crt.gdshader")
+const MusicPlayer := preload("res://audio/music/music_player.gd")
+const Songs := preload("res://minigames/arcade/songs.gd")
+const Stage := preload("res://minigames/arcade/stage.gd")
 
 var shooter: Node2D
+var music: Node
 var _viewport: SubViewport
 var _screen: TextureRect
 
@@ -44,18 +48,44 @@ func _ready() -> void:
 	mat.shader = CRT
 	_screen.material = mat
 	add_child(_screen)
+	music = MusicPlayer.new()
+	music.songs = Songs.all()
+	add_child(music)
 	super()
+
+
+func _process(_delta: float) -> void:
+	var id := song_for(shooter)
+	if id != "":
+		music.play(id, 0.15 if id in ["clear", "over"] else 0.8)
+
+
+## Which song suits the shooter's state: the title tune, the stage, the boss (from its
+## warning on), then the stage-clear or game-over jingle, which plays once.
+static func song_for(s) -> String:
+	match s.mode:
+		"title":
+			return "title"
+		"play":
+			return "boss" if s.stage_frame >= Stage.BOSS_AT else "stage"
+		"clear":
+			return "clear"
+		"over":
+			return "over"
+	return ""
 
 
 func _play_sound(cue: String) -> void:
 	Sound.play(cue, self)
 
 
-## The pause menu disables this node; stop drawing the screen too.
+## The pause menu disables this node; stop drawing the screen and pause the music too.
 func _notification(what: int) -> void:
-	if _viewport == null:
+	if _viewport == null or music == null:
 		return
 	if what == NOTIFICATION_DISABLED:
 		_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		music.paused = true
 	elif what == NOTIFICATION_ENABLED:
 		_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		music.paused = false
