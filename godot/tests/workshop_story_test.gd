@@ -40,6 +40,10 @@ func _run() -> void:
 	_expect(_story.twin.lid and _story.twin.yarn, "It wears the lid and the yarn")
 	_expect(_story.alarm.mode == "violation", "The temporal violation alarm sounds")
 	_expect(_w().clock.frozen and _story.flags.arrival >= 0, "The clock stopped at the arrival minute")
+	var future: Dictionary = _w().tv.future.things
+	_expect(future.machine.dial == _story.flags.arrival, "The footage's destination counter shows the arrival minute")
+	_expect(int(future.clock.seconds / 60.0) % 720 == _story.flags.arrival, "The footage's clock agrees")
+	_expect(int(_w().clock.seconds / 60.0) % 720 == _story.flags.arrival, "So does the stopped clock in the room")
 	_expect(not _w().has("officer"), "The Officer has gone again")
 
 	# Save and resume mid-phase.
@@ -81,7 +85,7 @@ func _run() -> void:
 	_expect(_w().machine.dial_wrong > 0.0, "The counter flashes: the destination is what differs")
 	await _click("clock")
 	_expect(_w().clock.scale == Vector2.ONE and _w().clock.z_index == 0, "The clock zooms in and back on a click")
-	await _set_dial(_story.flags.arrival)
+	await _set_dial(_w().tv.future.things.machine.dial)
 	_expect(_story.flags.dial == _story.flags.arrival, "The counter's wheels reach the stopped minute")
 	await _click("lever", "flashlight")
 	_expect(not _w().fuse.visible, "Fuse leapt on the lever and went through the portal")

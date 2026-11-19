@@ -130,6 +130,9 @@ func apply_flags() -> void:
 		fuse.visible = false
 	if f.box == "floor":
 		_place_box(f.box_pos)
+	if f.arrival >= 0:
+		_w.tv.future.things.machine.dial = f.arrival
+		_w.tv.future.things.clock.seconds = f.arrival * 60.0 + 20.0
 	if f.phase != "setup":
 		_spawn_twin(Vision.TWIN_NAP, "sleep")
 		twin.yarn = f.twin_yarn
@@ -423,10 +426,14 @@ func _vision_for_phase() -> String:
 
 ## Shows the Futurescope full screen while a scene plays in the future room.
 func _watch(scene: String, caption: String) -> void:
-	_w.tv.future.things.machine.dial = flags.arrival if flags.arrival >= 0 else _arrival_minute()
 	closeup.open(_w.tv.feed_texture(), _w.tv.material(), caption)
-	await Vision.play(_w.tv.future, scene)
+	await Vision.play(_w.tv.future, scene, footage_minute())
 	await closeup.close()
+
+
+## The destination the footage shows: the minute the twin steps out.
+func footage_minute() -> int:
+	return flags.arrival if flags.arrival >= 0 else _arrival_minute()
 
 
 ## The minute the twin will step out: shortly after the first vision ends.
@@ -435,6 +442,8 @@ func _arrival_minute() -> int:
 
 
 func _first_vision() -> void:
+	# Decided once, up front: the footage, the stopped clock and the rule all use it.
+	flags.arrival = _arrival_minute()
 	_engineer_gesture("point", _w.tv.position + Vector2(920, 340))
 	await wait(0.6)
 	await _watch("loop", "")
@@ -446,7 +455,6 @@ func _first_vision() -> void:
 
 func _arrival() -> void:
 	var m: Node2D = _w.machine
-	flags.arrival = _arrival_minute()
 	Sound.play("lens_light", self)
 	var tw := create_tween()
 	tw.tween_property(m, "portal", 1.0, 1.0)
@@ -691,7 +699,7 @@ func _lure_to_lever() -> void:
 ## True when the cat, the machine and the destination match the footage.
 func matches_footage() -> bool:
 	var f := flags
-	return f.lid and f.yarn and f.wire == "machine" and f.dial == f.arrival
+	return f.lid and f.yarn and f.wire == "machine" and f.dial == footage_minute()
 
 
 ## The portal flares red and throws the cat back out.
@@ -699,7 +707,7 @@ func _rejected(fuse: Node2D) -> void:
 	var f := flags
 	_w.machine.portal_unstable = true
 	# Whatever differs from the footage flickers for a moment.
-	if f.dial != f.arrival:
+	if f.dial != footage_minute():
 		_w.machine.dial_wrong = 4.0
 	if not f.yarn or not f.lid:
 		fuse.ghost = 4.0

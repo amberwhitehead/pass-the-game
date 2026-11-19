@@ -34,11 +34,11 @@ mostly mutters, the Officer only scoffs, and things that can't be done just wigg
      (Nobody ever made that yarn.)
    - **Power:** the machine's fuse is blown and there is no spare. The coil of copper
      wire on the pegboard bridges the socket.
-   - **Destination:** turn the counter's wheels to the minute the clock stopped (it is
-     also in the footage).
+   - **Destination:** turn the counter's wheels to what the footage's counter shows.
+     The wall clock stopped at the same minute (click it for a close look).
    - **The lever:** you can't pull it (in the footage the cat did). A flashlight spot
-     on it and Fuse pounces. If anything doesn't match the footage, the portal flares
-     red and throws him back out.
+     on it and Fuse pounces. The rule is simply "look like the footage": if anything
+     differs, the portal flares red, throws him back out, and what's different flickers.
 4. **Break the loop.** The Futurescope now shows the remaining cat doing it again and
    again. Reaching for the wire while he watches makes him jump on the lever first. A
    box in the shade doesn't interest him; open the blinds and put the box in the

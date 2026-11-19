@@ -11,16 +11,16 @@ const Machine := preload("res://minigames/workshop/machine.gd")
 const Cat := preload("res://minigames/workshop/cat.gd")
 const Small := preload("res://minigames/workshop/small_props.gd")
 
-## The dial setting the loop scene shows; the player must match it.
-const LOOP_DIAL := 1
 const TWIN_NAP := Vector2(1080, 770)
 const LEVER_WAIT := Vector2(1352, 700)
 
 
-## Plays `scene` in `future` (a World); resolves when it ends.
-static func play(future: Node2D, scene: String) -> void:
+## Plays `scene` in `future` (a World); resolves when it ends. `arrival` is the minute
+## the twin steps out: the footage's destination counter and stopped clock both show it,
+## and the player has to match it.
+static func play(future: Node2D, scene: String, arrival: int) -> void:
 	var t: Dictionary = future.things
-	_reset(future)
+	_reset(future, arrival)
 	match scene:
 		"loop":
 			await _loop(future, t)
@@ -30,7 +30,7 @@ static func play(future: Node2D, scene: String) -> void:
 			await _calm(future, t)
 
 
-static func _reset(future: Node2D) -> void:
+static func _reset(future: Node2D, arrival: int) -> void:
 	var t: Dictionary = future.things
 	for c in future.get_children():
 		if c.has_meta("extra"):
@@ -39,7 +39,8 @@ static func _reset(future: Node2D) -> void:
 	t.machine.portal_unstable = false
 	t.machine.lever_down = false
 	t.machine.powered = true
-	t.machine.dial = LOOP_DIAL
+	t.machine.dial = arrival
+	t.clock.seconds = arrival * 60.0 + 20.0
 	t.clock.frozen = true
 	t.tv.has_tube = true
 	t.radio.back_open = true
