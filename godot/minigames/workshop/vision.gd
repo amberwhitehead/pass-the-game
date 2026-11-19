@@ -13,7 +13,7 @@ const Small := preload("res://minigames/workshop/small_props.gd")
 
 ## The dial setting the loop scene shows; the player must match it.
 const LOOP_DIAL := 1
-const TWIN_NAP := Vector2(760, 724)
+const TWIN_NAP := Vector2(1080, 770)
 const LEVER_WAIT := Vector2(1352, 700)
 
 

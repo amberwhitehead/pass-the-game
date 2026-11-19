@@ -112,9 +112,8 @@ func apply_flags() -> void:
 		fuse.pose = "sleep"
 	elif f.phase == "loop":
 		if f.tin_open:
-			fuse.position = Vector2(f.tin_pos.x + 70, 720)
+			fuse.position = Vector2(870, 764) if f.yarn else Vector2(f.tin_pos.x - 70, f.tin_pos.y - 4)
 			fuse.pose = "sit"
-			fuse.facing = -1.0
 		else:
 			fuse.position = FUSE_NAP
 			fuse.pose = "sleep"
@@ -304,7 +303,7 @@ func _use(item: String, id: String, at: Vector2) -> void:
 		["sardines", "floor"]:
 			use_up("sardines")
 			f.tin = "floor"
-			f.tin_pos = Vector2(clampf(at.x, 560, 1240), clampf(at.y, 700, 780))
+			f.tin_pos = Vector2(clampf(at.x, 600, 940), clampf(at.y, 700, 780))
 			_w.tin.position = f.tin_pos
 			_w.tin.visible = true
 			Sound.play("place", self)
@@ -424,11 +423,18 @@ func _arrival() -> void:
 	alarm.mode = "violation"
 	_w.tv.alarm = true
 	_w.clock.frozen = true
-	Sound.play("unavailable", self)
-	await wait(1.4)
+	await _sirens()
+	await wait(0.4)
 	await _officer_visit(Lines.OFFICER_ARRIVES)
 	_engineer_gesture("think")
 	await says("engineer", Lines.AFTER_OFFICER)
+
+
+## A few blasts of the alarm when it starts; the lights keep flashing after.
+func _sirens(count := 3) -> void:
+	for k in count:
+		Sound.play("unavailable", self, 0.0, 0.8 if k % 2 == 0 else 1.0)
+		await wait(0.42)
 
 
 func _officer_visit(lines: Array) -> void:
@@ -505,7 +511,7 @@ func _open_sardines() -> void:
 	fuse.pose = "sit"
 	await wait(0.5)
 	await fuse.jump_to(Vector2(560, 720), 60.0, 0.6)
-	await fuse.walk_to(f.tin_pos.x - 70, 720)
+	await fuse.walk_to(f.tin_pos.x - 70, f.tin_pos.y - 4)
 	fuse.facing = 1.0
 	fuse.pose = "eat"
 	await wait(1.6)
@@ -532,12 +538,12 @@ func _basket() -> void:
 	ball.position = Vector2(935, 600)
 	world.add_child(ball)
 	var tw := create_tween()
-	tw.tween_property(ball, "position", Vector2(820, 740), 0.8).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(ball, "position", Vector2(880, 760), 0.8).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	Sound.play("card_hit", self)
 	fuse.pose = "crouch"
-	fuse.facing = signf(820 - fuse.position.x)
+	fuse.facing = signf(880 - fuse.position.x)
 	await wait(0.6)
-	await fuse.jump_to(Vector2(800, 744), 80.0, 0.55)
+	await fuse.jump_to(Vector2(870, 764), 80.0, 0.55)
 	ball.queue_free()
 	fuse.yarn = true
 	f.yarn = true
@@ -606,8 +612,7 @@ func _lure_to_lever() -> void:
 func _cascade() -> void:
 	flags.phase = "break"
 	_w.tv.tuned = false
-	Sound.play("unavailable", self)
-	await wait(0.6)
+	await _sirens(2)
 	_w.tv.tuned = true
 	await say("engineer", "Hang on. The Futurescope's showing something new...", 1.8)
 	await _watch("cascade", "THE FUTURE")

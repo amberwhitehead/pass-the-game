@@ -24,6 +24,9 @@ func _ready() -> void:
 			steps = Array(a.substr(9).split(",", false))
 	_game = load("res://minigames/workshop/workshop.tscn").instantiate()
 	add_child(_game)
+	# Only the scripted steps drive the story: real clicks on the window are ignored.
+	_game.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_game.set_process_unhandled_input(false)
 	await _frames(30)
 	for s: String in steps:
 		var arg := s.substr(s.find(":") + 1) if ":" in s else ""

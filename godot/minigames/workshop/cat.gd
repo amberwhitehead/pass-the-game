@@ -283,4 +283,6 @@ func _sleeping() -> void:
 		var p := Vector2(60 + ph * 30 + sin(ph * 8.0) * 6, -60 - ph * 70)
 		var s := 6.0 + ph * 6.0
 		var c := Color(Ink.OUTLINE, 1.0 - ph)
-		draw_polyline(PackedVector2Array([p, p + Vector2(s, 0), p + Vector2(0, s), p + Vector2(s, s)]), c, 2.0)
+		# Drawn in flipped space when facing left, so mirror the letter back.
+		var w := s * facing
+		draw_polyline(PackedVector2Array([p, p + Vector2(w, 0), p + Vector2(0, s), p + Vector2(w, s)]), c, 2.0)
