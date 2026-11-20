@@ -11,6 +11,7 @@ const HUD := preload("res://scenes/escape/hub_hud.gd")
 const Soundscape := preload("res://audio/hub_soundscape.gd")
 const CardCache := preload("res://scenes/escape/card_cache.gd")
 const SecretRoom := preload("res://scenes/escape/secret_room.gd")
+const Revisits := preload("res://scenes/escape/revisits.gd")
 
 @onready var _player: Player = $Player
 var inventory: Node
@@ -19,6 +20,7 @@ var reward_pedestal: Node3D
 var reward_reveal: Node
 var architecture: Dictionary
 var hud: CanvasLayer
+var revisits: Node3D
 var _reward_pending := false
 
 
@@ -49,6 +51,12 @@ func _ready() -> void:
 	optics.message.connect(hud.notify)
 	add_child(optics)
 	_create_rewards()
+	# Changes in the hall after other rooms are won; see docs/INTERCONNECTION.md.
+	revisits = Revisits.new()
+	add_child(revisits)
+	revisits.configure(inventory, $Challenge1, $Egyptian, $Engineer)
+	revisits.message.connect(hud.notify)
+	optics.sun_restored.connect(revisits.refresh)
 	var secret := SecretRoom.new()
 	secret.configure(_player)
 	add_child(secret)

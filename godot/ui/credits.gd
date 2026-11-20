@@ -34,6 +34,9 @@ const CONTRIBUTORS := [
 	# for it to be credited now.
 	{"name": "Steve Likes Robots", "role": "November 18, 2026",
 		"work": "Keyboard and mouse controls inspired by Minecraft (mouse look, strafing and jumping), a Controls menu for changing keys that are saved between sessions, key hints that follow your keys, this Credits screen, and an Easter Egg. Built using Codex (GPT 6.2 Sol Light) as orchestrator and Claude Opus 5.5 as builder."},
+	# Wording agreed with Patrick Doane, who asked that Claude take most of the credit.
+	{"name": "Claude Opus 5.5, with Patrick Doane", "role": "November 19, 2026",
+		"work": "04 Workshop: the 50s Engineer, his cat Fuse and a time loop, a hand-drawn point-and-click story drawn entirely from code, with a TV that shows the future and a radio with three stations. CHRONO RAIDER, a 1985 arcade shooter in the secret room. A procedural chiptune music system. Room revisits: rooms that change each other, starting with Egypt's lost sun. Written, drawn and composed by Claude Opus 5.5 in Claude Code; designed with, directed and playtested by Patrick Doane."},
 ]
 
 ## Third-party work used in the game. Their license notices stay beside the assets.

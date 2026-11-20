@@ -51,7 +51,7 @@ static func set_card(state: Dictionary, id: String, found: bool) -> void:
 	elif not found:
 		cards.erase(id)
 	# Keep the game's own order so saves made here match ones made by play.
-	state.collected_cards = Progression.COLLECTIBLES.filter(func(card: String): return card in cards)
+	state.collected_cards = Progression.all_collectible().filter(func(card: String): return card in cards)
 
 
 static func card_name(id: String) -> String:
@@ -75,6 +75,15 @@ static func held(state: Dictionary) -> String:
 
 static func minigame_progress(state: Dictionary) -> Dictionary:
 	return flag(state, "minigame_progress", {})
+
+
+static func set_progress(state: Dictionary, id: String, value: Dictionary) -> void:
+	var progress := minigame_progress(state).duplicate()
+	if value.is_empty():
+		progress.erase(id)
+	else:
+		progress[id] = value
+	set_flag(state, "minigame_progress", progress)
 
 
 static func clear_progress(state: Dictionary, id: String) -> void:

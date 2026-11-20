@@ -35,7 +35,7 @@ func _ready() -> void:
 	var description := Style.label("Find your balance in the hall.", 15, Style.MUTED)
 	column.add_child(description)
 	column.add_child(HSeparator.new())
-	for bus in ["Master", "Effects", "Ambience"]:
+	for bus in ["Master", "Effects", "Ambience", "Music"]:
 		var row := HBoxContainer.new()
 		column.add_child(row)
 		var label := Label.new()

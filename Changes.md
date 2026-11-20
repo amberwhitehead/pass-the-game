@@ -432,3 +432,98 @@ future developers to build on, and the board's Workshop, Calendar and Observator
 pieces wait for those stages: see `STAGES` in `godot/scenes/escape/egg_board.gd`.
 Nothing about the room is saved and no progress depends on it. `secret_room_test` and
 `egg_board_test` cover it.
+
+## Patrick Doane — November 19, 2026
+
+Built with Claude Opus 5.5 in Claude Code on macOS with Godot 4.7.2: Claude wrote the
+code, drew the art in code and composed the music; Patrick designed with it, directed
+and playtested. Subagents built CHRONO RAIDER, the music system and the radio's songs.
+
+### `4563499`, `1db4f1f`, `514b724`, `8190cdc`, `ed2a0ea`, `8d75ed1`, `0f41f13`, `857acaf`, `541b233`, `3939fed` — 04 Workshop: the Engineer's time loop
+
+Room 04 is now a hand-drawn 2D point-and-click story in the spirit of *Lost in Play*,
+entered through a brass portal ring on the Workshop's wall: the Engineer's 1955 garage
+lab, which "looks a bit hand-drawn from here. Nobody knows why." Everything is drawn
+from code (`ink.gd`: wobbly boiling outlines, soft light and shade); there are no image
+assets. The story (spoilers in `godot/minigames/workshop/README.md`):
+
+- The Engineer walks in a moment after you, every visit, mourning his **Futurescope**,
+  a TV that shows the future. The radio, opened up close (three stations, four screws
+  on its back), gives up its tube.
+- The Futurescope shows his cat Fuse, in red yarn with a sardine-tin lid on one ear,
+  leaping on the Chrono-Oscillator's lever and vanishing into its portal. Then the
+  portal opens by itself and that very cat walks out. Two cats; the clock stops; the
+  Officer from the intro arrives to scoff and schedule the timeline for deletion.
+- To close the loop, make the footage come true: sardines for the lid, the red yarn
+  unwound from the cat from the future (nobody ever made it), the pegboard's copper
+  wire for the blown fuse, the destination counter set to the footage's time, and a
+  flashlight to make Fuse pounce on the lever. Anything different and the timeline is
+  deleted, as the Officer promised: a glitch, a stamp and a harmless rewind to just
+  before the lever, after which what differs flickers.
+- To break it, lure the remaining cat away from the lever with a box in the sunbeam;
+  the Engineer points out that the wire is all that keeps the portal open. Pull it.
+
+The Engineer minds his things, gets put out as you rummage (his milk above all) and
+only nudges when you're close. The flashlight makes Fuse pounce at almost anything.
+Order is enforced: Fuse sleeps until the twin arrives. Playtest fixes along the way:
+hover brightens instead of outlining, speech bubbles wrap their own lines, the footage
+showed the wrong time (`8d75ed1`), shapes blinked when their wobbled outline folded
+(`0f41f13`, `857acaf`). `workshop_story_test` plays it through (107 checks);
+`tools/workshop_shot.tscn` renders scripted screenshots. A Workshop win places its
+piece on the secret room's board.
+
+### `14b289d`, `2ffecc8`, `c7c57f1` — Workshop odds and ends
+
+Save slots list a Workshop win. The developer save editor gains Workshop jump points
+(from the start, twin arrived, ready to send Fuse, loop closed) from
+`godot/minigames/workshop/dev_stages.gd`. A trophy added in `14b289d` was removed after
+playtesting.
+
+### `fa3fea9`, `bb84be3` — CHRONO RAIDER, in the secret room
+
+A 1985 arcade cabinet, contraband from across the 1963 line, stands in the secret room
+running its attract mode. CHRONO RAIDER is the foundation of a horizontal shooter in
+the spirit of ThunderForce and R-Type: three switchable weapons with levels, four speed
+gears, cycling weapon capsules, a one-stage timeline and the CHRONARCH clock boss, title
+and game-over screens and a local high score. It never reports a win, so saves and the
+board are unaffected. `godot/minigames/arcade/README.md` lists what a design pass could
+add. `arcade_test` covers it.
+
+### `f1b7d8d`, `1b71add` — Procedural music
+
+`godot/audio/music/` synthesizes chiptune music live from songs written in a small MML
+dialect: pulse, triangle and noise voices, envelopes, vibrato, arpeggios, echo and
+crossfades, on a new Music bus with its own Sound-panel slider. CHRONO RAIDER has a
+title tune, a stage theme, a boss theme and jingles; the Workshop's radio has three
+1950s stations (easy listening, a Bach-style minuet, a cha-cha-chá). `music_test` and
+`radio_songs_test` check them by measurement; listen in the game.
+
+### `aa6783d`, `ec77ed7`, `e2c9875` — Room revisits
+
+A structure for rooms to affect each other, described in `docs/INTERCONNECTION.md` with
+a recipe for adding more: `autoload/time_link.gd` (cross-room problems set off by wins,
+and a tray where things sent from 1955 arrive in the hall), Futurescope channels that
+show other rooms' futures, and bonus cards that join Older Brother's deck without
+counting among the hall's five. After the Workshop is won:
+
+- Fuse wanders into the hall and naps behind the optical relay cabinet; petting him
+  finds the **Fuse** card.
+- Egypt's room goes dark. The flashlight, sent through the Workshop's portal, fits a
+  new lamp socket in the hall optics; through the yellow lens its beam goes through
+  Egypt's doorway to a new sun disc and lights the room. The Egyptian's thanks is the
+  **Sun Scarab** card. The lamp never opens Door 2.
+
+Small changes to other areas: `room.gd` adds the revisits module, the optics gain the
+second light, and the hub test's "optics stay east" rule exempts the lamp's two fittings.
+`revisits_test` covers the chain, including reaching Fuse the way a player does.
+
+### `78ab4ab` — Fixes from a review
+
+A review of the whole turn found that bonus cards weren't reaching real matches (the
+card table passed only the hall's five to the rules), two ways to leave the Workshop
+mid-scene and come back stuck, a pegboard hook that could take the wire back out, and
+the sun disc's glow going out on success. All fixed, with tests for each.
+
+### This entry and the credits
+
+Patrick Doane asked that Claude take most of the credit; `ui/credits.gd` says so.

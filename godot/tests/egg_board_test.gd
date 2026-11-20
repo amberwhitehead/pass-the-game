@@ -50,14 +50,18 @@ func _run() -> void:
 	for i in 3:
 		_board().refresh()
 	_expect(_board().get_child_count() == children, "Refreshing again changes nothing")
-	_expect(not "Workshop" in _shown(_board()) and not "Calendar" in _shown(_board()) and not "Observatory" in _shown(_board()),
-		"Workshop, Calendar and Observatory stay empty: they are not wired yet")
+	_expect(not "Calendar" in _shown(_board()) and not "Observatory" in _shown(_board()),
+		"Calendar and Observatory stay empty: they are not wired yet")
+	await _workshop(false)
+	_expect(not "Workshop" in _shown(_board()), "Leaving the Workshop unsolved adds nothing")
+	await _workshop(true)
+	_expect(_shown(_board()).count("Workshop") == 1, "A Workshop win adds the mainframe")
 	# First visit after the wins: entering the room shows them.
 	var secret: Node3D = _room.get_node("SecretRoom")
 	_expect(not secret.inside, "The room has not been visited in this save")
 	secret._request(1)
 	await _physics(3)
-	_expect(secret.inside and _shown(_board()).size() == 3, "Wins earned before finding the room are on the board at first entry")
+	_expect(secret.inside and _shown(_board()).size() == 4, "Wins earned before finding the room are on the board at first entry")
 	# Reload and switch slots.
 	_game.save_now()
 	_game.new_game(1)
@@ -65,7 +69,7 @@ func _run() -> void:
 	_expect(_shown(_board()).is_empty(), "A new slot shows its own empty board")
 	_expect(_game.load_slot(0), "The first slot loads")
 	await _load_room()
-	_expect(_shown(_board()) == ["Egypt Fractal", "Roman Flow", "The Brothers"], "Reloading the first slot restores its pieces")
+	_expect(_shown(_board()) == ["Egypt Fractal", "Roman Flow", "The Brothers", "Workshop"], "Reloading the first slot restores its pieces")
 	_expect(_game.load_slot(1), "Switching back loads the empty slot")
 	await _load_room()
 	_expect(_shown(_board()).is_empty(), "Switching slots shows that slot's actual progress")
@@ -142,6 +146,17 @@ func _roman_win() -> void:
 	_action("back")
 	await _until_returned()
 	_expect(_result.get("won", false) and _game.completed_minigames.has("turing"), "Roman Flow's win is recorded normally")
+
+
+## The Workshop through the game's own result path: its story emits `won` at the end.
+func _workshop(win: bool) -> void:
+	var game: Node = await _open("workshop")
+	if win:
+		game._story.won.emit()
+	else:
+		game.finish({"won": false, "quit": true})
+	await _until_returned()
+	_expect(_game.completed_minigames.has("workshop") == win, "The Workshop's result is recorded normally")
 
 
 ## A card match through the game's own result path: "Back to room" after a won match

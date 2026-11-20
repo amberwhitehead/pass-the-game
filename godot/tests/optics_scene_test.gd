@@ -24,7 +24,7 @@ func _run() -> void:
 	optics.configure(carry)
 	root.add_child(optics)
 	await process_frame
-	check(optics.devices.size() == 9, "all optical devices exist")
+	check(optics.devices.size() == 11, "all optical devices exist (with the lamp socket F and its mount N)")
 	check(optics.result.hit == "receiver" and optics.result.color == 1, "initial rendered trace")
 	check(optics.devices.A.turn_handle.collision_layer == 0, "empty socket cannot rotate")
 	optics.exchange_item("J")

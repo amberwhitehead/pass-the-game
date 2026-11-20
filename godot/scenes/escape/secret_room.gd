@@ -14,6 +14,7 @@ extends Node3D
 const Geometry := preload("res://scenes/escape/hub_geometry.gd")
 const Sign := preload("res://ui/world_sign.gd")
 const EggBoard := preload("res://scenes/escape/egg_board.gd")
+const ArcadeCabinet := preload("res://scenes/escape/arcade_cabinet.gd")
 
 ## Panel on the east wall's inner face, south of Door 2, facing into the hall.
 const PANEL_AT := Vector3(10.86, 0, 5.4)
@@ -173,6 +174,11 @@ func _build_room() -> void:
 	board.position = Vector3(-1.55, 0, -.35)
 	board.rotation.y = .7
 	room.add_child(board)
+	# Contraband from 1985 against the east wall, screen facing into the room.
+	var cabinet := ArcadeCabinet.new()
+	cabinet.position = Vector3(ROOM_HALF - .4, 0, .4)
+	cabinet.rotation.y = -PI / 2
+	room.add_child(cabinet)
 	var back := -ROOM_HALF + .01  # The north wall's inner face.
 	Sign.plaque(room, "You found an Easter Egg!", "", Vector3(-.6, 2.05, back), Vector2(3.4, .6), Sign.GOLD)
 	Sign.plaque(room, "This room should be developed by other developers.", "", Vector3(-.6, 1.3, back), Vector2(3.4, .42), Sign.GOLD)

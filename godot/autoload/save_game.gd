@@ -265,12 +265,12 @@ static func describe(state: Dictionary) -> String:
 	var flags: Dictionary = state.get("flags", {})
 	var wins: Dictionary = state.get("completed_minigames", {})
 	var parts: Array[String] = []
-	for entry: Array in [["newton", "Egypt"], ["turing", "Roman Flow"], ["cards", "Little Brother"], ["cards_older", "Older Brother"]]:
+	for entry: Array in [["newton", "Egypt"], ["turing", "Roman Flow"], ["cards", "Little Brother"], ["cards_older", "Older Brother"], ["workshop", "Workshop"]]:
 		if wins.has(entry[0]):
 			parts.append("%s ✓" % entry[1])
 	if flags.get("escape_prism_solved", false):
 		parts.append("Door 2 open")
 	var cards: Array = state.get("collected_cards", [])
-	if not cards.is_empty():
-		parts.append("%d/%d cards" % [cards.size(), DeckProgression.COLLECTIBLES.size()])
+	if not DeckProgression.owned(cards).is_empty():
+		parts.append("%d/%d cards" % [DeckProgression.owned(cards).size(), DeckProgression.COLLECTIBLES.size()])
 	return " · ".join(parts) if not parts.is_empty() else "Just started"

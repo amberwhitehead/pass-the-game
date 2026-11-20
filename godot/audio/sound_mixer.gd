@@ -2,13 +2,13 @@ extends RefCounted
 ## Persistent mix preferences; QA's ?muted=1 always wins over saved settings.
 signal changed
 const SETTINGS := "user://sound.cfg"
-var levels := {"Master": .75, "Effects": .85, "Ambience": .65}
+var levels := {"Master": .75, "Effects": .85, "Ambience": .65, "Music": .6}
 var muted := false
 var forced_mute := false
 
 func setup() -> void:
 	forced_mute = AudioServer.is_bus_mute(0)
-	for bus in ["Effects", "Ambience"]:
+	for bus in ["Effects", "Ambience", "Music"]:
 		if AudioServer.get_bus_index(bus) < 0:
 			# Godot 4.7.2 Web's add_bus(-1) reorders the sample buses and can
 			# disconnect Master. Growing the count preserves native/Web ordering.

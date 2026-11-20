@@ -21,7 +21,7 @@ var _save_timer: Timer
 
 
 func collect_card(id: String) -> bool:
-	if id not in DeckProgression.COLLECTIBLES or id in collected_cards:
+	if id not in DeckProgression.all_collectible() or id in collected_cards:
 		return false
 	collected_cards.append(id)
 	card_collected.emit(id)

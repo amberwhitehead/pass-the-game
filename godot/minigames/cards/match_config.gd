@@ -67,7 +67,7 @@ static func errors(id: String, overrides: Dictionary) -> Array[String]:
 		else:
 			var seen_cards := {}
 			for card_id: Variant in overrides.collected_cards:
-				if not card_id is String or card_id not in Progression.COLLECTIBLES:
+				if not card_id is String or card_id not in Progression.all_collectible():
 					problems.append("Unknown collectible: %s" % str(card_id))
 				elif seen_cards.has(card_id):
 					problems.append("Collectibles cannot be duplicated")

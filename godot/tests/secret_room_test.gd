@@ -41,13 +41,16 @@ func _run() -> void:
 func _layout() -> void:
 	var labels := _labels(_secret)
 	var board_labels := _labels(_secret.board).size()
+	var cabinet: Node3D = _secret.room.get_node("ArcadeCabinet")
+	board_labels += _labels(cabinet).size()  # The arcade cabinet's marquee.
 	_expect(labels.size() - board_labels == 3 and not _labels(_secret.entrance.get_parent()).size(),
 		"The hall entrance has no sign; apart from the board's position names the room has its three labels")
 	_expect("You found an Easter Egg!" in labels and "This room should be developed by other developers." in labels,
 		"Both room signs read exactly")
 	_expect("Return to the hall" in labels and _secret.exit.prompt == "Return to the hall", "The return panel is labelled")
 	_expect(_secret.entrance.prompt == "Open service panel", "The entrance prompt")
-	_expect(_secret.find_children("*", "OmniLight3D", true, false).size() == 1, "Only the room has its own light")
+	_expect(_secret.find_children("*", "OmniLight3D", true, false).size() - cabinet.find_children("*", "OmniLight3D", true, false).size() == 1,
+		"Only the room (and the arcade cabinet's screen glow) has its own light")
 	var decor: Array[Node] = _secret.find_children("WallServicePanel*", "Node3D", false, false)
 	_expect(decor.size() == 3, "Three decorative service panels line the hall")
 	for panel: Node in decor:

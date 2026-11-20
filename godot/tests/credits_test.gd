@@ -30,7 +30,7 @@ func _source() -> void:
 	_expect(MAINTENANCE in source and "do not guess their" in source and "identity or credit preference." in source,
 		"The credits source carries the maintenance note for future contributors")
 	var page: String = load("res://ui/credits_screen.gd").page()
-	for name in ["Amber Whitehead", "rmurrish", "cee.wtf", "tesseract", "Steve Likes Robots", "Kenney", "Libre Baskerville", "DejaVu Sans", "Godot Engine"]:
+	for name in ["Amber Whitehead", "rmurrish", "cee.wtf", "tesseract", "Steve Likes Robots", "Patrick Doane", "Kenney", "Libre Baskerville", "DejaVu Sans", "Godot Engine"]:
 		_expect(name in page, "Credits name %s" % name)
 	_expect("CC0" in page and "SIL Open Font License" in page and "MIT License" in page, "Credits name each license")
 	for notice in ["res://assets/audio/cc0/licenses/casino.txt", "res://assets/fonts/LibreBaskerville-LICENSE.txt",
