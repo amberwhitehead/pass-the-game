@@ -16,7 +16,7 @@ const STAGES := [
 ## The resume state for a stage, or {} for a fresh start.
 static func state_for(stage: String) -> Dictionary:
 	var s := {
-		"phase": "loop", "radio_on": false, "radio_open": true, "tube": "tv", "tuned": true,
+		"phase": "loop", "radio_on": false, "screws": 4, "tube": "tv", "tuned": true, "visits": 1,
 		"icebox_open": false, "tin": "icebox", "tin_pos": Vector2(700, 730), "tin_open": false,
 		"drawer_open": false, "drawer_items": true, "wire": "board",
 		"dial": 3 * 60, "arrival": ARRIVAL, "lid": false, "yarn": false, "twin_yarn": true,
@@ -28,7 +28,7 @@ static func state_for(stage: String) -> Dictionary:
 		"ready", "break":
 			s.merge({"icebox_open": true, "tin": "floor", "tin_open": true, "drawer_open": true,
 				"drawer_items": false, "wire": "machine", "dial": ARRIVAL, "lid": true, "yarn": true,
-				"twin_yarn": false, "items": ["flashlight"]}, true)
+				"twin_yarn": false, "fuse_down": true, "items": ["flashlight"]}, true)
 			if stage == "break":
 				s.phase = "break"
 				s.items = []

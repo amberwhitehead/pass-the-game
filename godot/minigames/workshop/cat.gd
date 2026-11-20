@@ -30,6 +30,7 @@ var lid := false:
 var displaced := false
 ## Seconds left to show what's missing (lid / yarn) as a ghostly outline.
 var ghost := 0.0
+var _alarmed := 0.0   ## Seconds left showing a startled "!" over his head.
 var tail_mood := 1.0            ## Tail swish speed: higher looks more excited.
 var jump_lean := 0.0            ## Body tilt during a jump, radians.
 
@@ -58,6 +59,7 @@ func _tick(delta: float) -> void:
 			_ear_flick = 0.3
 	_blink = maxf(0.0, _blink - delta)
 	ghost = maxf(0.0, ghost - delta)
+	_alarmed = maxf(0.0, _alarmed - delta)
 	_ear_flick = maxf(0.0, _ear_flick - delta)
 	queue_redraw()
 
@@ -70,6 +72,19 @@ func hit_test(global_point: Vector2) -> bool:
 
 
 # --- movement --------------------------------------------------------------------------
+
+## A cartoon fright: a hop on the spot, tail up, and a "!" over his head.
+func startle() -> void:
+	_alarmed = 1.2
+	tail_mood = 6.0
+	var home := position
+	var tw := create_tween()
+	tw.tween_property(self, "position", home + Vector2(0, -28), 0.12).set_ease(Tween.EASE_OUT)
+	tw.tween_property(self, "position", home, 0.18).set_ease(Tween.EASE_IN)
+	await tw.finished
+	await get_tree().create_timer(0.6).timeout
+	tail_mood = 1.0
+
 
 ## Walks along the ground to `x` (and `y`, if given), then stands.
 func walk_to(x: float, y := NAN, speed := 170.0) -> void:
@@ -119,6 +134,10 @@ func _stop() -> void:
 # --- drawing ---------------------------------------------------------------------------
 
 func _paint() -> void:
+	if _alarmed > 0.0:
+		var top := Vector2(30, -150 - (1.2 - _alarmed) * 10.0)
+		draw_rect(Rect2(top + Vector2(-4, 0), Vector2(8, 26)), Ink.OUTLINE)
+		draw_circle(top + Vector2(0, 36), 5, Ink.OUTLINE)
 	if displaced:
 		var a := 0.25 + 0.15 * sin(_t * 5.0)
 		var halo := Ink.ellipse(Vector2(0, -38), Vector2(78, 54), 24)

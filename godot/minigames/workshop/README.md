@@ -16,35 +16,42 @@ Engineer's workshop. Through it is 1955, and from the hall the past looks hand-d
 
 ## The story (spoilers)
 
-The Workshop is for poking at things, not for being told what to do: the Engineer
-mostly mutters, the Officer only scoffs, and things that can't be done just wiggle.
+The Workshop is for poking at things, not for being told what to do. The Engineer walks
+in a moment after you (every time: "I wasn't following you"), talks mostly about
+himself, minds his things and gets steadily more put out as you rummage (his milk above
+all), and only nudges when you're nearly there. The Officer only scoffs.
 
-1. **Setup.** The Futurescope is missing a tube. The radio has one (play it, open its
-   back, take it). Put it in the Futurescope and tune it.
-2. **The vision.** The Futurescope shows the room's future: Fuse, tangled in red yarn
-   with a sardine-tin lid on one ear, leaps on the machine's lever and walks into the
-   portal. Then, live, the portal opens by itself and that same scruffy cat walks *out*.
-   The wall clock stops at that minute. Sirens. The Officer arrives, scoffs, and
-   announces that this timeline is scheduled for deletion.
-3. **Make the loop.** Make the footage come true:
-   - **Lid:** sardines from the icebox, put on the floor, opened with the can opener
-     from the drawer. Fuse wakes, eats, and wears the lid.
-   - **Yarn:** the knitting basket has only grey wool. The only red yarn in the room is
-     wrapped around the cat from the future: unwind it off him and give it to Fuse.
-     (Nobody ever made that yarn.)
-   - **Power:** the machine's fuse is blown and there is no spare. The coil of copper
-     wire on the pegboard bridges the socket.
-   - **Destination:** turn the counter's wheels to what the footage's counter shows.
-     The wall clock stopped at the same minute (click it for a close look).
-   - **The lever:** you can't pull it (in the footage the cat did). A flashlight spot
-     on it and Fuse pounces. The rule is simply "look like the footage": if anything
-     differs, the portal flares red, throws him back out, and what's different flickers.
-4. **Break the loop.** The Futurescope now shows the remaining cat doing it again and
-   again. Reaching for the wire while he watches makes him jump on the lever first. A
-   box in the shade doesn't interest him; open the blinds and put the box in the
-   sunbeam, and in he goes. Then pull the wire.
+1. **Setup.** He mourns his Futurescope: dark since Tuesday, and nobody makes the tube.
+   Fuse is asleep on the icebox and won't stir for anything. The radio opens up close:
+   a power knob, a tuning knob with three stations (easy listening, a Bach-style minuet,
+   Radio Havana), and round the back four screws, then the tubes. The tube fits the
+   Futurescope; tuned, it shows the future.
+2. **The vision.** Fuse, tangled in red yarn with a sardine-tin lid on one ear, leaps on
+   the machine's lever and walks into the portal. Then, live, the portal opens by itself
+   and that very cat walks *out*. Fuse wakes on the icebox; the two see each other and
+   both jump. The one from the future couldn't care less and curls up on the floor. The
+   clock stops at that minute. Sirens. The Officer, with Form 27-B.
+3. **Make the loop.** Make the footage come true. Fuse, awake now, only comes down
+   from the icebox for something:
+   - **Lid:** sardines from the icebox, on the floor, opened with the can opener from
+     the drawer (opened earlier, they've been waiting for him).
+   - **Yarn:** the red yarn is on the cat from the future: unwind it and give it to Fuse
+     once he's down. (Nobody ever made that yarn.)
+   - **Power:** the fuse is blown; the pegboard's copper wire bridges it.
+   - **Destination:** the counter must match the footage's (the stopped clock agrees;
+     click it for a close look).
+   - **The lever:** you can't pull it; in the footage the cat did. Shine the flashlight
+     on it and Fuse pounces. Anything not as in the footage and the portal spits him
+     out, and what differs flickers.
+   The flashlight makes him pounce at almost anything: the Futurescope, the tubes, the
+   bench (knocking the radio to another station), the blind cord, the Engineer's shoe.
+4. **Break the loop.** The Futurescope now shows the remaining cat going round again.
+   He's fixated on the lever and jumps on it if you reach for the wire. A box in the
+   shade gets a look; open the blinds and put the box in the sunbeam, and in he goes.
+   Then pull the wire.
 
-The Futurescope can be rewatched at any time.
+Coming back after the win is the epilogue (`epilogue.gd`): Futurescope channels from
+other rooms and sending things to the hall; see `docs/INTERCONNECTION.md`.
 
 ## Controls
 
@@ -57,7 +64,11 @@ otherwise opens the pause menu (Leave, Sound, Quit to title).
 | File | Job |
 | --- | --- |
 | `workshop.gd` | The MiniGame: builds the stage, hover, clicks, inventory selection, save/resume. |
-| `story.gd` | What every click does in each phase (`setup`, `loop`, `break`, `done`), and the scenes. |
+| `story.gd` | The state machine: what every click does in each phase (`setup`, `loop`, `break`, `done`), and the scenes. |
+| `engineer.gd` | The Engineer turning up after you, minding his things (annoyance, his milk), once-only remarks and nudges. |
+| `pounce.gd` | The flashlight: where Fuse lands for each thing, and what happens. |
+| `radio_view.gd`, `radio_songs.gd` | The radio close-up, and its three stations (procedural music, `godot/audio/music`). |
+| `epilogue.gd`, `channels.gd` | Visiting after the win: Futurescope channels and sending things through the ring. |
 | `lines.gd` | Everything the Engineer and the Officer say, plus hints. Rewrite freely. |
 | `vision.gd` | The scenes the Futurescope shows, played in a second copy of the room. |
 | `world.gd` | Builds the room in drawing order; also built inside the Futurescope. |

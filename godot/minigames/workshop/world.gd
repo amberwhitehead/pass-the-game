@@ -37,10 +37,13 @@ func _ready() -> void:
 	_add("box", Small.Box.new())
 	_add("machine", Machine.new())
 	_add("icebox", Icebox.new())
+	for k in ["milk", "jelly"]:
+		var item := Small.FridgeItem.new(k)
+		item.visible = false
+		_add(k, item)
 	_add("bench", Bench.new())
 	_add("radio", Small.Radio.new())
 	_add("can", Small.CoffeeCan.new())
-	_add("basket", Small.Basket.new())
 	var tin := Small.Tin.new()
 	tin.visible = false
 	_add("tin", tin)

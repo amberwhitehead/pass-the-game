@@ -85,26 +85,37 @@ class CoffeeCan extends Thing:
 		Ink.dot(self, Vector2(806, 418), 4, P.BRASS, 2.0, 125)
 
 
-## A wicker basket of knitting. Its ball of red yarn rolls out when nudged.
-class Basket extends Thing:
-	## Knitting in progress: a grey tea cosy on its needles. No red yarn left.
-	func _init() -> void:
-		id = "basket"
-		hover_name = "Knitting basket"
-		hit_rect = Rect2(890, 560, 120, 106)
+## Things inside the icebox when it's open: the Engineer's milk, and Thursday's jelly.
+class FridgeItem extends Thing:
+	var kind := "milk"
+	var _t := 0.0
+
+	func _init(k := "milk") -> void:
+		kind = k
+		id = k
+		hover_name = "Milk" if k == "milk" else "Lime jelly"
+		hit_rect = Rect2(394, 380, 42, 82) if k == "milk" else Rect2(440, 506, 64, 56)
+
+	func _tick(delta: float) -> void:
+		_t += delta
+
+	func wobble_jelly() -> void:
+		_t = 0.0
 
 	func _paint() -> void:
-		Ink.shape(self, Ink.smooth(PackedVector2Array([Vector2(912, 606), Vector2(918, 584), Vector2(944, 574),
-			Vector2(972, 580), Vector2(986, 606)])), Color("9a9a96"), 2.5, 130, 0.2, 0.1)
-		for k in 3:
-			Ink.line(self, PackedVector2Array([Vector2(924 + k * 20, 600), Vector2(930 + k * 20, 582)]), Color("7a7a76"), 2.0, 131 + k)
-		Ink.line(self, PackedVector2Array([Vector2(960, 590), Vector2(985, 560), Vector2(1000, 565)]), P.STEEL, 3.0, 134)
-		Ink.line(self, PackedVector2Array([Vector2(966, 594), Vector2(996, 552)]), P.STEEL, 3.0, 135)
-		var b := PackedVector2Array([Vector2(890, 606), Vector2(1010, 606), Vector2(996, 664), Vector2(904, 664)])
-		Ink.shape(self, b, Color("c99a5c"), 3.0, 136, 0.15, 0.15)
-		for k in 4:
-			Ink.line(self, PackedVector2Array([Vector2(896 + k * 2, 618 + k * 12), Vector2(1004 - k * 2, 618 + k * 12)]), Color("8a6236"), 2.0, 137 + k)
+		if kind == "milk":
+			Ink.shape(self, Ink.smooth(PackedVector2Array([Vector2(400, 458), Vector2(398, 420), Vector2(406, 404),
+				Vector2(408, 386), Vector2(420, 386), Vector2(422, 404), Vector2(430, 420), Vector2(428, 458)])),
+				Color("fbfbf4"), 2.5, 62, 0.1, 0.1)
+			Ink.shape(self, Ink.rrect(Rect2(406, 380, 16, 8), 3), P.RED, 2.0, 63)
+		else:
+			var jiggle := sin(_t * 18.0) * 6.0 * exp(-_t * 1.5) + sin(Time.get_ticks_msec() / 140.0) * 1.5
+			Ink.shape(self, PackedVector2Array([Vector2(445, 558), Vector2(452 + jiggle, 520), Vector2(470 + jiggle, 512),
+				Vector2(488 + jiggle, 520), Vector2(498, 558)]), Color("4fb06a"), 2.5, 64, 0.3, 0.1)
 
+
+## Ball-of-yarn drawing, shared by the inventory icon and the rolling ball.
+class Yarn:
 	static func yarn_ball(ci: CanvasItem, c: Vector2, r: float, seed: int) -> void:
 		Ink.dot(ci, c, r, P.YARN, 3.0, seed, 0.2, 0.15)
 		for k in 3:

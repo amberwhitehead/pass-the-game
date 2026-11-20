@@ -5,6 +5,7 @@ extends Node
 ## Steps, run in order:
 ##   run:ID[@ITEM]   click hotspot ID (holding ITEM) and fast-forward the whole scene
 ##   click:ID[@ITEM] click without waiting (the scene keeps playing)
+##   radio:PART      click a part of the radio close-up (power, tune, turn, screw0..3, tube, out)
 ##   wait:SECONDS    let time pass
 ##   adv             dismiss the current speech bubble
 ##   shot:NAME       save workshop_<n>_<NAME>.png
@@ -35,6 +36,14 @@ func _ready() -> void:
 			_game._story.click(parts[0], parts[1] if parts.size() > 1 else "", Vector2(760, 760))
 			if s.begins_with("run:"):
 				await _fast_forward()
+		elif s.begins_with("radio:"):
+			# A part of the radio close-up: power, tune, turn, screw0..3, tube, out.
+			var RV := preload("res://minigames/workshop/radio_view.gd")
+			var spots := {"power": RV.POWER, "tune": RV.TUNE, "turn": RV.TURN.get_center(), "tube": RV.TUBE + Vector2(0, -40), "out": Vector2(100, 100)}
+			for k in 4:
+				spots["screw%d" % k] = RV.SCREWS[k]
+			_game._story.radio_click(spots[arg])
+			await _fast_forward()
 		elif s.begins_with("wait:"):
 			await get_tree().create_timer(float(arg)).timeout
 		elif s == "adv":

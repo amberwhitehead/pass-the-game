@@ -1,21 +1,27 @@
 extends Node
-## The Workshop's story: what each click does, in each phase.
+## The Workshop's story: a state machine of phases, and what each click does in each.
 ##
-##   setup   The Futurescope needs a tube (the radio has one). Tuned, it shows Fuse,
-##           tangled in yarn with a sardine lid on one ear, leaping on the lever and
-##           vanishing into the portal. Then the portal opens by itself and that very cat
-##           walks out. The clock stops at that minute. Two cats; the Officer scoffs.
-##   loop    Make the footage come true: the lid (sardines + can opener wake Fuse), the
-##           red yarn (the basket has none: unwind it off the cat from the future), power
-##           (the fuse is blown: bridge it with the pegboard's copper wire) and the
-##           destination counter set to the minute the clock stopped. A flashlight on the
-##           lever sends Fuse. Anything that doesn't match and the portal spits him out.
-##   break   The loop closes, but the remaining cat wants another go. A box in the shade
-##           won't tempt it; a box in the sunbeam will. Then pull the wire.
-##   done    Won.
+##   setup   The Engineer wanders in after you, mourning his dark Futurescope. Fuse is
+##           asleep on the icebox and stays there whatever you do. The radio (up close:
+##           three stations, and four screws on its back) gives up its tube; the
+##           Futurescope, tuned, shows Fuse in yarn and a sardine lid leaping on the lever
+##           and vanishing into the portal. Then the portal opens by itself and that very
+##           cat walks out. The two cats see each other; the clock stops; sirens; the
+##           Officer, with a form.
+##   loop    Make the footage come true. Fuse, awake now, only comes down from the icebox
+##           for something: opened sardines (the lid), or the flashlight. The red yarn is
+##           on the cat from the future: unwind it and give it to Fuse. The fuse is blown:
+##           the pegboard's copper wire. The destination counter matches the stopped
+##           clock (and the footage). The flashlight on the lever sends Fuse; anything
+##           that doesn't match and the portal spits him out.
+##   break   The loop closes, but the remaining cat wants another go. Only a box in the
+##           sunbeam tempts him away; then pull the wire.
+##   done    Won.     epilogue   Revisiting after the win (epilogue.gd).
 ##
-## Most clicks simply do things; the Engineer speaks only at story beats. Things that
-## can't be done wiggle. `flags` holds everything saved; `apply_flags()` rebuilds the room.
+## Clicks mostly just do things; the Engineer (engineer.gd) minds his things, gets put
+## out, and nudges only when you're close. The flashlight makes Fuse pounce at almost
+## anything (pounce.gd). Nothing in a phase depends on something that hasn't happened:
+## each handler checks the phase and the flags it needs.
 
 signal won
 
@@ -25,9 +31,11 @@ const Person := preload("res://minigames/workshop/person.gd")
 const Small := preload("res://minigames/workshop/small_props.gd")
 const Vision := preload("res://minigames/workshop/vision.gd")
 const Lines := preload("res://minigames/workshop/lines.gd")
-const Channels := preload("res://minigames/workshop/channels.gd")
-const Items := preload("res://minigames/workshop/items.gd")
-const TimeLink := preload("res://autoload/time_link.gd")
+const Engineer := preload("res://minigames/workshop/engineer.gd")
+const Pounce := preload("res://minigames/workshop/pounce.gd")
+const Epilogue := preload("res://minigames/workshop/epilogue.gd")
+const RadioSongs := preload("res://minigames/workshop/radio_songs.gd")
+const MusicPlayer := preload("res://audio/music/music_player.gd")
 
 const FUSE_NAP := Vector2(450, 330)      ## On top of the icebox.
 const YARN_SPOT := Vector2(870, 764)
@@ -40,31 +48,52 @@ var bubble: Node2D
 var inventory: Node2D
 var closeup: Node2D
 var alarm: Node2D
+var radio_view: Node2D
 var busy := false          ## True while a scene plays; clicks wait.
 
 var flags := {
 	"phase": "setup",
-	"radio_on": false, "radio_open": false, "tube": "radio",   # radio, held, tv
+	"visits": 0, "annoyance": 0, "said": [], "milk": "fridge", "milk_grabs": 0,
+	"radio_on": false, "station": 0, "screws": 0, "tube": "radio",   # radio, held, tv
 	"tuned": false,
 	"icebox_open": false, "tin": "icebox", "tin_pos": Vector2(700, 730), "tin_open": false,
 	"drawer_open": false, "drawer_items": true,
 	"wire": "board",       # board, held, machine, pulled
 	"dial": 3 * 60, "arrival": -1, "lid": false, "yarn": false, "twin_yarn": true,
+	"fuse_down": false,    # Fuse has come down from the icebox (loop phase).
 	"box": "wall", "box_pos": Vector2(700, 760),   # wall, held, floor
-	"blinds": false,
+	"blinds": false, "fixated": 0,
 	"items": [],
 }
 
 var twin: Node2D            ## The cat that walked out of the portal.
+var engineer: RefCounted     ## engineer.gd
+var pounce: RefCounted       ## pounce.gd
+var epilogue: RefCounted     ## epilogue.gd
+var radio_music: Node
 var _box_node: Node2D
 var _w: Dictionary
 var _mutters := 0
 var _twin_in_box := false
-var _channel := -1
 
 
 func _ready() -> void:
 	_w = world.things
+	engineer = Engineer.new(self)
+	pounce = Pounce.new(self)
+	epilogue = Epilogue.new(self)
+	radio_music = MusicPlayer.new()
+	radio_music.songs = RadioSongs.all()
+	add_child(radio_music)
+
+
+func _notification(what: int) -> void:
+	if radio_music == null:
+		return
+	if what == NOTIFICATION_DISABLED:
+		radio_music.paused = true
+	elif what == NOTIFICATION_ENABLED:
+		radio_music.paused = false
 
 
 # --- saving ---------------------------------------------------------------------------
@@ -79,8 +108,9 @@ func load_state(state: Dictionary) -> void:
 	for k in state:
 		if flags.has(k):
 			flags[k] = state[k]
-	flags.dial = int(flags.dial)
-	flags.arrival = int(flags.arrival)
+	for k in ["dial", "arrival", "visits", "annoyance", "milk_grabs", "station", "screws", "fixated"]:
+		flags[k] = int(flags[k])
+	flags.said = Array(flags.said)
 	if flags.tin_pos is not Vector2:
 		flags.tin_pos = Vector2(700, 730)
 	if flags.box_pos is not Vector2:
@@ -96,14 +126,12 @@ func apply_flags() -> void:
 	inventory.items.clear()
 	for it in f.items:
 		inventory.add(str(it))
-	_w.radio.playing = f.radio_on and f.tube == "radio"
-	_w.radio.back_open = f.radio_open
+	_w.radio.back_open = int(f.screws) >= 4
 	_w.radio.has_tube = f.tube == "radio"
 	_w.tv.has_tube = f.tube == "tv"
 	_w.tv.on = f.tube == "tv"
 	_w.tv.tuned = f.tuned
-	_w.icebox.open = f.icebox_open
-	_w.icebox.has_tin = f.tin == "icebox"
+	_set_icebox(f.icebox_open)
 	_w.tin.visible = f.tin == "floor"
 	_w.tin.position = f.tin_pos
 	_w.tin.opened = f.tin_open
@@ -120,18 +148,20 @@ func apply_flags() -> void:
 	var fuse: Node2D = _w.fuse
 	fuse.lid = f.lid
 	fuse.yarn = f.yarn
-	if f.phase in ["setup", "loop"]:
-		if f.yarn:
-			fuse.position = YARN_SPOT
-			fuse.pose = "sit"
-		elif f.lid:
-			fuse.position = Vector2(f.tin_pos.x - 70, f.tin_pos.y - 4)
-			fuse.pose = "sit"
-		else:
-			fuse.position = FUSE_NAP
-			fuse.pose = "sleep"
-	else:
-		fuse.visible = false
+	match f.phase:
+		"setup":
+			_fuse_at(FUSE_NAP, "sleep")
+		"loop":
+			if f.yarn:
+				_fuse_at(YARN_SPOT, "sit")
+			elif f.lid:
+				_fuse_at(Vector2(f.tin_pos.x - 70, f.tin_pos.y - 4), "sit")
+			elif f.fuse_down:
+				_fuse_at(Vector2(640, 724), "sit")
+			else:
+				_fuse_at(FUSE_NAP, "sit")
+		_:
+			fuse.visible = false
 	if f.box == "floor":
 		_place_box(f.box_pos)
 	if f.arrival >= 0:
@@ -152,7 +182,6 @@ func apply_flags() -> void:
 		alarm.mode = "instability"
 		_w.clock.frozen = false
 		if f.box == "floor" and _w.blinds.lit(f.box_pos):
-			_place_box(f.box_pos)
 			twin.position = f.box_pos + Vector2(0, -12)
 			twin.pose = "sit"
 			_raise_box()
@@ -162,6 +191,13 @@ func apply_flags() -> void:
 			twin.pose = "sit"
 			twin.facing = -1.0
 			twin.tail_mood = 3.0
+	_play_radio()
+
+
+func _fuse_at(at: Vector2, pose: String) -> void:
+	_w.fuse.position = at
+	_w.fuse.pose = pose
+	_w.fuse.visible = true
 
 
 func _spawn_twin(at: Vector2, pose: String) -> void:
@@ -176,6 +212,23 @@ func _spawn_twin(at: Vector2, pose: String) -> void:
 		world.move_child(twin, _w.fuse.get_index() + 1)
 	twin.position = at
 	twin.pose = pose
+
+
+# --- opening the Workshop ---------------------------------------------------------------
+
+## A first visit, a resumed one, or a visit after the win: the Engineer arrives a moment
+## after you, either way.
+func begin(resume: Dictionary) -> void:
+	busy = true
+	if Game.completed_minigames.has("workshop"):
+		epilogue.begin()
+		await engineer.arrive_with(epilogue.arrival_lines())
+	else:
+		if not resume.is_empty():
+			load_state(resume)
+		apply_flags()
+		await engineer.arrive()
+	busy = false
 
 
 # --- helpers ----------------------------------------------------------------------------
@@ -201,7 +254,7 @@ func wait(s: float) -> void:
 	await get_tree().create_timer(s).timeout
 
 
-func _engineer_gesture(g: String, at := Vector2.ZERO) -> void:
+func _gesture(g: String, at := Vector2.ZERO) -> void:
 	_w.engineer.gesture = g
 	_w.engineer.point_at = at
 
@@ -237,15 +290,26 @@ func _hotspot(id: String) -> Node2D:
 	return null
 
 
+func light_spot(at: Vector2) -> Node2D:
+	var spot := LightSpot.new()
+	spot.position = at
+	world.add_child(spot)
+	return spot
+
+
+func box_node() -> Node2D:
+	return _box_node
+
+
+func fuse_awake() -> bool:
+	return flags.phase == "loop" and _w.fuse.visible
+
+
+func fuse_on_icebox() -> bool:
+	return _w.fuse.position.y < 600
+
+
 # --- clicks -----------------------------------------------------------------------------
-
-## The opening line, the first time the Workshop opens.
-func intro() -> void:
-	busy = true
-	await wait(0.6)
-	await says("engineer", Lines.INTRO)
-	busy = false
-
 
 func click(id: String, held: String, at: Vector2) -> void:
 	if busy:
@@ -255,19 +319,23 @@ func click(id: String, held: String, at: Vector2) -> void:
 		await _use(held, id, at)
 	else:
 		await _poke(id, at)
-	_engineer_gesture("idle")
+	_gesture("idle")
 	busy = false
 
 
 func _poke(id: String, at: Vector2) -> void:
 	var f := flags
-	if f.phase == "epilogue" and id in ["tv", "portal", "machine", "fuse", "twin"]:
-		await _poke_epilogue(id)
+	if f.phase == "epilogue":
+		match id:
+			"tv": await epilogue.next_channel()
+			"engineer": await _mutter()
+			"radio": await open_radio()
+			"clock": await _zoom_clock()
+			_: await nope(id)
 		return
 	match id:
 		"engineer":
-			_mutters += 1
-			await say("engineer", Lines.mutter(f.phase, _mutters))
+			await _mutter()
 		"fuse":
 			await _pet(_w.fuse)
 		"twin":
@@ -276,17 +344,25 @@ func _poke(id: String, at: Vector2) -> void:
 			else:
 				await _pet(twin)
 		"radio":
-			await _radio()
+			await open_radio()
 		"tv":
 			await _tv()
 		"icebox":
-			_icebox()
+			await _icebox()
+		"milk":
+			await engineer.milk()
+			_w.milk.visible = f.milk == "fridge" and f.icebox_open
+		"jelly":
+			_w.jelly.wobble_jelly()
+			Sound.play("card_hit", self, -8.0, 0.6)
+			await engineer.mine("jelly")
 		"drawer":
-			_drawer()
+			await _drawer()
 		"wire":
 			take("wire")
 			_w.wire.taken = true
 			f.wire = "held"
+			await engineer.mine("wire")
 		"machine":
 			await _machine()
 		"dial":
@@ -298,11 +374,14 @@ func _poke(id: String, at: Vector2) -> void:
 				f.dial = _w.machine.dial
 				Sound.play("dial_turn", self)
 		"lever":
-			await _lever_by_hand()
+			await nope("lever")
+			if f.phase == "loop":
+				await engineer.nudge("lever_hand")
 		"box":
 			take("box")
 			_w.box.visible = false
 			f.box = "held"
+			await engineer.mine("box")
 		"placed_box":
 			if _twin_in_box:
 				await _pet(twin)
@@ -310,23 +389,22 @@ func _poke(id: String, at: Vector2) -> void:
 				take("box")
 				_box_node.visible = false
 				f.box = "held"
+		"blinds":
+			await _toggle_blinds()
 		"clock":
 			await _zoom_clock()
-		"blinds":
-			f.blinds = not f.blinds
-			_w.blinds.open = f.blinds
-			Sound.play("dial_snap", self)
-			if _box_tempts_twin():
-				await wait(0.6)
-				await _twin_to_box()
+			await engineer.mine("clock")
 		_:
 			await nope(id)
 
 
 func _use(item: String, id: String, at: Vector2) -> void:
 	var f := flags
-	if f.phase == "epilogue" and id == "portal":
-		await _send(item)
+	if f.phase == "epilogue":
+		if id == "portal":
+			await epilogue.send(item)
+		else:
+			await nope(id)
 		return
 	match [item, id]:
 		["tube", "tv"]:
@@ -335,15 +413,10 @@ func _use(item: String, id: String, at: Vector2) -> void:
 			_w.tv.has_tube = true
 			_w.tv.on = true
 			Sound.play("place", self)
-			_engineer_gesture("cheer")
+			_gesture("cheer")
 			await say("engineer", Lines.TUBE)
 		["sardines", "floor"]:
-			use_up("sardines")
-			f.tin = "floor"
-			f.tin_pos = Vector2(clampf(at.x, 600, 940), clampf(at.y, 700, 780))
-			_w.tin.position = f.tin_pos
-			_w.tin.visible = true
-			Sound.play("place", self)
+			await _put_down_sardines(at)
 		["opener", "tin"]:
 			await _open_sardines()
 		["wire", "machine"]:
@@ -358,25 +431,24 @@ func _use(item: String, id: String, at: Vector2) -> void:
 			await _tangle(at)
 		["flashlight", "lever"]:
 			await _lure_to_lever()
-		["flashlight", "fuse"], ["flashlight", "twin"]:
-			# The cat chases the spot for a moment.
-			var cat: Node2D = _w.fuse if id == "fuse" else twin
-			if cat.pose != "sleep":
-				cat.tail_mood = 3.0
-				await cat.jump_to(cat.position + Vector2(40 * cat.facing, 0), 50.0, 0.4, "sit")
-			else:
-				await nope(id)
+		["flashlight", _]:
+			await _flashlight(id, at)
 		["box", "floor"]:
 			await _place_box_scene(at)
 		_:
 			await nope(id)
 
 
+func _mutter() -> void:
+	_mutters += 1
+	await say("engineer", Lines.mutter(flags.phase, _mutters))
+
+
 func _pet(cat: Node2D) -> void:
 	if cat == null:
 		return
 	if cat.pose == "sleep":
-		_ear_flick(cat)
+		cat.set("_ear_flick", 0.3)
 		return
 	cat.tail_mood = 2.0
 	Sound.play("card_hit", self, -10.0, 1.6)
@@ -384,31 +456,106 @@ func _pet(cat: Node2D) -> void:
 	cat.tail_mood = 1.0
 
 
-func _ear_flick(cat: Node2D) -> void:
-	cat.set("_ear_flick", 0.3)
+func _toggle_blinds() -> void:
+	var f := flags
+	f.blinds = not f.blinds
+	_w.blinds.open = f.blinds
+	Sound.play("dial_snap", self)
+	if _box_tempts_twin():
+		await wait(0.6)
+		await _twin_to_box()
+	elif f.phase == "break" and f.blinds:
+		await engineer.nudge("sunbeam")
+
+
+# --- the radio --------------------------------------------------------------------------
+
+## The radio up close: its knobs and, round the back, its screws and tubes. Clicks go to
+## radio_click() until it's closed.
+func open_radio() -> void:
+	radio_view.on = flags.radio_on
+	radio_view.station = int(flags.station)
+	radio_view.screws_out = int(flags.screws)
+	radio_view.tube_present = flags.tube == "radio"
+	radio_view.open()
+	Sound.play("card_draw", self, -6.0)
+
+
+func radio_open() -> bool:
+	return radio_view.visible
+
+
+func radio_click(p: Vector2) -> void:
+	if busy:
+		return
+	busy = true
+	var f := flags
+	match radio_view.part_at(p):
+		"outside":
+			await radio_view.close()
+		"power":
+			f.radio_on = not f.radio_on
+			radio_view.on = f.radio_on
+			Sound.play("dial_snap", self)
+			_play_radio()
+			if f.radio_on and f.tube == "radio":
+				await _station_remark()
+		"tune":
+			await radio_next_station(true)
+		"turn":
+			radio_view.view = "back" if radio_view.view == "front" else "front"
+			Sound.play("card_draw", self, -4.0)
+		"screw":
+			f.screws = int(f.screws) + 1
+			radio_view.screws_out = f.screws
+			Sound.play("dial_turn", self, 0.0, 1.4)
+			if int(f.screws) >= 4:
+				_w.radio.back_open = true
+				Sound.play("place", self)
+				await engineer.mine("radio_back")
+		"tube":
+			take("tube")
+			f.tube = "held"
+			_w.radio.has_tube = false
+			radio_view.tube_present = false
+			_play_radio()
+			await engineer.mine("tube")
+	busy = false
+
+
+## The tuning knob (or a pouncing cat): a sweep of static, then the next station.
+func radio_next_station(remark: bool) -> void:
+	var f := flags
+	f.station = (int(f.station) + 1) % RadioSongs.STATIONS.size()
+	radio_view.station = f.station
+	if f.radio_on and f.tube == "radio":
+		radio_view.tuning = 0.5
+		radio_music.play("static", 0.05)
+		Sound.play("dial_turn", self)
+		await wait(0.5)
+		_play_radio()
+		if remark:
+			await _station_remark()
+
+
+func _station_remark() -> void:
+	var s := int(flags.station)
+	if Lines.STATIONS.has(s):
+		await engineer.nudge_line("station_%d" % s, Lines.STATIONS[s])
+
+
+func _play_radio() -> void:
+	var playing: bool = flags.radio_on and flags.tube == "radio"
+	_w.radio.playing = playing
+	if radio_music == null:
+		return
+	if playing:
+		radio_music.play(RadioSongs.STATIONS[int(flags.station)].id, 0.25)
+	else:
+		radio_music.stop(0.3)
 
 
 # --- setup ------------------------------------------------------------------------------
-
-func _radio() -> void:
-	var f := flags
-	if f.tube != "radio":
-		await nope("radio")
-	elif not f.radio_on:
-		f.radio_on = true
-		_w.radio.playing = true
-		_ear_flick(_w.fuse)
-	elif not f.radio_open:
-		f.radio_open = true
-		_w.radio.back_open = true
-		Sound.play("dial_snap", self)
-	else:
-		take("tube")
-		f.tube = "held"
-		_w.radio.has_tube = false
-		_w.radio.playing = false
-		f.radio_on = false
-
 
 func _tv() -> void:
 	var f := flags
@@ -422,7 +569,7 @@ func _tv() -> void:
 		await wait(0.4)
 		await _first_vision()
 		return
-	await _watch(_vision_for_phase(), "")
+	await watch(_vision_for_phase(), "")
 
 
 func _vision_for_phase() -> String:
@@ -435,7 +582,7 @@ func _vision_for_phase() -> String:
 
 
 ## Shows the Futurescope full screen while a scene plays in the future room.
-func _watch(scene: String, caption: String) -> void:
+func watch(scene: String, caption: String) -> void:
 	closeup.open(_w.tv.feed_texture(), _w.tv.material(), caption)
 	await Vision.play(_w.tv.future, scene, footage_minute())
 	await closeup.close()
@@ -454,17 +601,19 @@ func _arrival_minute() -> int:
 func _first_vision() -> void:
 	# Decided once, up front: the footage, the stopped clock and the rule all use it.
 	flags.arrival = _arrival_minute()
-	_engineer_gesture("point", _w.tv.position + Vector2(920, 340))
+	_gesture("point", _w.tv.position + Vector2(920, 340))
 	await wait(0.6)
-	await _watch("loop", "")
-	_engineer_gesture("think")
+	await watch("loop", "")
+	_gesture("think")
 	await says("engineer", Lines.AFTER_VISION)
 	await wait(0.6)
 	await _arrival()
 
 
+## The portal opens by itself; the cat from the future steps out. The two see each other.
 func _arrival() -> void:
 	var m: Node2D = _w.machine
+	var fuse: Node2D = _w.fuse
 	Sound.play("lens_light", self)
 	var tw := create_tween()
 	tw.tween_property(m, "portal", 1.0, 1.0)
@@ -482,19 +631,34 @@ func _arrival() -> void:
 	_w.clock.frozen = true
 	tw = create_tween()
 	tw.tween_property(m, "portal", 0.0, 0.6)
+	await twin.walk_to(1150.0, 724.0, 150.0)
+	# Fuse wakes on the icebox. They see each other.
+	fuse.pose = "sit"
+	fuse.facing = 1.0
+	await wait(0.6)
+	twin.facing = -1.0
+	twin.pose = "sit"
+	await wait(0.4)
+	fuse.startle()
+	await twin.startle()
+	await say("engineer", Lines.BOTH_SEE, 1.6)
+	# The one from the future couldn't care less, and finds somewhere to curl up.
+	twin.pose = "stand"
 	await twin.walk_to(Vision.TWIN_NAP.x, Vision.TWIN_NAP.y, 150.0)
 	twin.pose = "sleep"
-	await wait(0.5)
-	_engineer_gesture("shrug")
-	await wait(0.8)
+	_gesture("shrug")
+	await wait(0.6)
 	flags.phase = "loop"
 	alarm.mode = "violation"
 	_w.tv.alarm = true
 	await _sirens()
 	await wait(0.4)
 	await _officer_visit(Lines.OFFICER_ARRIVES)
-	_engineer_gesture("think")
+	_gesture("think")
 	await says("engineer", Lines.AFTER_OFFICER)
+	# Sardines opened earlier have been waiting; now he's awake, he goes for them.
+	if flags.tin == "floor" and flags.tin_open and not flags.lid:
+		await _fuse_eats()
 
 
 ## A few blasts of the alarm when it starts; the lights keep flashing after.
@@ -525,21 +689,28 @@ func _officer_visit(lines: Array) -> void:
 	o.queue_free()
 
 
-# --- making the loop --------------------------------------------------------------------
+# --- his things -------------------------------------------------------------------------
+
+func _set_icebox(open: bool) -> void:
+	flags.icebox_open = open
+	_w.icebox.open = open
+	_w.icebox.has_tin = flags.tin == "icebox"
+	_w.milk.visible = open and flags.milk == "fridge"
+	_w.jelly.visible = open
+
 
 func _icebox() -> void:
 	var f := flags
 	if not f.icebox_open:
-		f.icebox_open = true
-		_w.icebox.open = true
+		_set_icebox(true)
 		Sound.play("place", self)
+		await engineer.mine("icebox")
 	elif f.tin == "icebox":
 		f.tin = "held"
 		_w.icebox.has_tin = false
 		take("sardines")
 	else:
-		f.icebox_open = false
-		_w.icebox.open = false
+		_set_icebox(false)
 		Sound.play("place", self)
 
 
@@ -549,6 +720,7 @@ func _drawer() -> void:
 		f.drawer_open = true
 		_w.bench.drawer_open = true
 		Sound.play("card_draw", self)
+		await engineer.mine("drawer")
 	elif f.drawer_items:
 		f.drawer_items = false
 		_w.bench.has_opener = false
@@ -561,6 +733,21 @@ func _drawer() -> void:
 		Sound.play("card_draw", self)
 
 
+# --- making the loop --------------------------------------------------------------------
+
+func _put_down_sardines(at: Vector2) -> void:
+	var f := flags
+	use_up("sardines")
+	f.tin = "floor"
+	f.tin_pos = Vector2(clampf(at.x, 600, 940), clampf(at.y, 700, 780))
+	_w.tin.position = f.tin_pos
+	_w.tin.visible = true
+	Sound.play("place", self)
+	if fuse_awake():
+		_w.fuse.set("_ear_flick", 0.3)
+		await engineer.nudge("tin_closed")
+
+
 func _open_sardines() -> void:
 	var f := flags
 	if f.tin_open:
@@ -570,13 +757,25 @@ func _open_sardines() -> void:
 	f.tin_open = true
 	_w.tin.opened = true
 	Sound.play("dial_snap", self)
+	if f.phase == "setup":
+		# Asleep on the icebox, he doesn't stir. Not even for sardines.
+		_w.fuse.set("_ear_flick", 0.3)
+		await wait(0.6)
+		await engineer.nudge("sardines_early")
+	elif fuse_awake() and not f.lid:
+		await _fuse_eats()
+
+
+## Down from wherever he is, to the open tin: he eats, and comes up wearing the lid.
+func _fuse_eats() -> void:
+	var f := flags
 	var fuse: Node2D = _w.fuse
-	if not fuse.visible or fuse.pose != "sleep":
-		return
-	await wait(0.4)
-	fuse.pose = "sit"
-	await wait(0.5)
-	await fuse.jump_to(Vector2(560, 720), 60.0, 0.6)
+	await wait(0.3)
+	if fuse_on_icebox():
+		fuse.pose = "crouch"
+		await wait(0.4)
+		await fuse.jump_to(Vector2(560, 720), 60.0, 0.6)
+	f.fuse_down = true
 	await fuse.walk_to(f.tin_pos.x - 70, f.tin_pos.y - 4)
 	fuse.facing = 1.0
 	fuse.pose = "eat"
@@ -605,12 +804,16 @@ func _unwind_twin() -> void:
 	await say("engineer", Lines.UNWOUND)
 
 
-## Red yarn for an awake Fuse: a ball rolls, a cat pounces, a cat is tangled.
+## Red yarn for Fuse, if he's down here to play: a ball rolls, a cat pounces.
 func _tangle(at: Vector2) -> void:
 	var f := flags
 	var fuse: Node2D = _w.fuse
-	if f.yarn or not fuse.visible or fuse.pose == "sleep":
+	if f.yarn or not fuse_awake():
 		await nope("fuse")
+		return
+	if fuse_on_icebox():
+		await nope("fuse")
+		await engineer.nudge("yarn_up_high")
 		return
 	use_up("yarn")
 	var ball := YarnBall.new()
@@ -636,14 +839,33 @@ func _machine() -> void:
 		if _twin_in_box:
 			await _finale()
 		else:
+			await engineer.nudge("wire_watched")
 			await _twin_guards_lever()
 		return
 	await nope("machine")
+	if f.wire == "board" or f.wire == "held":
+		await engineer.nudge("socket")
 
 
-func _lever_by_hand() -> void:
-	# It won't budge for you: in the footage, it was the cat that pulled it.
-	await nope("lever")
+## The flashlight at anything but the lever: Fuse (if he's awake) pounces at it.
+func _flashlight(id: String, at: Vector2) -> void:
+	var f := flags
+	if f.phase == "break":
+		# The remaining cat only has eyes for the lever.
+		await nope(id)
+		f.fixated = int(f.fixated) + 1
+		await engineer.nudge("fixated_%d" % mini(int(f.fixated), 3))
+		return
+	if not fuse_awake():
+		await nope(id)
+		if f.phase == "setup":
+			await engineer.nudge("lever_asleep")
+		return
+	if not pounce.can_target(id):
+		await nope(id)
+		return
+	await pounce.chase(id, at)
+	f.fuse_down = not fuse_on_icebox()
 
 
 ## Flashlight on the lever: Fuse pounces. Whether the portal accepts him depends on how
@@ -651,12 +873,20 @@ func _lever_by_hand() -> void:
 func _lure_to_lever() -> void:
 	var f := flags
 	var fuse: Node2D = _w.fuse
-	if f.phase != "loop" or not fuse.visible or fuse.pose == "sleep":
-		await nope("lever")
+	if f.phase == "break":
+		await _flashlight("lever", Vector2.ZERO)
 		return
-	var dot := LightSpot.new()
-	dot.position = Machine.LEVER_TOP + Vector2(0, 10)
-	world.add_child(dot)
+	if not fuse_awake():
+		await nope("lever")
+		if f.phase == "setup":
+			await engineer.nudge("lever_asleep")
+		return
+	var dot := light_spot(Machine.LEVER_TOP + Vector2(0, 10))
+	if fuse_on_icebox():
+		fuse.pose = "crouch"
+		await wait(0.4)
+		await fuse.jump_to(Vector2(560, 720), 60.0, 0.6)
+	f.fuse_down = true
 	fuse.pose = "stand"
 	await fuse.walk_to(Vision.LEVER_WAIT.x, Vision.LEVER_WAIT.y)
 	fuse.facing = -1.0
@@ -699,9 +929,9 @@ func _lure_to_lever() -> void:
 	_w.clock.frozen = false
 	twin.displaced = false
 	Sound.play("victory", self)
-	_engineer_gesture("cheer")
+	_gesture("cheer")
 	await say("engineer", Lines.LOOP_CLOSED)
-	_engineer_gesture("idle")
+	_gesture("idle")
 	await wait(0.8)
 	await _cascade()
 
@@ -734,7 +964,7 @@ func _rejected(fuse: Node2D) -> void:
 	await wait(0.4)
 	fuse.pose = "sit"
 	fuse.tail_mood = 1.0
-	_engineer_gesture("shrug")
+	_gesture("shrug")
 	await say("engineer", Lines.REJECTED)
 
 
@@ -745,12 +975,12 @@ func _cascade() -> void:
 	_w.tv.tuned = false
 	await _sirens(2)
 	_w.tv.tuned = true
-	await _watch("cascade", "")
+	await watch("cascade", "")
 	alarm.mode = "instability"
 	_w.machine.portal_unstable = true
 	var tw := create_tween()
 	tw.tween_property(_w.machine, "portal", 0.35, 0.8)
-	_engineer_gesture("shrug")
+	_gesture("shrug")
 	await says("engineer", Lines.CASCADE)
 	twin.pose = "stand"
 	await twin.walk_to(Vision.LEVER_WAIT.x, Vision.LEVER_WAIT.y)
@@ -763,7 +993,7 @@ func _cascade() -> void:
 		await _twin_to_box()
 
 
-## Reaching for the fuse while the cat watches: it leaps onto the lever first.
+## Reaching for the wire while the cat watches: it leaps onto the lever first.
 func _twin_guards_lever() -> void:
 	await twin.jump_to(Machine.LEVER_TOP, 90.0, 0.45, "crouch")
 	_w.machine.lever_down = true
@@ -781,16 +1011,17 @@ func _place_box_scene(at: Vector2) -> void:
 	var f := flags
 	use_up("box")
 	f.box = "floor"
-	f.box_pos = Vector2(clampf(at.x, 560, 1100), clampf(at.y, 720, 790))
+	f.box_pos = Vector2(clampf(at.x, 300, 1100), clampf(at.y, 720, 790))
 	_place_box(f.box_pos)
 	Sound.play("place", self)
-	if not _box_tempts_twin():
-		# In the shade, or nobody's in the mood: it just sits there.
-		if f.phase == "break":
-			_ear_flick(twin)
-		return
-	await wait(0.6)
-	await _twin_to_box()
+	if _box_tempts_twin():
+		await wait(0.6)
+		await _twin_to_box()
+	elif f.phase == "break":
+		# In the shade: he looks, and thinks better of it.
+		twin.set("_ear_flick", 0.3)
+		await wait(0.5)
+		await engineer.nudge("box_shade")
 
 
 ## The restless cat ignores a box in the shade; a box in the sunbeam is too much.
@@ -823,8 +1054,12 @@ func _place_box(p: Vector2) -> void:
 
 ## Moves the box in front of the cat sitting in it.
 func _raise_box() -> void:
-	if _box_node and twin:
-		world.move_child(_box_node, twin.get_index() + 1)
+	raise_box_over(twin)
+
+
+func raise_box_over(cat: Node2D) -> void:
+	if _box_node and cat:
+		world.move_child(_box_node, cat.get_index() + 1)
 
 
 func _finale() -> void:
@@ -838,15 +1073,17 @@ func _finale() -> void:
 	_w.machine.portal_unstable = false
 	alarm.mode = ""
 	await wait(0.5)
-	await _watch("calm", "")
+	await watch("calm", "")
 	f.phase = "done"
-	_engineer_gesture("cheer")
+	_gesture("cheer")
 	await says("engineer", Lines.FINALE)
 	await _officer_visit(Lines.OFFICER_LEAVES)
-	_engineer_gesture("idle")
+	_gesture("idle")
 	await say("engineer", Lines.GOODBYE)
 	won.emit()
 
+
+# --- the clock --------------------------------------------------------------------------
 
 ## A close look at the clock: it grows to fill the room until the next click.
 func _zoom_clock() -> void:
@@ -878,105 +1115,13 @@ class Scrim extends Node2D:
 		draw_rect(Rect2(-100, -100, 1800, 1100), Color(0.08, 0.05, 0.04, 0.8))
 
 
-# --- after the win: the epilogue -----------------------------------------------------
-
-## Visiting again once the Workshop is won: a calm room, the wire back in, Fuse off
-## somewhere in the hall, and a Futurescope that picks up other rooms' futures
-## (channels.gd). Things used on the portal go through to the hall's ring tray.
-func epilogue() -> void:
-	flags.phase = "epilogue"
-	flags.wire = "machine"
-	_w.fuse.visible = false
-	_w.machine.powered = true
-	_w.machine.fuse_blown = false
-	_w.wire.taken = true
-	_w.radio.back_open = true
-	_w.radio.has_tube = false
-	_w.tv.has_tube = true
-	_w.tv.on = true
-	_w.tv.tuned = true
-	inventory.items.clear()
-	for item: String in TimeLink.SENDABLE:
-		if not TimeLink.was_sent(item):
-			inventory.add(item)
-	busy = true
-	await wait(0.6)
-	await says("engineer", Lines.EPILOGUE)
-	busy = false
-
-
-func _poke_epilogue(id: String) -> void:
-	match id:
-		"tv":
-			await _next_channel()
-		_:
-			await nope(id)
-
-
-## Each click on the Futurescope turns to the next channel and watches it.
-func _next_channel() -> void:
-	var list := Channels.available()
-	list.append({"id": "workshop", "title": "1955 · THE WORKSHOP", "scene": null})
-	_channel = (_channel + 1) % list.size()
-	var ch: Dictionary = list[_channel]
-	Sound.play("dial_turn", self)
-	if ch.scene == null:
-		_w.tv.show_channel(null)
-		await _watch("calm", ch.title)
-		return
-	var scene: Node2D = ch.scene.new()
-	_w.tv.show_channel(scene)
-	closeup.open(_w.tv.feed_texture(), _w.tv.material(), ch.title)
-	await scene.play()
-	await closeup.close()
-	_w.tv.show_channel(null)
-
-
-## Sends an item through the portal to the hall's ring tray.
-func _send(item: String) -> void:
-	if not TimeLink.SENDABLE.has(item) or TimeLink.tray_item() != "":
-		await nope("portal")
-		return
-	var m: Node2D = _w.machine
-	_engineer_gesture("point", Machine.PORTAL_CENTER)
-	m.lever_down = true
-	Sound.play("dial_snap", self)
-	var tw := create_tween()
-	tw.tween_property(m, "portal", 1.0, 0.7)
-	Sound.play("lens_light", self)
-	await tw.finished
-	use_up(item)
-	var icon := ItemIcon.new()
-	icon.item = item
-	icon.position = Vector2(800, 820)
-	world.add_child(icon)
-	tw = create_tween().set_parallel()
-	tw.tween_property(icon, "position", Machine.PORTAL_CENTER, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_property(icon, "scale", Vector2(0.2, 0.2), 0.7)
-	await tw.finished
-	icon.queue_free()
-	TimeLink.send_to_hall(item)
-	tw = create_tween()
-	tw.tween_property(m, "portal", 0.0, 0.6)
-	await tw.finished
-	m.lever_down = false
-	await say("engineer", Lines.SENT)
-
-
-class ItemIcon extends Node2D:
-	var item := ""
-
-	func _draw() -> void:
-		Items.draw_icon(self, item, Vector2.ZERO)
-
-
 ## The ball of yarn while it rolls across the floor.
 class YarnBall extends "res://minigames/workshop/thing.gd":
 	func _paint() -> void:
-		Small.Basket.yarn_ball(self, Vector2.ZERO, 22, 130)
+		Small.Yarn.yarn_ball(self, Vector2.ZERO, 22, 130)
 
 
-## The flashlight's spot dancing on the lever.
+## The flashlight's spot dancing on something.
 class LightSpot extends Node2D:
 	var _t := 0.0
 

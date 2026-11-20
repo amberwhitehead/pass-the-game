@@ -74,14 +74,16 @@ class Cursor extends Node2D:
 		queue_redraw()
 
 	func _draw() -> void:
+		# A held item sits right under the pointer: the item itself is what you aim with.
 		if held != "":
-			Items.draw_icon(self, held, Vector2(26, 26))
+			draw_circle(Vector2.ZERO, 34, Color(1, 0.95, 0.7, 0.25))
+			Items.draw_icon(self, held, Vector2.ZERO)
 		if label == "":
 			return
 		var font := Style.font(true)
 		var text := label if held == "" else "Use %s on %s" % [Items.NAMES.get(held, held).to_lower(), label]
 		var size := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
-		var r := Rect2(Vector2(22, -42), size + Vector2(20, 12))
+		var r := Rect2(Vector2(26, -54) if held == "" else Vector2(40, -60), size + Vector2(20, 12))
 		if position.x + r.end.x > 1590:
 			r.position.x = -r.size.x - 12
 		draw_rect(r, Color(0.16, 0.11, 0.08, 0.85))

@@ -31,14 +31,7 @@ func _paint() -> void:
 		Ink.shape(self, Ink.rrect(inner, 22), Color("e9f4f2"), 3.0, 61, 0.0, 0.22)
 		for y in [460.0, 560.0]:
 			Ink.line(self, PackedVector2Array([Vector2(inner.position.x + 6, y), Vector2(inner.end.x - 6, y)]), P.STEEL, 3.0, int(y))
-		# Milk bottle and a wobbling jelly mould.
-		Ink.shape(self, Ink.smooth(PackedVector2Array([Vector2(400, 458), Vector2(398, 420), Vector2(406, 404),
-			Vector2(408, 386), Vector2(420, 386), Vector2(422, 404), Vector2(430, 420), Vector2(428, 458)])),
-			Color("fbfbf4"), 2.5, 62, 0.1, 0.1)
-		Ink.shape(self, Ink.rrect(Rect2(406, 380, 16, 8), 3), P.RED, 2.0, 63)
-		var jiggle := sin(Time.get_ticks_msec() / 140.0) * 2.0
-		Ink.shape(self, PackedVector2Array([Vector2(445, 558), Vector2(452 + jiggle, 520), Vector2(470 + jiggle, 512),
-			Vector2(488 + jiggle, 520), Vector2(498, 558)]), Color("4fb06a"), 2.5, 64, 0.3, 0.1)
+		# (The milk and the jelly are their own hotspots: small_props.gd FridgeItem.)
 		if has_tin:
 			_tin(Vector2(440, 448))
 		# The door, swung open to the left.

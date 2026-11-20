@@ -32,7 +32,7 @@ static func draw_icon(ci: CanvasItem, id: String, c: Vector2) -> void:
 			Ink.shape(ci, Transform2D(-0.4, c) * Ink.rrect(Rect2(-30, -9, 46, 18), 6), P.RED, 2.5, 706, 0.3)
 			Ink.shape(ci, Transform2D(-0.4, c) * PackedVector2Array([Vector2(14, -10), Vector2(30, -15), Vector2(30, 15), Vector2(14, 10)]), P.CHROME, 2.5, 707)
 		"yarn":
-			Small.Basket.yarn_ball(ci, c, 24, 708)
+			Small.Yarn.yarn_ball(ci, c, 24, 708)
 		"wire":
 			Small.WireCoil.coil(ci, c, 1.0, 709)
 		"box":

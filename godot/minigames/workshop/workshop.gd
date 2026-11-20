@@ -10,6 +10,7 @@ const Cat := preload("res://minigames/workshop/cat.gd")
 const Story := preload("res://minigames/workshop/story.gd")
 const Bubble := preload("res://minigames/workshop/bubble.gd")
 const Overlays := preload("res://minigames/workshop/overlays.gd")
+const RadioView := preload("res://minigames/workshop/radio_view.gd")
 const STAGE_SIZE := Vector2(1600, 900)
 
 var _stage: Node2D
@@ -41,6 +42,8 @@ func _ready() -> void:
 	_stage.add_child(_inventory)
 	var closeup := Overlays.Closeup.new()
 	_stage.add_child(closeup)
+	var radio_view := RadioView.new()
+	_stage.add_child(radio_view)
 	_bubble = Bubble.new()
 	_stage.add_child(_bubble)
 	_cursor = Overlays.Cursor.new()
@@ -51,18 +54,13 @@ func _ready() -> void:
 	_story.inventory = _inventory
 	_story.closeup = closeup
 	_story.alarm = alarm
+	_story.radio_view = radio_view
 	add_child(_story)
 	_story.won.connect(func(): finish({"won": true}))
 	resized.connect(_fit_stage)
 	_fit_stage()
 	super()
-	if Game.completed_minigames.has("workshop"):
-		_story.epilogue()
-	elif not resume_state.is_empty():
-		_story.load_state(resume_state)
-		_story.apply_flags()
-	else:
-		_story.intro()
+	_story.begin(resume_state)
 
 
 func _fit_stage() -> void:
@@ -91,6 +89,14 @@ func _stage_mouse() -> Vector2:
 
 func _update_hover() -> void:
 	var found: Node2D = null
+	if _story.radio_open():
+		# The radio close-up has its own parts.
+		if _hovered and is_instance_valid(_hovered):
+			_hovered.hovered = false
+		_hovered = null
+		_cursor.label = _story.radio_view.hover_label(_stage_mouse())
+		_cursor.held = ""
+		return
 	if not _story.busy and not _bubble.is_open():
 		var p := get_global_mouse_position()
 		for t in _world.hotspots():
@@ -128,6 +134,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 		if _story.busy:
 			return
+		if _story.radio_open():
+			_story.radio_click(_stage_mouse())
+			return
 		var item: String = _inventory.item_at(_stage_mouse())
 		if item != "":
 			_held = "" if _held == item else item
@@ -142,6 +151,10 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("back") and _story.radio_open():
+		get_viewport().set_input_as_handled()
+		_story.radio_view.close()
+		return
 	if event.is_action_pressed("back") and _held != "":
 		get_viewport().set_input_as_handled()
 		_drop_held()
@@ -170,7 +183,7 @@ func debug_step(step: String) -> void:
 				x += 210.0
 		"epilogue":
 			Game.completed_minigames["workshop"] = {"won": true}
-			_story.epilogue()
+			_story.epilogue.begin()
 		"skip":
 			_bubble.advance()
 			_bubble.advance()

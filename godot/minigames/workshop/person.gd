@@ -38,6 +38,17 @@ func _ready() -> void:
 	hit_rect = Rect2(-60, -330, 120, 330)
 
 
+## Walks to `x` along the floor, with a little bob; resolves on arrival.
+func walk_to(x: float, duration := 1.0) -> void:
+	facing = signf(x - position.x) if absf(x - position.x) > 1.0 else facing
+	var start := position
+	var tw := create_tween()
+	tw.tween_method(func(t: float):
+		position = Vector2(lerpf(start.x, x, t), start.y - absf(sin(t * PI * 6.0)) * 6.0), 0.0, 1.0, duration)
+	await tw.finished
+	facing = 1.0
+
+
 func _tick(delta: float) -> void:
 	_t += delta
 	_next_blink -= delta
