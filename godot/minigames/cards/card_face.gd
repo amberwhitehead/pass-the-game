@@ -3,6 +3,7 @@ extends Control
 ## Future artwork can be supplied as `art: Texture2D` or `art_path: String`.
 const Style := preload("res://ui/game_style.gd")
 const Type := preload("res://minigames/cards/card_typography.gd")
+const Progression := preload("res://minigames/cards/deck_progression.gd")
 const SIZE := Vector2(384, 512)
 const ART_RECT := Rect2(27, 111, 330, 184)
 const ROLE_COLORS := {
@@ -116,7 +117,10 @@ func _draw_art(accent: Color) -> void:
 		draw_arc(center, 31, 0, TAU, 48, Color(BRASS, .45), 1, true)
 		draw_arc(center, 35, 0, TAU, 48, Color(BRASS, .16), 1, true)
 		_text(str(data.get("name", "?")).left(1), Rect2(center.x-24, center.y-26, 48, 48), 35, Color(Style.PAPER, .65), true, true)
-		_text("HALL DISCOVERY" if data.get("collectible", false) else "REFRACTION COLLECTION", Rect2(44, 270, 296, 14), 10, Color(Style.PAPER, .55), false, true)
+		var label := "REFRACTION COLLECTION"
+		if data.get("collectible", false):
+			label = "FROM ELSEWHERE" if data.get("id", "") in Progression.BONUS else "HALL DISCOVERY"
+		_text(label, Rect2(44, 270, 296, 14), 10, Color(Style.PAPER, .55), false, true)
 	for x in [ART_RECT.position.x+8, ART_RECT.end.x-8]:
 		for y in [ART_RECT.position.y+8, ART_RECT.end.y-8]:
 			draw_circle(Vector2(x, y), 2, BRASS)

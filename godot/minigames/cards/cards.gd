@@ -100,7 +100,8 @@ func _start_match() -> void:
 	_notes.clear()
 	_found_cards.clear()
 	if _older():
-		_found_cards = Progression.owned(Game.collected_cards)
+		# Hall discoveries and bonus cards both join the deck; only the former are "N / 5".
+		_found_cards = Progression.found(Game.collected_cards)
 	var overrides := {"collected_cards": _found_cards} if _older() else {}
 	_encounter_settings = Config.resolve(opponent_id, overrides)
 	match_state = Rules.new(opponent_id, overrides)
@@ -108,10 +109,10 @@ func _start_match() -> void:
 	_actions.clear()
 	_shown = match_state.start(_seed)
 	_seed += 1
-	table.hud.collection_count = _found_cards.size() if _older() else -1
-	table.banter.text = Copy.opening(_older(), _found_cards.size())
+	table.hud.collection_count = Progression.owned(_found_cards).size() if _older() else -1
+	table.banter.text = Copy.opening(_older(), Progression.owned(_found_cards).size())
 	table.hint.text = "Move to the bottom edge to raise your hand. Pick a card, then a target. Ring the bell to attack."
-	table.history.text = "%d / 5 discoveries in this deck.\nFive opening cards. Discoveries are shuffled in." % _found_cards.size() if _older() else "Your opening hand is fixed.\nExperiment freely."
+	table.history.text = "%d / 5 discoveries in this deck.\nFive opening cards. Discoveries are shuffled in." % Progression.owned(_found_cards).size() if _older() else "Your opening hand is fixed.\nExperiment freely."
 	_refresh()
 
 
@@ -249,7 +250,7 @@ func _animate_events(events: Array) -> void:
 func _show_rules() -> void:
 	if _busy or is_instance_valid(_dialog):
 		return
-	_open_dialog("A larger wager" if _older() else "A friendly little card game", Copy.rules(_older(), _encounter_settings, _found_cards), [{"label": "Let's play", "callback": _close_dialog}])
+	_open_dialog("A larger wager" if _older() else "A friendly little card game", Copy.rules(_older(), _encounter_settings, Progression.owned(_found_cards)), [{"label": "Let's play", "callback": _close_dialog}])
 
 
 func _confirm_restart() -> void:
@@ -265,7 +266,7 @@ func _show_result() -> void:
 	var won: bool = _shown.winner == "player"
 	_ever_won = _ever_won or won
 	var title := "You won!" if won else ("Older brother wins" if _older() else "Little brother wins")
-	_open_dialog(title, Copy.result(_older(), won, _found_cards), [{"label": "Rematch", "callback": _start_match}, {"label": "Back to room", "callback": func(): finish({"won": _ever_won})}])
+	_open_dialog(title, Copy.result(_older(), won, Progression.owned(_found_cards)), [{"label": "Rematch", "callback": _start_match}, {"label": "Back to room", "callback": func(): finish({"won": _ever_won})}])
 
 
 func _open_dialog(title: String, body: String, actions: Array) -> void:
@@ -339,7 +340,7 @@ func _resume_match(state: Dictionary) -> void:
 	_actions = actions.duplicate(true)
 	_notes.assign(state.get("notes", []))
 	_resumed = true
-	table.hud.collection_count = _found_cards.size() if _older() else -1
+	table.hud.collection_count = Progression.owned(_found_cards).size() if _older() else -1
 	table.history.text = "\n\n".join(_notes)
 	_refresh()
 

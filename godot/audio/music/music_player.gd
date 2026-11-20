@@ -2,7 +2,7 @@ extends Node
 ## Plays procedural songs live on the "Music" bus, crossfading between them.
 ##
 ##   var music := MusicPlayer.new()
-##   music.songs = preload("res://minigames/arcade/songs.gd").SONGS   # id -> definition
+##   music.songs = preload("res://minigames/arcade/songs.gd").all()   # id -> definition
 ##   add_child(music)
 ##   music.play("stage")        # crossfades from whatever was playing
 ##   music.stop()

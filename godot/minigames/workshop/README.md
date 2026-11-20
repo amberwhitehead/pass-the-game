@@ -70,6 +70,7 @@ otherwise opens the pause menu (Leave, Sound, Quit to title).
 | `engineer.gd` | The Engineer turning up after you, minding his things (annoyance, his milk), once-only remarks and nudges. |
 | `pounce.gd` | The flashlight: where Fuse lands for each thing, and what happens. |
 | `radio_view.gd`, `radio_songs.gd` | The radio close-up, and its three stations (procedural music, `godot/audio/music`). |
+| `dev_stages.gd` | Jump points for the developer save editor. |
 | `epilogue.gd`, `channels.gd` | Visiting after the win: Futurescope channels and sending things through the ring. |
 | `lines.gd` | Everything the Engineer and the Officer say, plus hints. Rewrite freely. |
 | `vision.gd` | The scenes the Futurescope shows, played in a second copy of the room. |
@@ -94,10 +95,8 @@ Stage space is 1600 × 900 (floor line at y = 660), scaled to fit the window.
 
 ## Ideas not reached
 
-- Sending things from the workshop through the Chrono-Oscillator into the 3D hall
-  (out of the hall's ring), and the Futurescope showing problems in other rooms: a
-  way to make earlier rooms worth revisiting.
-
 - Sound design: a proper siren, purring, the portal's hum, the Futurescope's static.
 - The Officer could appear on the Futurescope instead of in person.
-- More cat business (the sunbeam, the blinds, the radio's music).
+- More things to send from 1955 to the hall, and things to send back
+  (see `docs/INTERCONNECTION.md`).
+- The radio's music reaching the cats (Fuse has opinions about Bach).

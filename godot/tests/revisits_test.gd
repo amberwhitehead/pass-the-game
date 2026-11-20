@@ -32,6 +32,7 @@ func _run() -> void:
 	var revisits: Node3D = _room.revisits
 	_expect(revisits.cat == null, "No cat in the hall yet")
 	_expect(revisits.tray.slot_item == "", "The ring tray starts empty")
+	_expect(not revisits.tray.visible, "...and stays hidden until the Workshop is won")
 	var egypt_light := _egypt_light(revisits)
 	_expect(egypt_light != null, "Egypt's room has a light to dim")
 	var full: float = egypt_light.light_energy if egypt_light else 0.0
@@ -51,6 +52,15 @@ func _run() -> void:
 	_expect("fuse" in _game.collected_cards and not TimeLink.is_active("fuse_loose"), "Petting Fuse finds the Fuse card")
 	_expect(Progression.owned(_game.collected_cards).is_empty(), "The bonus card isn't counted among the hall's five")
 	_expect("fuse" in Progression.build(_game.collected_cards), "...but it joins Older Brother's deck")
+	# Through the real card table, not just the deck builder.
+	var table: Node = load("res://minigames/cards/cards_older.tscn").instantiate()
+	root.add_child(table)
+	await process_frame
+	await process_frame
+	_expect("fuse" in table._found_cards and table.table.hud.collection_count == 0,
+		"Older Brother's table deals Fuse in, and still counts 0 / 5 hall cards")
+	table.queue_free()
+	await process_frame
 
 	# The Workshop's epilogue: channels, and sending the flashlight.
 	var workshop: Control = load("res://minigames/workshop/workshop.tscn").instantiate()
@@ -96,6 +106,7 @@ func _run() -> void:
 	await process_frame
 	egypt_light = _egypt_light(revisits)
 	_expect(egypt_light and is_equal_approx(egypt_light.light_energy, full), "Egypt's room is lit again")
+	_expect(_room.optics.sun_disc._glow.light_energy > 1.0, "The sun disc keeps its glow")
 	_expect(revisits.scarab != null, "The Egyptian's thanks waits at the disc")
 	revisits.scarab.interact(null)
 	_expect("scarab" in _game.collected_cards, "The Sun Scarab joins the deck")

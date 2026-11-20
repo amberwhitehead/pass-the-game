@@ -439,7 +439,7 @@ Built with Claude Opus 5.5 in Claude Code on macOS with Godot 4.7.2: Claude wrot
 code, drew the art in code and composed the music; Patrick designed with it, directed
 and playtested. Subagents built CHRONO RAIDER, the music system and the radio's songs.
 
-### `4563499`, `1db4f1f`, `514b724`, `8190cdc`, `ed2a0ea`, `8d75ed1`, `0f41f13`, `857acaf`, `541b233` — 04 Workshop: the Engineer's time loop
+### `4563499`, `1db4f1f`, `514b724`, `8190cdc`, `ed2a0ea`, `8d75ed1`, `0f41f13`, `857acaf`, `541b233`, `3939fed` — 04 Workshop: the Engineer's time loop
 
 Room 04 is now a hand-drawn 2D point-and-click story in the spirit of *Lost in Play*,
 entered through a brass portal ring on the Workshop's wall: the Engineer's 1955 garage
@@ -457,17 +457,18 @@ assets. The story (spoilers in `godot/minigames/workshop/README.md`):
 - To close the loop, make the footage come true: sardines for the lid, the red yarn
   unwound from the cat from the future (nobody ever made it), the pegboard's copper
   wire for the blown fuse, the destination counter set to the footage's time, and a
-  flashlight to make Fuse pounce on the lever. Anything different and the portal spits
-  him out, and what differs flickers.
-- To break it, lure the remaining cat away from the lever with a box in the sunbeam,
-  then pull the wire.
+  flashlight to make Fuse pounce on the lever. Anything different and the timeline is
+  deleted, as the Officer promised: a glitch, a stamp and a harmless rewind to just
+  before the lever, after which what differs flickers.
+- To break it, lure the remaining cat away from the lever with a box in the sunbeam;
+  the Engineer points out that the wire is all that keeps the portal open. Pull it.
 
 The Engineer minds his things, gets put out as you rummage (his milk above all) and
 only nudges when you're close. The flashlight makes Fuse pounce at almost anything.
 Order is enforced: Fuse sleeps until the twin arrives. Playtest fixes along the way:
 hover brightens instead of outlining, speech bubbles wrap their own lines, the footage
 showed the wrong time (`8d75ed1`), shapes blinked when their wobbled outline folded
-(`0f41f13`, `857acaf`). `workshop_story_test` plays it through (104 checks);
+(`0f41f13`, `857acaf`). `workshop_story_test` plays it through (107 checks);
 `tools/workshop_shot.tscn` renders scripted screenshots. A Workshop win places its
 piece on the secret room's board.
 

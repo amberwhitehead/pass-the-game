@@ -26,9 +26,9 @@ Rules of thumb:
 | Piece | Where | What it does |
 | --- | --- | --- |
 | `TimeLink` | `godot/autoload/time_link.gd` | Static helper over `Game` flags. `PROBLEMS` registry (`is_active`, `fix`, `active_problems`), the ring tray (`send_to_hall`, `tray_item`), and `SENDABLE` (what 1955 can send). Listen with `Game.flag_changed`. |
-| Hall revisits | `godot/scenes/escape/revisits.gd` | The hall's side: the ring tray (a carry slot on the Workshop's tabletop, under the ring), Fuse napping behind the relay cabinet, Egypt's darkness and its reward, and the Engineer's changing lines. `room.gd` adds it with three lines. |
+| Hall revisits | `godot/scenes/escape/revisits.gd` | The hall's side: the ring tray (a carry slot on the Workshop's tabletop, under the ring), Fuse napping behind the relay cabinet, Egypt's darkness and its reward, and the Engineer's changing lines. `room.gd` adds it with a few lines. |
 | Futurescope channels | `godot/minigames/workshop/channels.gd` | One hand-drawn scene per problem, shown when the won Workshop's TV is clicked. |
-| Workshop epilogue | `godot/minigames/workshop/story.gd` (`epilogue()`) | A won Workshop reopens calm: channels on the TV, and sendable items used on the portal go to the hall's ring tray. |
+| Workshop epilogue | `godot/minigames/workshop/epilogue.gd` (`begin()`) | A won Workshop reopens calm: channels on the TV, and sendable items used on the portal go to the hall's ring tray. |
 | Bonus cards | `godot/minigames/cards/deck_progression.gd` (`BONUS`) | Join Older Brother's deck like hall discoveries but aren't counted in "N / 5 found". Defined in `card_catalog.gd`. |
 | Carry items | `godot/scenes/escape/carry_inventory.gd` (`ITEMS`), `carry_visual.gd` | Hall items, now including the 1955 flashlight. |
 | Optics lamp | `godot/scenes/escape/optics_model.gd`, `optics_controller.gd`, `sun_disc.gd` | A second light: the flashlight in lamp socket F, its own beam traced separately, through Egypt's doorway (the model lets a beam continue into that room) to the sun disc on its east wall. It never opens Door 2. |

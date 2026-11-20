@@ -13,7 +13,7 @@ extends Node
 ##           on the cat from the future: unwind it and give it to Fuse. The fuse is blown:
 ##           the pegboard's copper wire. The destination counter matches the stopped
 ##           clock (and the footage). The flashlight on the lever sends Fuse; anything
-##           that doesn't match and the portal spits him out.
+##           that doesn't match and the timeline is deleted (a harmless rewind).
 ##   break   The loop closes, but the remaining cat wants another go. Only a box in the
 ##           sunbeam tempts him away; then pull the wire.
 ##   done    Won.     epilogue   Revisiting after the win (epilogue.gd).
@@ -117,8 +117,16 @@ func load_state(state: Dictionary) -> void:
 	if flags.box_pos is not Vector2:
 		flags.box_pos = Vector2(700, 760)
 	# A scene interrupted midway resumes from the start of its phase.
+	if flags.phase == "setup" and flags.tuned:
+		# Left during the vision or the arrival: watch it again from the start.
+		flags.tuned = false
+		flags.arrival = -1
 	if flags.phase == "done":
 		flags.phase = "break"
+	if flags.phase == "break" and flags.wire == "pulled":
+		# Left during the finale: the wire goes back in, and the cat is still in his box.
+		flags.wire = "machine"
+		flags.items = Array(flags.items).filter(func(i): return i != "wire")
 
 
 ## Puts every prop, cat and item where the flags say.
@@ -141,6 +149,7 @@ func apply_flags() -> void:
 	_w.bench.has_opener = f.drawer_items
 	_w.bench.has_flashlight = f.drawer_items
 	_w.wire.taken = f.wire != "board"
+	_w.wire.enabled = f.wire == "board"
 	_w.machine.powered = f.wire == "machine"
 	_w.machine.fuse_blown = f.wire == "board" or f.wire == "held"
 	_w.machine.dial = f.dial
@@ -360,8 +369,12 @@ func _poke(id: String, at: Vector2) -> void:
 		"drawer":
 			await _drawer()
 		"wire":
+			if f.wire != "board":
+				await nope("wire")
+				return
 			take("wire")
 			_w.wire.taken = true
+			_w.wire.enabled = false
 			f.wire = "held"
 			await engineer.mine("wire")
 		"machine":

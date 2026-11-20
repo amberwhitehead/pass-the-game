@@ -32,6 +32,13 @@ static func all_collectible() -> Array[String]:
 	return result
 
 
+## Every found card that joins the deck: the hall's discoveries, then bonus cards.
+static func found(found_ids: Array) -> Array[String]:
+	var result := owned(found_ids)
+	result.append_array(bonus(found_ids))
+	return result
+
+
 static func build(found_ids: Array) -> Array[String]:
 	var deck := Catalog.older_deck()
 	deck.append_array(owned(found_ids))

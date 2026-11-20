@@ -148,6 +148,28 @@ func _run() -> void:
 	_game.queue_free()
 	await process_frame
 
+	# Leaving mid-vision resumes with the vision still to watch; mid-finale, with the cat
+	# in his box and the wire back in.
+	_game = _open(_through_json({"phase": "setup", "tube": "tv", "tuned": true, "arrival": 185}))
+	await _settle()
+	await _click("tv")
+	_expect(_story.flags.phase == "loop" and _story.twin != null, "Left during the vision: the TV shows it again and the twin arrives")
+	_game.queue_free()
+	await process_frame
+	var mid := Stages.state_for("break")
+	mid.merge({"wire": "pulled", "items": ["wire"], "box": "floor", "box_pos": Vector2(450, 770), "blinds": true}, true)
+	_game = _open(_through_json(mid))
+	await _settle()
+	_expect(_story.flags.wire == "machine" and _w().machine.powered and not _inv().has("wire"), "Left during the finale: the wire is back in")
+	await _click("wire")
+	_expect(_story.flags.wire == "machine", "The empty pegboard hook doesn't take the wire back out")
+	_won = false
+	_game.finished.connect(func(r: Dictionary): _won = r.get("won", false))
+	await _click("machine")
+	_expect(_won, "...and pulling it wins")
+	_game.queue_free()
+	await process_frame
+
 	print("Workshop story: %d checks, %d failures" % [_checks, _failures])
 	quit(1 if _failures > 0 else 0)
 

@@ -173,6 +173,8 @@ const EPILOGUE := [
 
 const SENT := "Off it goes. Mind how it lands."
 
+const TRAY_FULL := "The tray at the other end's still got something in it. Clear it first, or it'll arrive on top."
+
 
 static func mutter(phase: String, n: int) -> String:
 	var pool: Array = MUTTERS.get(phase, MUTTERS.done)

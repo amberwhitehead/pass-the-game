@@ -9,8 +9,8 @@ extends Node3D
 ##  - Egypt's lost sun: after the Workshop is won, Egypt's room goes dark until the
 ##    flashlight's yellow beam, through its doorway, reaches the sun disc on its east
 ##    wall (see optics_model.gd).
-##  - The Engineer's lines in the hall follow along.
 ##    Then the Egyptian's thanks, the Sun Scarab card, waits at the disc.
+##  - The Engineer's lines in the hall follow along.
 ##
 ## room.gd adds this node and calls configure(); everything else happens here.
 
@@ -57,8 +57,13 @@ func _ready() -> void:
 func refresh() -> void:
 	if not is_inside_tree():
 		return
-	if tray and tray.slot_item != TimeLink.tray_item():
-		tray.set_item(TimeLink.tray_item())
+	if tray:
+		if tray.slot_item != TimeLink.tray_item():
+			tray.set_item(TimeLink.tray_item())
+		# The tray only means something once the Workshop's ring can send things.
+		var open := Game.completed_minigames.has("workshop")
+		tray.visible = open
+		tray.set_available(open)
 	_refresh_cat()
 	_refresh_egypt()
 	_refresh_engineer()
@@ -129,7 +134,11 @@ func _refresh_engineer() -> void:
 
 func _find_egypt_lights() -> void:
 	var box := AABB(EGYPT_CENTER - Vector3(EGYPT_HALF, 0, EGYPT_HALF), Vector3(EGYPT_HALF * 2, 6, EGYPT_HALF * 2))
+	var disc: Node = get_parent().optics.sun_disc if get_parent().get("optics") else null
 	for light in get_parent().find_children("*", "OmniLight3D", true, false):
+		# The sun disc's own glow follows the disc, not the room's darkness.
+		if disc and disc.is_ancestor_of(light):
+			continue
 		if box.has_point(light.global_position):
 			_egypt_lights[light] = light.light_energy
 	_refresh_egypt()

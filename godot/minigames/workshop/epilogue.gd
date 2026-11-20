@@ -26,6 +26,7 @@ func begin() -> void:
 	w.machine.powered = true
 	w.machine.fuse_blown = false
 	w.wire.taken = true
+	w.wire.enabled = false
 	w.radio.back_open = true
 	w.radio.has_tube = false
 	w.tv.has_tube = true
@@ -63,8 +64,12 @@ func next_channel() -> void:
 
 ## Sends an item through the portal to the hall's ring tray.
 func send(item: String) -> void:
-	if not TimeLink.SENDABLE.has(item) or TimeLink.tray_item() != "":
+	if not TimeLink.SENDABLE.has(item):
 		await story.nope("portal")
+		return
+	if TimeLink.tray_item() != "":
+		await story.nope("portal")
+		await story.say("engineer", Lines.TRAY_FULL)
 		return
 	var m: Node2D = story.world.things.machine
 	story.world.things.engineer.gesture = "point"
