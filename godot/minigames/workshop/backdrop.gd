@@ -93,9 +93,12 @@ func _pegboard() -> void:
 func _shelf() -> void:
 	# The Futurescope stands on this shelf (drawn by futurescope.gd).
 	Ink.shape(self, Ink.rrect(Rect2(815, 418, 210, 16), 4), P.WOOD, 3.0, 30)
-	for x in [840.0, 1000.0]:
-		Ink.shape(self, PackedVector2Array([Vector2(x - 4, 434), Vector2(x + 4, 434), Vector2(x + 4, 470), Vector2(x - 26 if x < 900 else x + 26, 434)]),
-			P.STEEL, 2.5, 31 + int(x))
+	# Two triangular brackets, their long edges against the wall.
+	for b in [[840.0, -1.0], [1000.0, 1.0]]:
+		var x: float = b[0]
+		var side: float = b[1]
+		Ink.shape(self, PackedVector2Array([Vector2(x, 434), Vector2(x + side * 26, 434), Vector2(x, 472)]),
+			P.STEEL, 2.5, 31 + int(x), 0.0, 0.0)
 
 
 func _blueprint() -> void:

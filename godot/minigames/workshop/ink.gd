@@ -31,6 +31,8 @@ static func ellipse(c: Vector2, r: Vector2, n := 28, start := 0.0, end := TAU) -
 static func rrect(r: Rect2, radius := 10.0, per_corner := 5) -> PackedVector2Array:
 	var pts := PackedVector2Array()
 	var rad := minf(radius, minf(r.size.x, r.size.y) * 0.5)
+	# Small corners get few points: points closer together than the boil's wobble fold.
+	per_corner = clampi(int(rad / 3.0), 1, per_corner)
 	var corners := [
 		[r.position + Vector2(r.size.x - rad, rad), -PI / 2.0],
 		[r.end - Vector2(rad, rad), 0.0],
@@ -89,8 +91,17 @@ static func shape(ci: CanvasItem, pts: PackedVector2Array, fill: Color, width :=
 	var w := wobble(pts, wob, seed)
 	if w.size() < 3:
 		return
-	if not Geometry2D.triangulate_polygon(w).is_empty():
-		ci.draw_colored_polygon(w, fill)
+	# The wobbled outline of a thin or awkward shape can fold over itself on some boil
+	# frames, and a folded polygon can't be filled: the fill would blink. Fill from the
+	# steady outline then. A shape that can't be filled even steady is a drawing bug.
+	var fill_poly := w
+	if Geometry2D.triangulate_polygon(w).is_empty():
+		fill_poly = pts
+		if Geometry2D.triangulate_polygon(pts).is_empty():
+			_report_unfillable(seed, pts)
+			fill_poly = PackedVector2Array()
+	if not fill_poly.is_empty():
+		ci.draw_colored_polygon(fill_poly, fill)
 		# Light and shade come from the steady (unwobbled) outline, so they don't pop in
 		# and out as the outline boils. Shapes too small to hold them stay flat.
 		var bounds := _bounds(pts)
@@ -129,6 +140,15 @@ static func dot(ci: CanvasItem, c: Vector2, r: float, fill: Color, width := 2.5,
 ## Wraps a shape's points by an affine transform (offset, rotation, scale).
 static func xform(pts: PackedVector2Array, t: Transform2D) -> PackedVector2Array:
 	return t * pts
+
+
+static var _reported := {}
+
+
+static func _report_unfillable(seed: int, pts: PackedVector2Array) -> void:
+	if not _reported.has(seed):
+		_reported[seed] = true
+		push_warning("Ink: shape (seed %d) can't be filled; its points fold over themselves: %s" % [seed, pts])
 
 
 static func _shift(pts: PackedVector2Array, d: Vector2) -> PackedVector2Array:
