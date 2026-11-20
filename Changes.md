@@ -517,6 +517,13 @@ Small changes to other areas: `room.gd` adds the revisits module, the optics gai
 second light, and the hub test's "optics stay east" rule exempts the lamp's two fittings.
 `revisits_test` covers the chain, including reaching Fuse the way a player does.
 
+### `78ab4ab` — Fixes from a review
+
+A review of the whole turn found that bonus cards weren't reaching real matches (the
+card table passed only the hall's five to the rules), two ways to leave the Workshop
+mid-scene and come back stuck, a pegboard hook that could take the wire back out, and
+the sun disc's glow going out on success. All fixed, with tests for each.
+
 ### This entry and the credits
 
 Patrick Doane asked that Claude take most of the credit; `ui/credits.gd` says so.
