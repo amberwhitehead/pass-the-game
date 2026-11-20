@@ -45,7 +45,16 @@ const UNWOUND := "That's my good red yarn. From... later? He's wearing my future
 
 const WIRED := "Copper wire across a fuse socket. My father would be appalled. Brilliant."
 
-const REJECTED := "It spat him out! Something's not the same as on the Futurescope."
+## Each time a wrong attempt gets the timeline deleted (and harmlessly rewound).
+const DELETED := [
+	"Did... did we just get deleted? I've definitely thought this exact thought before.",
+	"Deleted again. I'm getting quite good at it. Something wasn't the same as on the Futurescope.",
+	"Third time. The Officer will be insufferable. Look at the picture again, would you?",
+	"I've started to enjoy the rewinding. That can't be healthy.",
+]
+
+## Once the cat from the future settles in his box: now's the moment.
+const IN_THE_BOX := "He's settled. Now, while he's busy being a loaf: that wire's the only thing keeping the portal open."
 
 const LOOP_CLOSED := "He went! And the clock's ticking again!"
 

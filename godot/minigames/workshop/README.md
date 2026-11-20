@@ -41,14 +41,16 @@ all), and only nudges when you're nearly there. The Officer only scoffs.
    - **Destination:** the counter must match the footage's (the stopped clock agrees;
      click it for a close look).
    - **The lever:** you can't pull it; in the footage the cat did. Shine the flashlight
-     on it and Fuse pounces. Anything not as in the footage and the portal spits him
-     out, and what differs flickers.
+     on it and Fuse pounces. Anything not as in the footage and the timeline is
+     deleted, as the Officer promised: a glitch, a stamp, a harmless rewind to just
+     before the lever (nothing is lost), a remark, and what differs flickers.
    The flashlight makes him pounce at almost anything: the Futurescope, the tubes, the
    bench (knocking the radio to another station), the blind cord, the Engineer's shoe.
 4. **Break the loop.** The Futurescope now shows the remaining cat going round again.
    He's fixated on the lever and jumps on it if you reach for the wire. A box in the
    shade gets a look; open the blinds and put the box in the sunbeam, and in he goes.
-   Then pull the wire.
+   The Engineer points out the moment: the wire is all that keeps the portal open.
+   Pull it.
 
 Coming back after the win is the epilogue (`epilogue.gd`): Futurescope channels from
 other rooms and sending things to the hall; see `docs/INTERCONNECTION.md`.

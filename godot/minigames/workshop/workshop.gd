@@ -38,6 +38,8 @@ func _ready() -> void:
 	_stage.add_child(_world)
 	var alarm := Overlays.Alarm.new()
 	_stage.add_child(alarm)
+	var deletion := Overlays.Deletion.new()
+	_stage.add_child(deletion)
 	_inventory = Overlays.Inventory.new()
 	_stage.add_child(_inventory)
 	var closeup := Overlays.Closeup.new()
@@ -54,6 +56,7 @@ func _ready() -> void:
 	_story.inventory = _inventory
 	_story.closeup = closeup
 	_story.alarm = alarm
+	_story.deletion = deletion
 	_story.radio_view = radio_view
 	add_child(_story)
 	_story.won.connect(func(): finish({"won": true}))
@@ -184,6 +187,9 @@ func debug_step(step: String) -> void:
 		"epilogue":
 			Game.completed_minigames["workshop"] = {"won": true}
 			_story.epilogue.begin()
+		"wrongdial":
+			_story.flags.dial = (int(_story.flags.dial) + 1) % 720
+			_world.things.machine.dial = _story.flags.dial
 		"skip":
 			_bubble.advance()
 			_bubble.advance()

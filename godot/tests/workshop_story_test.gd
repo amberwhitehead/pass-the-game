@@ -103,7 +103,9 @@ func _run() -> void:
 	_story.flags.dial = (_story.flags.arrival + 1) % 720
 	_w().machine.dial = _story.flags.dial
 	await _click("lever", "flashlight")
-	_expect(_w().fuse.visible and _story.flags.phase == "loop" and _w().machine.dial_wrong > 0.0, "The wrong destination: spat out, and the counter flashes")
+	_expect(_w().fuse.visible and _story.flags.phase == "loop" and _w().machine.dial_wrong > 0.0, "The wrong destination: deleted, rewound, and the counter flashes")
+	_expect(int(_story.flags.deletions) == 1 and _story.flags.yarn and _story.flags.lid and _w().machine.powered, "Deletion is harmless: nothing was lost")
+	_expect(not _story.deletion.visible and _w().machine.portal == 0.0, "...and the room is back as it was")
 	await _set_dial(_w().tv.future.things.machine.dial)
 	await _click("lever", "flashlight")
 	_expect(not _w().fuse.visible and _story.flags.phase == "break", "Fuse went through: the loop closed, the cascade begins")
@@ -122,6 +124,7 @@ func _run() -> void:
 	await _click("placed_box")
 	await _click("floor", "box", Vector2(450, 770))
 	_expect(_story._twin_in_box, "A box in the sunbeam: he climbs in")
+	_expect("in_the_box" in _story.flags.said, "...and the Engineer points out the moment")
 	_game.finished.connect(func(r: Dictionary): _won = r.get("won", false))
 	await _click("machine")
 	_expect(_won and _game.save_state().is_empty(), "Pulling the wire wins; nothing left to save")

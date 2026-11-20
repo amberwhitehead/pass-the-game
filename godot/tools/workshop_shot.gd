@@ -6,11 +6,13 @@ extends Node
 ##   run:ID[@ITEM]   click hotspot ID (holding ITEM) and fast-forward the whole scene
 ##   click:ID[@ITEM] click without waiting (the scene keeps playing)
 ##   radio:PART      click a part of the radio close-up (power, tune, turn, screw0..3, tube, out)
+##   stage:ID        jump to a save-editor stage (loop, ready, break)
 ##   wait:SECONDS    let time pass
 ##   adv             dismiss the current speech bubble
 ##   shot:NAME       save workshop_<n>_<NAME>.png
 ##   any other step is passed to Workshop.debug_step()
 
+const SaveGame := preload("res://autoload/save_game.gd")
 var _game: Control
 var _out := "/tmp"
 var _n := 0
@@ -43,6 +45,16 @@ func _ready() -> void:
 			for k in 4:
 				spots["screw%d" % k] = RV.SCREWS[k]
 			_game._story.radio_click(spots[arg])
+			await _fast_forward()
+		elif s.begins_with("stage:"):
+			# Jump to one of the save editor's Workshop stages.
+			var st: Dictionary = preload("res://minigames/workshop/dev_stages.gd").state_for(arg)
+			_game.queue_free()
+			_game = load("res://minigames/workshop/workshop.tscn").instantiate()
+			_game.resume_state = SaveGame.decode(JSON.parse_string(JSON.stringify(SaveGame.encode(st))))
+			_game.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_game.set_process_unhandled_input(false)
+			add_child(_game)
 			await _fast_forward()
 		elif s.begins_with("wait:"):
 			await get_tree().create_timer(float(arg)).timeout

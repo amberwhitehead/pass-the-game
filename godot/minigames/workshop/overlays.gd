@@ -182,3 +182,56 @@ class Alarm extends Node2D:
 		Ink.shape(self, Ink.rrect(r, 10), Color("2a1a14"), 4.0, 872, 0.0, 0.0)
 		var glow := col.lerp(Color.WHITE, 0.25 * pulse)
 		draw_string(font, Vector2(r.position.x + 26, r.position.y + 39), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, glow)
+
+
+## Deletion: the Officer's threat, carried out. Glitch bars, a stamp, and a rewind back
+## to a moment before. Harmless: nothing is actually lost.
+class Deletion extends Node2D:
+	var _t := 0.0
+	var _length := 2.6
+	var _stamp := ""
+
+	func _ready() -> void:
+		z_index = 48
+		visible = false
+
+	## Plays the whole effect; `rewind` is called at its darkest moment, to put things back.
+	func play(count: int, rewind: Callable) -> void:
+		_t = 0.0
+		_stamp = "TIMELINE 1955-%s DELETED" % char(65 + (count % 26))
+		visible = true
+		var done := false
+		while _t < _length:
+			await get_tree().process_frame
+			var before := _t
+			_t += get_process_delta_time()
+			if not done and before < _length * 0.55 and _t >= _length * 0.55:
+				done = true
+				rewind.call()
+			queue_redraw()
+		visible = false
+
+	func _draw() -> void:
+		var k := _t / _length
+		var dark := sin(k * PI)
+		draw_rect(Rect2(-50, -50, 1700, 1000), Color(0.06, 0.0, 0.02, 0.75 * dark))
+		# Glitch bars, shifting.
+		var seed := int(_t * 20.0)
+		for i in 14:
+			var h := fposmod(sin((seed + i) * 12.9898) * 43758.5453, 1.0)
+			var y := h * 900.0
+			draw_rect(Rect2(-50 + (h - 0.5) * 120.0, y, 1700, 6 + h * 18), Color(1, 0.2 + h * 0.5, 0.3, 0.25 * dark))
+		# Rewind marks in the second half.
+		if k > 0.55:
+			var font := Style.font(true)
+			draw_string(font, Vector2(60, 860), "◀◀ RESTORING FROM BACKUP", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color(1, 1, 1, dark))
+		# The stamp.
+		if k > 0.15 and k < 0.8:
+			var font := Style.font(true)
+			var size := font.get_string_size(_stamp, HORIZONTAL_ALIGNMENT_LEFT, -1, 46)
+			var at := Vector2(800 - size.x * 0.5, 470)
+			draw_set_transform(Vector2(800, 450), -0.12, Vector2.ONE * (1.0 + maxf(0.0, 0.3 - k) * 2.0))
+			var box := Rect2(at - Vector2(800, 450) - Vector2(24, 60), size + Vector2(48, 84))
+			draw_rect(box, Color(0.85, 0.12, 0.1, 0.9 * dark), false, 6.0)
+			draw_string(font, at - Vector2(800, 450), _stamp, HORIZONTAL_ALIGNMENT_LEFT, -1, 46, Color(0.95, 0.15, 0.1, dark))
+			draw_set_transform(Vector2.ZERO)

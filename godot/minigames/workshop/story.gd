@@ -49,6 +49,7 @@ var inventory: Node2D
 var closeup: Node2D
 var alarm: Node2D
 var radio_view: Node2D
+var deletion: Node2D       ## overlays.gd Deletion: the rewind when a wrong attempt is deleted.
 var busy := false          ## True while a scene plays; clicks wait.
 
 var flags := {
@@ -62,7 +63,7 @@ var flags := {
 	"dial": 3 * 60, "arrival": -1, "lid": false, "yarn": false, "twin_yarn": true,
 	"fuse_down": false,    # Fuse has come down from the icebox (loop phase).
 	"box": "wall", "box_pos": Vector2(700, 760),   # wall, held, floor
-	"blinds": false, "fixated": 0,
+	"blinds": false, "fixated": 0, "deletions": 0,
 	"items": [],
 }
 
@@ -108,7 +109,7 @@ func load_state(state: Dictionary) -> void:
 	for k in state:
 		if flags.has(k):
 			flags[k] = state[k]
-	for k in ["dial", "arrival", "visits", "annoyance", "milk_grabs", "station", "screws", "fixated"]:
+	for k in ["dial", "arrival", "visits", "annoyance", "milk_grabs", "station", "screws", "fixated", "deletions"]:
 		flags[k] = int(flags[k])
 	flags.said = Array(flags.said)
 	if flags.tin_pos is not Vector2:
@@ -912,7 +913,7 @@ func _lure_to_lever() -> void:
 	fuse.facing = 1.0
 	await fuse.walk_to(Machine.PORTAL_FLOOR.x - 10, Machine.PORTAL_FLOOR.y + 4, 140.0)
 	if not matches_footage():
-		await _rejected(fuse)
+		await _deleted(fuse)
 		return
 	tw = create_tween().set_parallel()
 	tw.tween_property(fuse, "scale", Vector2(0.25, 0.25), 0.6)
@@ -942,30 +943,34 @@ func matches_footage() -> bool:
 	return f.lid and f.yarn and f.wire == "machine" and f.dial == footage_minute()
 
 
-## The portal flares red and throws the cat back out.
-func _rejected(fuse: Node2D) -> void:
+## Not as in the footage: the timeline is deleted, which here means a glitch, a stamp and
+## a rewind to just before the lever, with nothing lost. Then what differs flickers.
+func _deleted(fuse: Node2D) -> void:
 	var f := flags
 	_w.machine.portal_unstable = true
+	Sound.play("unavailable", self, 0.0, 0.6)
+	await wait(0.4)
+	var n := int(f.deletions)
+	f.deletions = n + 1
+	await deletion.play(n, func():
+		# Back to a moment before: Fuse by the lever, the portal shut, the lever up.
+		_w.machine.portal = 0.0
+		_w.machine.portal_unstable = false
+		_w.machine.lever_down = false
+		fuse.scale = Vector2.ONE
+		fuse.modulate.a = 1.0
+		fuse.visible = true
+		fuse.position = Vision.LEVER_WAIT + Vector2(-90, 10)
+		fuse.facing = -1.0
+		fuse.pose = "sit")
+	Sound.play("dial_turn", self, 0.0, 0.5)
 	# Whatever differs from the footage flickers for a moment.
 	if f.dial != footage_minute():
 		_w.machine.dial_wrong = 4.0
 	if not f.yarn or not f.lid:
 		fuse.ghost = 4.0
-	Sound.play("unavailable", self, 0.0, 0.7)
-	await wait(0.5)
-	fuse.facing = -1.0
-	await fuse.jump_to(Vision.LEVER_WAIT + Vector2(-90, 10), 70.0, 0.45, "crouch")
-	fuse.tail_mood = 4.0
-	var tw := create_tween()
-	tw.tween_property(_w.machine, "portal", 0.0, 0.5)
-	await tw.finished
-	_w.machine.portal_unstable = false
-	_w.machine.lever_down = false
-	await wait(0.4)
-	fuse.pose = "sit"
-	fuse.tail_mood = 1.0
 	_gesture("shrug")
-	await say("engineer", Lines.REJECTED)
+	await say("engineer", Lines.DELETED[mini(n, Lines.DELETED.size() - 1)])
 
 
 # --- breaking the loop ------------------------------------------------------------------
@@ -1038,6 +1043,9 @@ func _twin_to_box() -> void:
 	await twin.jump_to(f.box_pos + Vector2(0, -12), 70.0, 0.5, "sit")
 	_raise_box()
 	_twin_in_box = true
+	await wait(0.6)
+	_gesture("point", Machine.LEVER_PIVOT + Vector2(-80, -70))
+	await engineer.nudge_line("in_the_box", Lines.IN_THE_BOX)
 
 
 func _place_box(p: Vector2) -> void:
