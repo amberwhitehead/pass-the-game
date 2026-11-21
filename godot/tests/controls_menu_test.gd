@@ -255,7 +255,7 @@ func _hints_follow_bindings() -> void:
 	close.mouse_entered.emit()
 	_expect(close.tooltip_text.begins_with("Leave · Q (keyboard)"), "The puzzle close tooltip names the new Back key")
 	var rules: String = load("res://minigames/cards/encounter_text.gd").rules(false)
-	_expect("Q opens the menu" in rules and not "Esc opens" in rules, "Card table rules name the new Back key")
+	_expect("Q cancels a selected card" in rules and not "Esc cancels" in rules, "Card table rules name the new Back key")
 	var sheet: PanelContainer = load("res://ui/conversation_sheet.gd").new()
 	root.add_child(sheet)
 	sheet.arrive()
