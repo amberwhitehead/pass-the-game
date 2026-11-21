@@ -5,7 +5,7 @@ const Plaque := preload("res://ui/interaction_plaque.gd")
 const KeyBindings := preload("res://autoload/key_bindings.gd")
 var _player: Player
 var _inventory: Node
-var _prompt: PanelContainer
+var _prompt: Control  ## The small interaction caption above the crosshair.
 var _objective: Label
 var _chapter: Label
 var _carrying: Label
@@ -50,11 +50,8 @@ func _ready() -> void:
 	_carrying.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	carry_column.add_child(_carrying)
 	_prompt = Plaque.new()
-	_prompt.anchor_left = .28
-	_prompt.anchor_right = .72
-	_prompt.anchor_top = .71
-	_prompt.anchor_bottom = .71
 	add_child(_prompt)
+	_prompt.place_above_center()
 	_prompt.hide()
 	_notice_panel = _panel(Vector2(.28, .88), Vector2(.72, .88))
 	_notice_panel.add_theme_stylebox_override("panel", Style.panel(Color(.07, .12, .13, .96), Style.TEAL.darkened(.35), 14))
@@ -91,7 +88,8 @@ func _process(delta: float) -> void:
 	_crosshair.visible = not _player._frozen()
 	_crosshair.modulate = Style.GOLD if is_instance_valid(target) else Color(1, 1, 1, .55)
 	_notice_time = maxf(0, _notice_time - delta)
-	_notice_panel.visible = _notice_time > 0 and not Sound.settings_open
+	# Conversations use the bottom of the screen too; notices wait until they end.
+	_notice_panel.visible = _notice_time > 0 and not Sound.settings_open and not Dialogue.active
 	_notice_panel.modulate.a = minf(1, _notice_time)
 
 func set_aiming(active: bool, hint: String) -> void:

@@ -1,5 +1,5 @@
 extends CanvasLayer
-## Bottom-of-screen dialogue box.
+## Bottom-of-screen dialogue box (above the touch pad and the hall's notices).
 ##   await Dialogue.say("Mira", ["Hello!", "Nice day."])
 ## Advance with the A button / tap / E / Enter / F. Resolves when finished.
 
@@ -23,9 +23,9 @@ func _ready() -> void:
 	_panel = preload("res://ui/conversation_sheet.gd").new()
 	_panel.anchor_left = .12
 	_panel.anchor_right = .88
-	_panel.anchor_top = .07
-	_panel.anchor_bottom = .07
-	_panel.grow_vertical = Control.GROW_DIRECTION_END
+	_panel.anchor_top = .95
+	_panel.anchor_bottom = .95
+	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_panel.visible = false
 	add_child(_panel)
 	_name = _panel.speaker
