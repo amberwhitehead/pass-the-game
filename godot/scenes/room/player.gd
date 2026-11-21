@@ -96,6 +96,9 @@ func _physics_process(delta: float) -> void:
 		pitch = -_axis("look_up", "look_down") * look_speed
 		_strength("jump")  # Clears a hold-over once Space is released.
 		jump = Input.is_action_just_pressed("jump") and not _suppressed.has("jump")
+		# L2 is an analog trigger, so it is read as a press here rather than per event.
+		if Input.is_action_just_pressed("secondary") and _pad_secondary():
+			_use_secondary()
 	rotation.y += yaw * delta
 	_pitch(pitch * delta)
 	# Yaw-only axes: looking up or down never tilts or slows walking.
@@ -196,6 +199,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	var click: bool = event is InputEventMouseButton and event.pressed \
 		and event.button_index == MOUSE_BUTTON_LEFT and event.device != InputEvent.DEVICE_ID_EMULATION \
 		and mouse_capture != null and mouse_capture.is_captured()
+	var right_click: bool = event is InputEventMouseButton and event.pressed \
+		and event.button_index == MOUSE_BUTTON_RIGHT and event.device != InputEvent.DEVICE_ID_EMULATION \
+		and mouse_capture != null and mouse_capture.is_captured()
+	if right_click or ((event is InputEventKey or event is InputEventAction) and event.is_action_pressed("secondary") and not event.is_echo()):
+		_use_secondary()
+		return
 	if not (click or event.is_action_pressed("interact")) or event.is_echo():
 		return
 	if _frozen() or target == null:
@@ -205,3 +214,23 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 	reached.emit(target)
 	target.interact(self)
+
+
+## A target's second action (right-click, R, or L2), e.g. taking a prism off its stand.
+func _use_secondary() -> void:
+	if _frozen() or target == null or target.secondary_prompt.is_empty():
+		return
+	if Dialogue.last_closed_frame == Engine.get_process_frames():
+		return
+	get_viewport().set_input_as_handled()
+	reached.emit(target)
+	target.secondary(self)
+
+
+## True while the secondary action is held on a controller (not the keyboard's R, which
+## arrives as an event in _unhandled_input).
+func _pad_secondary() -> bool:
+	for d in Input.get_connected_joypads():
+		if Input.get_joy_axis(d, JOY_AXIS_TRIGGER_LEFT) > 0.5:
+			return true
+	return false

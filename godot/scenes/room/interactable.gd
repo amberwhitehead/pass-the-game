@@ -7,6 +7,9 @@ signal interacted
 
 @export var prompt := "Use"
 @export var minigame_id := ""
+## A second action, shown beside the first (right-click / L2 / R), e.g. "Take prism".
+## Empty for things with only one. Override secondary() to do it.
+var secondary_prompt := ""
 
 var focused := false
 
@@ -19,6 +22,10 @@ func interact(_player: Node3D) -> void:
 	if minigame_id != "":
 		await MiniGames.play(minigame_id)
 	interacted.emit()
+
+
+func secondary(_player: Node3D) -> void:
+	pass
 
 
 func set_focused(value: bool) -> void:

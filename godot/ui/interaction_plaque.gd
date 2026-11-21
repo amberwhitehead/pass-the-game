@@ -7,6 +7,9 @@ const MAX_WIDTH := 460.0
 const GAP := 18.0  ## Pixels between the centre of the screen and the caption's top.
 var key: Label
 var title: Label
+var key2: Label    ## The second action's key, hidden when there is none.
+var title2: Label
+var _gap: Control
 var detail: Label
 var _last := ""
 
@@ -24,6 +27,18 @@ func _ready() -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 7)
 	add_child(row)
+	key = _badge(row)
+	title = _caption(row)
+	# A second action, such as taking a prism off the stand it can also adjust.
+	_gap = Control.new()
+	_gap.custom_minimum_size.x = 8
+	_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(_gap)
+	key2 = _badge(row)
+	title2 = _caption(row)
+
+
+func _badge(row: Control) -> Label:
 	var badge := PanelContainer.new()
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -35,13 +50,18 @@ func _ready() -> void:
 	badge_style.shadow_size = 0
 	badge.add_theme_stylebox_override("panel", badge_style)
 	row.add_child(badge)
-	key = Style.label("E", 12, Style.INK)
-	key.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	badge.add_child(key)
-	title = Style.label("", 15, Style.PAPER)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_outline(title)
-	row.add_child(title)
+	var label := Style.label("E", 12, Style.INK)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge.add_child(label)
+	return label
+
+
+func _caption(row: Control) -> Label:
+	var label := Style.label("", 15, Style.PAPER)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_outline(label)
+	row.add_child(label)
+	return label
 
 
 ## Centres the caption horizontally, its top edge just below the screen's centre.
@@ -56,13 +76,19 @@ func place_below_center() -> void:
 	offset_bottom = GAP
 
 
-func present(text: String, input_key: String, aiming: bool) -> void:
+func present(text: String, input_key: String, aiming: bool, text2 := "", input_key2 := "") -> void:
 	key.text = "↔" if aiming else input_key
 	detail.visible = aiming
-	if text == _last:
+	var second := text2 != "" and not aiming
+	key2.get_parent().visible = second
+	_gap.visible = second
+	title2.visible = second
+	key2.text = input_key2
+	if text + "|" + text2 == _last:
 		return
-	_last = text
+	_last = text + "|" + text2
 	title.text = text
+	title2.text = text2
 	# Short prompts stay on one line; long ones (the optics hint) wrap at MAX_WIDTH.
 	var width := title.get_theme_font("font").get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if width > MAX_WIDTH else TextServer.AUTOWRAP_OFF

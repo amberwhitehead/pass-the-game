@@ -52,8 +52,20 @@ func _run() -> void:
 		var axis: Vector3 = head.transform.basis.x.normalized()
 		var target: Vector2 = optics.model.SOURCE_TARGETS[optics.model.source_direction].normalized()
 		check(Vector2(axis.x, -axis.z).dot(target) > 0.999, "starter output nozzle tracks its actual source direction")
-	check(optics.devices.A._status.visibility_range_end > 0 and optics.devices.A._status.visibility_range_end <= 7.0, "hardware labels are distance-limited")
-	check(optics.devices.A._turn_label.visibility_range_end > 0 and optics.devices.A._turn_label.visibility_range_end <= 3.5, "handle labels are limited to nearby controls")
+	# Either knob of a stand with a prism adjusts it first and takes it second; no labels float over it.
+	var b: Node3D = optics.devices.B
+	for handle in [b.turn_handle, b.take_handle]:
+		check(handle.primary == "turn" and handle.secondary_action == "exchange" \
+			and handle.prompt.begins_with("Adjust prism") and handle.secondary_prompt.begins_with("Take prism"),
+			"%s: click adjusts, right-click takes (%s / %s)" % [handle.name, handle.prompt, handle.secondary_prompt])
+	check(b.find_children("*", "Label3D", true, false).is_empty(), "no labels float over the prism stand")
+	var empty: Node3D = optics.devices.C
+	check(empty.take_handle.primary == "exchange" and empty.take_handle.secondary_prompt == "", "an empty stand only takes or places")
+	carry.held_item = ""
+	b.take_handle.secondary(null)
+	check(carry.held_item == "prism" and optics.model.items.B == "", "the second action takes the prism into your hand")
+	b.take_handle.interact(null)
+	check(optics.model.items.B == "prism", "and clicking the empty stand puts it back")
 	optics.queue_free()
 	carry.queue_free()
 	await process_frame

@@ -15,8 +15,6 @@ var kind := "prism"
 var take_handle: Area3D
 var turn_handle: Area3D
 var _contents: Node3D
-var _status: Label3D
-var _turn_label: Label3D
 var _ring: MeshInstance3D
 var _alignment_ring: MeshInstance3D
 var _last_item := "uninitialized"
@@ -44,7 +42,6 @@ func _ready() -> void:
 	_contents = Node3D.new()
 	_contents.name = "OpticalHead"
 	add_child(_contents)
-	_status = Sign.tag(self, device_id + " · " + kind.to_upper(), Vector3(0, 1.63, 0), .95, Sign.GOLD, 3.0)
 	if kind == "lens":
 		_ring = Art.ring(self, .185, .225, Vector3(0, 1.25, 0), brass)
 		_ring.quaternion = Quaternion(Vector3.UP, _lens_normal())
@@ -59,13 +56,9 @@ func _ready() -> void:
 			Art.line(self, Vector3(x, .99, 0), Vector3(x, 1.18, 0), brass, .03)
 		take_handle = _handle("Exchange", Vector3(-.46, 1.0, .36), false)
 		turn_handle = _handle("Aim lamp", Vector3(.46, 1.0, .36), true)
-		_turn_label = Sign.tag(self, "AIM", Vector3(.46, 1.20, .36), .36, Sign.Style.TEAL, 2.8)
-		Sign.tag(self, "LIFT", Vector3(-.46, 1.20, .36), .36, Sign.GOLD, 2.8)
 	else:
 		take_handle = _handle("Exchange", Vector3(-.46, 1.0, .36), false)
 		turn_handle = _handle("Adjust prism", Vector3(.46, 1.0, .36), true)
-		_turn_label = Sign.tag(self, "AIM", Vector3(.46, 1.20, .36), .36, Sign.Style.TEAL, 2.8)
-		Sign.tag(self, "LIFT", Vector3(-.46, 1.20, .36), .36, Sign.GOLD, 2.8)
 
 
 func _build_ticks() -> void:
@@ -92,10 +85,11 @@ func _handle(text: String, at: Vector3, turn: bool) -> Area3D:
 	area.name = "TurnHandle" if turn else "ItemHandle"
 	area.position = at
 	area.prompt = text
-	area.used.connect(func():
-		if turn:
+	area.primary = "turn" if turn else "exchange"
+	area.used.connect(func(action: String):
+		if action == "turn":
 			turn_requested.emit(device_id)
-		else:
+		elif action == "exchange":
 			exchange_requested.emit(device_id))
 	add_child(area)
 	var mat := Art.material(Color(.35, .55, .61) if turn else Color(.60, .43, .20), false, true)
@@ -127,6 +121,7 @@ func update_state(item: String, held: String, turn: int, incoming: Vector2 = Vec
 			var tint: Color = Model.COLORS[1 if item == "lens_yellow" else 2]
 			var glass := Art.cylinder(_contents, .175, .04, Vector3(0, 1.25, 0), Art.glass(tint))
 			glass.quaternion = Quaternion(Vector3.UP, _lens_normal())
+	var exchange_prompt := ""
 	if is_instance_valid(take_handle):
 		var destination := "prism socket " if kind == "prism" else ("lamp socket " if kind == "lamp" else "lens mount ")
 		if held.is_empty():
@@ -135,16 +130,20 @@ func update_state(item: String, held: String, turn: int, incoming: Vector2 = Vec
 			take_handle.prompt = "Place " + _item_name(held) + " in " + device_id
 		else:
 			take_handle.prompt = "Swap " + _item_name(held) + " for " + _item_name(item)
+		exchange_prompt = take_handle.prompt
 	if is_instance_valid(turn_handle):
 		var enabled := kind == "starter" or item == "prism" or (kind == "lamp" and item == "flashlight")
 		turn_handle.collision_layer = 1 if enabled else 0
 		turn_handle.visible = enabled
-		if _turn_label:
-			_turn_label.get_parent().visible = enabled
 		turn_handle.prompt = "Adjust source" if kind == "starter" else ("Aim lamp " if kind == "lamp" else "Adjust prism ") + device_id
-	var empty_name := "SOCKET" if kind == "prism" else ("LAMP SOCKET" if kind == "lamp" else "MOUNT")
-	_status.text = device_id + " · " + ("SOURCE" if kind == "starter" else (empty_name if item.is_empty() else _item_name(item).to_upper()))
-	Sign.fit_tag(_status)
+		# Either knob of a stand holding something offers both: adjust it (click / L1),
+		# or take it off into your hand (right-click / L2). An empty stand only takes.
+		if is_instance_valid(take_handle):
+			for handle: Area3D in [turn_handle, take_handle]:
+				handle.primary = "turn" if enabled else "exchange"
+				handle.prompt = turn_handle.prompt if enabled else exchange_prompt
+				handle.secondary_action = "exchange" if enabled else ""
+				handle.secondary_prompt = exchange_prompt if enabled else ""
 	if incoming != Vector2.ZERO and not item.is_empty() and not _adjusting and kind != "lamp":
 		var outgoing := Vector2(-incoming.y, incoming.x) * turn
 		set_head_angle(atan2(outgoing.y, outgoing.x), false)

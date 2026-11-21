@@ -159,8 +159,9 @@ func get_flag(flag: String, default: Variant = false) -> Variant:
 ##   move_left/right  turn left/right       (arrows, D-pad, touch ◀ ▶)
 ##   strafe_left/right sidestep             (A/D, left stick X)
 ##   look_*           look around           (right stick; the captured mouse looks directly)
-##   jump                                   (Space, pad L2)
-##   interact / back                        (click in the hall, E/Enter/F, pad A/L1/R1/R2) / (Esc/Backspace, pad B)
+##   jump                                   (Space, pad R1)
+##   interact / back                        (click in the hall, E/Enter/F, pad A/L1/R2) / (Esc/Backspace, pad B)
+##   secondary        a target's second action, e.g. take a prism (right-click in the hall, R, pad L2)
 ##   pause            the pause menu        (pad Y; keyboard and touch use back)
 ## Touch: on-screen pad buttons + drag-to-look (see TouchControls / Player).
 ## Keyboard keys come from KeyBindings (defaults, then the player's saved choices).
@@ -173,6 +174,7 @@ func _register_actions() -> void:
 		"interact": [JOY_BUTTON_A],
 		"back": [JOY_BUTTON_B],
 		"pause": [JOY_BUTTON_Y],  # Triangle: the pause menu, in the hall and in minigames.
+		"jump": [JOY_BUTTON_RIGHT_SHOULDER],  # R1
 	}
 	# [action, axis, direction]
 	var pad_axes := [
@@ -180,9 +182,9 @@ func _register_actions() -> void:
 		["strafe_left", JOY_AXIS_LEFT_X, -1.0], ["strafe_right", JOY_AXIS_LEFT_X, 1.0],
 		["look_left", JOY_AXIS_RIGHT_X, -1.0], ["look_right", JOY_AXIS_RIGHT_X, 1.0],
 		["look_up", JOY_AXIS_RIGHT_Y, -1.0], ["look_down", JOY_AXIS_RIGHT_Y, 1.0],
-		["jump", JOY_AXIS_TRIGGER_LEFT, 1.0],  # L2 (L1 interacts, see pad_aliases.gd)
+		["secondary", JOY_AXIS_TRIGGER_LEFT, 1.0],  # L2: a target's second action (take a prism)
 	]
-	for action in ["look_left", "look_right", "look_up", "look_down", "strafe_left", "strafe_right", "pause"]:
+	for action in ["look_left", "look_right", "look_up", "look_down", "strafe_left", "strafe_right", "pause", "secondary"]:
 		_ensure(action)
 	for entry: Dictionary in KeyBindings.ACTIONS:
 		_ensure(entry.action)
@@ -211,6 +213,9 @@ func _register_actions() -> void:
 		ev.button_index = pair[1] as JoyButton
 		if not InputMap.action_has_event(pair[0], ev):
 			InputMap.action_add_event(pair[0], ev)
+	var take_key := InputEventKey.new()
+	take_key.physical_keycode = KEY_R
+	InputMap.action_add_event("secondary", take_key)
 	# Saved keyboard choices replace only key events. Headless runs (tests, exports)
 	# keep the defaults so they never depend on, or read, the player's preferences.
 	if DisplayServer.get_name() != "headless":

@@ -33,14 +33,16 @@ func _run() -> void:
 		"It stands on the floor near where the player comes in")
 	_expect(console._text.text == Objectives.current().text and "EGYPT" in console._chapter.text, "It shows the first objective")
 	_expect(not _hud_mentions("FIELD NOTES"), "The top-left objective panel is gone")
-	_expect(_room.hud._interact_label() == "Click", "With mouse and keyboard the prompt says Click")
+	var pads := not Input.get_connected_joypads().is_empty()  # This machine may have a pad plugged in.
+	_expect(_room.hud._interact_label() == ("L1" if pads else "Click"), "The prompt says Click, or L1 with a controller plugged in")
+	_expect(_room.hud._secondary_label() == ("L2" if pads else "Right-click"), "...and Right-click, or L2, for a second action")
 	var drift := InputEventJoypadMotion.new()
 	drift.device = 2
 	drift.axis = JOY_AXIS_LEFT_X
 	drift.axis_value = 0.08
 	Input.parse_input_event(drift)
 	await process_frame
-	_expect(_room.hud._interact_label() == "Click", "A drifting stick doesn't switch the prompt")
+	_expect(_room.hud._interact_key != "pad", "A drifting stick doesn't count as using the controller")
 	var press := InputEventJoypadButton.new()
 	press.device = 2
 	press.button_index = JOY_BUTTON_DPAD_UP
@@ -50,7 +52,8 @@ func _run() -> void:
 	press.pressed = false
 	Input.parse_input_event(press)
 	await process_frame
-	_expect(_room.hud._interact_label() == "L1", "After a controller press the prompt says L1")
+	_expect(_room.hud._interact_label() == ("L1" if not Input.get_connected_joypads().is_empty() else "Click"),
+		"The prompt says L1 only while a controller is plugged in")
 	var key := InputEventKey.new()
 	key.keycode = KEY_SHIFT
 	key.pressed = true

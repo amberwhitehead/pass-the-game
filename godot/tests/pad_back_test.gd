@@ -58,7 +58,7 @@ func _check(id: String) -> void:
 	_expect(_returned and _games.current == null and not _menu.is_open(), "Circle leaves %s for the hall" % id)
 
 
-## R1 and R2 act as A: each press arrives as an A press from the same pad.
+## L1 and R2 act as A: each press arrives as an A press from the same pad.
 func _aliases() -> void:
 	var seen: Array = []
 	var watch := func(ev: InputEvent):
@@ -67,8 +67,8 @@ func _aliases() -> void:
 	var probe := _Probe.new()
 	probe.seen = watch
 	root.add_child(probe)
-	await _button(JOY_BUTTON_RIGHT_SHOULDER)
-	_expect(seen == [true, false], "R1 presses and releases A (%s)" % [seen])
+	await _button(JOY_BUTTON_LEFT_SHOULDER)
+	_expect(seen == [true, false], "L1 presses and releases A (%s)" % [seen])
 	seen.clear()
 	for v in [0.2, 0.7, 0.9, 0.5, 0.1]:  # A half press doesn't count; past 0.6 presses, under 0.3 releases.
 		var m := InputEventJoypadMotion.new()
@@ -88,7 +88,12 @@ func _aliases() -> void:
 	l2.device = PAD
 	l2.axis = JOY_AXIS_TRIGGER_LEFT
 	l2.axis_value = 1.0
-	_expect(not l1.is_action("jump") and l2.is_action("jump"), "L2 jumps (L1 interacts)")
+	var r1 := InputEventJoypadButton.new()
+	r1.device = PAD
+	r1.button_index = JOY_BUTTON_RIGHT_SHOULDER
+	r1.pressed = true
+	_expect(r1.is_action("jump") and not l1.is_action("jump") and not l2.is_action("jump") and l2.is_action("secondary"),
+		"R1 jumps, L1 interacts and L2 is the second action (take)")
 
 
 class _Probe extends Node:

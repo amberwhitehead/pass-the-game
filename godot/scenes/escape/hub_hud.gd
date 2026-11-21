@@ -52,7 +52,8 @@ func _process(delta: float) -> void:
 			"interact": KeyBindings.labels("interact", 2) if keyboard else a,
 			"back": KeyBindings.label("back") if keyboard else _button(JOY_BUTTON_B),
 		})
-		_prompt.present(text, _interact_label(), _aiming)
+		var second: String = target.secondary_prompt if is_instance_valid(target) and not _aiming else ""
+		_prompt.present(text, _interact_label(), _aiming, second, _secondary_label())
 		_prompt.modulate.a = move_toward(_prompt.modulate.a, 1, delta * 8)
 	else:
 		_prompt.modulate.a = 0
@@ -80,15 +81,20 @@ func _input(event: InputEvent) -> void:
 		_interact_key = "touch"
 
 
-## The interact prompt's badge: Click with mouse and keyboard, L1 on a controller
-## (✕, R1 and R2 work too), A on the touch pad.
+## The interact prompt's badge: L1 while a controller is plugged in (✕ and R2 work too),
+## A after touching the screen, otherwise Click.
 func _interact_label() -> String:
-	match _interact_key:
-		"pad":
-			return "L1"
-		"touch":
-			return "A"
-	return "Click"
+	if not Input.get_connected_joypads().is_empty():
+		return "L1"
+	return "A" if _interact_key == "touch" else "Click"
+
+
+## The second action's badge: L2 while a controller is plugged in, T after touching the
+## screen, otherwise Right-click.
+func _secondary_label() -> String:
+	if not Input.get_connected_joypads().is_empty():
+		return "L2"
+	return "T" if _interact_key == "touch" else "Right-click"
 
 
 ## A face button's name for the last input: the controller's own symbol, or the touch

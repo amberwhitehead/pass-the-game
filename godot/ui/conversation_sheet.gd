@@ -26,7 +26,7 @@ func _init() -> void:
 	speaker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(speaker)
 	hint = Label.new()
-	hint.text = "E  /  CONTINUE"
+	hint.text = "CLICK  /  CONTINUE"
 	hint.add_theme_font_size_override("font_size", 12)
 	hint.add_theme_color_override("font_color", Style.MUTED)
 	header.add_child(hint)
@@ -53,13 +53,16 @@ func arrive() -> void:
 func _input(event: InputEvent) -> void:
 	if not visible or event is InputEventMouseMotion:
 		return
-	if event is InputEventKey:
+	if event is InputEventKey or event is InputEventMouseButton \
+			or event is InputEventJoypadButton or event is InputEventJoypadMotion:
 		_key = ""
-	elif event is InputEventJoypadButton or event is InputEventJoypadMotion:
-		_key = "A"
 	elif event is InputEventScreenTouch and event.device != -1:
 		_key = "TAP"
 	_show_hint()
 
+## L1 while a controller is plugged in, otherwise CLICK (TAP after touching the screen).
 func _show_hint() -> void:
-	hint.text = (_key if not _key.is_empty() else KeyBindings.label("interact")) + "  /  CONTINUE"
+	var key := _key
+	if key.is_empty():
+		key = "L1" if not Input.get_connected_joypads().is_empty() else "CLICK"
+	hint.text = key + "  /  CONTINUE"
