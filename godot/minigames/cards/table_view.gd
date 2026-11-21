@@ -154,13 +154,22 @@ func render(state: Dictionary, selected: int, blocked: bool, swap_source := -1) 
 				card.set_empty("Lane %d" % (lane + 1), side)
 			else:
 				card.configure(unit, true)
-			card.set_selected(_eligible(side, lane))
+			var eligible := _eligible(side, lane)
+			card.set_selected(eligible)
+			# Mark every place the selected card can go: red to hit, gold to place or heal.
+			card.set_cue((Actor.Cue.HOSTILE if side == "enemy" else Actor.Cue.TARGET) if eligible else Actor.Cue.NONE)
 			card.disabled = locked
 	if _hand_ids != state.hand:
 		_set_hover(null)
 		_hand_ids = state.hand.duplicate()
 	hand.render(state.hand, state.energy, selected, locked)
 	end_button.disabled = locked
+	# With nothing selected, the cards you can afford pulse; with none, the bell does.
+	var playable := false
+	for id in state.hand:
+		if int(Catalog.get_card(id).cost) <= int(state.energy):
+			playable = true
+	end_button.set_cue(not locked and selected < 0 and not playable)
 	if locked:
 		_set_hover(null)
 	elif selected >= 0:

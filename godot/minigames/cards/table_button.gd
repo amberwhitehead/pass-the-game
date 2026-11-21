@@ -13,6 +13,8 @@ var _cap: MeshInstance3D
 var _material: StandardMaterial3D
 var _hovered := false
 var _motion: Tween
+var _cue := false   ## Pulses: ringing the bell is the next thing to do.
+var _cue_t := 0.0
 
 
 func _ready() -> void:
@@ -95,6 +97,20 @@ func _ready() -> void:
 	plate_shape.position = Vector3(0, .025, .70)
 	collider.add_child(plate_shape)
 	add_child(collider)
+
+
+func set_cue(value: bool) -> void:
+	_cue = value
+	_cue_t = 0.0
+	if not value:
+		set_hovered(_hovered)
+
+
+func _process(delta: float) -> void:
+	if not _cue or _hovered or _material == null:
+		return
+	_cue_t += delta
+	_material.emission = Color("ffcf6a") * (0.2 + 0.6 * (0.5 + 0.5 * sin(_cue_t * 5.0)))
 
 
 func set_hovered(value: bool) -> void:

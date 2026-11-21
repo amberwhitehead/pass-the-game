@@ -52,6 +52,20 @@ func _little_brother() -> void:
 	await _press(JOY_BUTTON_A)
 	_expect(game._selected == 0, "A selects the focused card")
 	_expect(game.pad.row == Pad.PLAYER and game.pad.index == 0, "...and the focus jumps to its first legal lane")
+	var Cue = preload("res://minigames/cards/card_actor.gd").Cue
+	var lit := 0
+	for lane in table.lane_count:
+		if table.slot("player", lane).cue == Cue.TARGET:
+			lit += 1
+	_expect(lit == table.lane_count and table.slot("enemy", 0).cue == Cue.NONE,
+		"Every place the card can go is marked, and nothing else (%d)" % lit)
+	await _press(JOY_BUTTON_DPAD_RIGHT)
+	_expect(game.pad.row == Pad.PLAYER and game.pad.index == 1, "The D-pad steps to the next place it can go")
+	await _press(JOY_BUTTON_DPAD_DOWN)
+	_expect(game.pad.row == Pad.PLAYER and game.pad.index == 2, "...and only between those places, never off into the hand")
+	await _press(JOY_BUTTON_DPAD_LEFT)
+	await _press(JOY_BUTTON_DPAD_LEFT)
+	_expect(game.pad.index == 0, "Back to the first lane")
 	await _press(JOY_BUTTON_A)
 	await _idle(game)
 	_expect(game._shown.player[0].get("id", "") == "scout", "A plays Scout into lane one")

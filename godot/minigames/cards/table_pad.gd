@@ -123,11 +123,43 @@ func _step(dir: Vector2i) -> void:
 		_wake()
 		_show_focus()
 		return
+	# With a card chosen, the focus only visits the places it can go (each marked on the
+	# table); B cancels the card to choose another.
+	if game._selected >= 0 and _step_between_targets(dir):
+		Sound.play("card_hand", game, 0, .6)
+		return
 	if dir.y != 0:
 		_change_row(row + dir.y)
 	elif dir.x != 0:
 		index = clampi(index + dir.x, 0, _row_size(row) - 1)
 	Sound.play("card_hand", game, 0, .6)
+
+
+## The selected card's legal targets as [row, index], his lanes first, left to right.
+func _targets() -> Array:
+	var found: Array = []
+	for side in ["enemy", "player"]:
+		for lane in table.lane_count:
+			if table._eligible(side, lane):
+				found.append([ENEMY if side == "enemy" else PLAYER, lane])
+	return found
+
+
+## Moves to the next or previous target (right/down next, left/up previous). False when
+## the card has no targets, so ordinary movement applies.
+func _step_between_targets(dir: Vector2i) -> bool:
+	var found := _targets()
+	if found.is_empty():
+		return false
+	var at := found.find([row, index])
+	var forward := dir.x > 0 or dir.y > 0
+	if at < 0:
+		at = 0 if forward else found.size() - 1
+	else:
+		at = clampi(at + (1 if forward else -1), 0, found.size() - 1)
+	row = found[at][0]
+	index = found[at][1]
+	return true
 
 
 func _change_row(target: int) -> void:
