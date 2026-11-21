@@ -108,7 +108,9 @@ func _wake() -> void:
 		% [PadLabels.face(JOY_BUTTON_A), PadLabels.face(JOY_BUTTON_X), PadLabels.face(JOY_BUTTON_B)]
 	if game._selected >= 0:
 		_focus_first_target()
-	elif _hand_size() > 0:
+	elif _actor() != null:
+		pass  # Pick up where the focus was (a mouse nudge shouldn't send it elsewhere).
+	elif _playable():
 		row = HAND
 		index = clampi(index, 0, _hand_size() - 1)
 	else:
@@ -236,7 +238,8 @@ func _focus_first_target() -> bool:
 func _after_action() -> void:
 	if game._selected >= 0:
 		return
-	if _hand_size() > 0:
+	# Nothing left to afford: the bell is the next step (it pulses), so go there.
+	if _hand_size() > 0 and _playable():
 		index = clampi(index if row == HAND else 0, 0, _hand_size() - 1)
 		row = HAND
 	else:
@@ -301,3 +304,12 @@ func direction() -> Vector2i:
 		if v.length() >= STICK:
 			return Vector2i(int(signf(v.x)), 0) if absf(v.x) > absf(v.y) else Vector2i(0, int(signf(v.y)))
 	return Vector2i.ZERO
+
+
+## True if any card in the hand can be paid for now.
+func _playable() -> bool:
+	var state: Dictionary = game._shown
+	for id in state.get("hand", []):
+		if int(game.match_state.get_card(id).cost) <= int(state.get("energy", 0)):
+			return true
+	return false

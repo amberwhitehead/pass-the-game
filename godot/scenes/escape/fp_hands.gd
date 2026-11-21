@@ -4,9 +4,10 @@ extends Node3D
 ##
 ## - Walking swings them back and forth, alternately, with step speed; jumping lifts them
 ##   and landing dips them.
-## - Interacting reaches one hand out toward the thing (the free one, if one holds an item).
+## - Interacting reaches the right hand out toward the thing: placing what it holds, or
+##   taking or using something.
 ## - A conversation opening gets a wave from the left hand, which then relaxes.
-## - Trying something that does nothing here gets a shrug: both hands out, palms up.
+## - Trying something that does nothing here gets a shrug: both hands turn palms up together.
 ##   Anything can ask for one: get_tree().call_group("player_feedback", "shrug").
 ## - A carried item sits in the right hand (`grip`), its fingers curled round it.
 ## - Hidden while a minigame runs (its camera handoff included), in cinematics, and while
@@ -77,7 +78,7 @@ func _ready() -> void:
 
 ## Starts a reach toward a thing being interacted with (the player's `reached` signal).
 func reach(target: Node) -> void:
-	_reach_hand = left if holding else right
+	_reach_hand = right  # It holds what is placed, and takes what is picked up.
 	var point: Vector3 = target.get_focus_position() if target != null and target.has_method("get_focus_position") \
 		else global_position - global_basis.z
 	var local := to_local(point)
@@ -155,11 +156,12 @@ func _process(delta: float) -> void:
 
 	var s := _shrug_amount()
 	if s > 0.0:
-		# Out to the sides and up a little, wrists turned so the palms face up, fingers open.
-		r_offset += Vector3(0.07, 0.07, 0.02) * s
-		l_offset += Vector3(-0.07, 0.07, 0.02) * s
-		r_rot += Vector3(0.25 * s, 0.0, -1.1 * s)
-		l_rot += Vector3(0.25 * s, 0.0, 1.1 * s)
+		# Both hands together: out a little and up, each rolled over on its forearm so the
+		# palm faces up, fingers open.
+		r_offset += Vector3(0.05, 0.06, 0.02) * s
+		l_offset += Vector3(-0.05, 0.06, 0.02) * s
+		r_rot += Vector3(0.2 * s, 0.0, -2.9 * s)
+		l_rot += Vector3(0.2 * s, 0.0, 2.9 * s)
 		if not holding:
 			r_curl = lerpf(r_curl, 0.0, s)
 		l_curl = lerpf(l_curl, 0.0, s)

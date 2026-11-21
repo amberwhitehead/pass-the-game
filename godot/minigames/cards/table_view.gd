@@ -229,6 +229,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if Sound.settings_open:
 		return
 	if event is InputEventMouseMotion and event.device != -1 and not locked:
+		if pad_active and event.relative.length() < 4.0:
+			return  # A nudged mouse or trackpad doesn't take the table back from the controller.
 		pad_active = false
 		_pointer = event.position - global_position
 		hand.pointer_at(_pointer, size)

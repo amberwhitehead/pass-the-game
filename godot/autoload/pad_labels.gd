@@ -8,7 +8,7 @@ extends RefCounted
 const XBOX := {JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y"}
 const PLAYSTATION := {JOY_BUTTON_A: "✕", JOY_BUTTON_B: "○", JOY_BUTTON_X: "□", JOY_BUTTON_Y: "△"}
 ## Lower-case pieces of a pad's reported name that mark a PlayStation controller.
-const SONY_NAMES := ["dualsense", "dualshock", "playstation", "ps3", "ps4", "ps5", "sony"]
+const SONY_NAMES := ["dualsense", "dualshock", "playstation", "ps3", "ps4", "ps5", "sony", "054c"]  # 054c: Sony's USB vendor id
 
 
 static func face(button: JoyButton, device := -1) -> String:
@@ -32,7 +32,7 @@ static func is_playstation(device := -1) -> bool:
 
 
 ## Lower-case pieces of a pad's reported name that mark an Xbox (or XInput) controller.
-const XBOX_NAMES := ["xbox", "xinput", "microsoft", "x-box"]
+const XBOX_NAMES := ["xbox", "xinput", "microsoft", "x-box", "045e"]  # 045e: Microsoft's USB vendor id
 
 
 ## "playstation", "xbox", or "generic" when the pad's name says neither (or no pad).

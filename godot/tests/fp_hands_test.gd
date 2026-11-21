@@ -85,20 +85,20 @@ func _run() -> void:
 	await _frames(5)
 	_expect(not dialogue.active, "The conversation closes")
 
-	# Holding: the item sits in the right hand, fingers curled; then the free hand reaches.
+	# Holding: the item sits in the right hand, fingers curled; that hand reaches to place it.
 	_room.inventory.exchange("prism")
 	await _frames(5)
 	var held: Node3D = _hands.grip.get_child(0) if _hands.grip.get_child_count() > 0 else null
 	_expect(held != null and held.visible and held.get_child_count() > 0, "The carried prism sits in the right hand's grip")
 	_expect(_hands.holding and (_hands.right.get_meta("fingers")[0] as Node3D).rotation.x < -0.8, "The right hand's fingers curl round it")
-	var left_before: Vector3 = _hands.left.position
+	var right_held: Vector3 = _hands.right.position
 	_player.reached.emit(target)
 	reached = 0.0
 	for i in 30:
 		await create_timer(0.02).timeout
-		reached = maxf(reached, _hands.left.position.distance_to(left_before))
+		reached = maxf(reached, _hands.right.position.distance_to(right_held))
 	await create_timer(0.6).timeout
-	_expect(reached > 0.06, "With the right hand full, the left one reaches")
+	_expect(reached > 0.06, "Holding something, the right hand reaches out to place it")
 	_room.inventory.exchange("")
 	await _frames(5)
 	_expect(not _hands.holding and not held.visible, "Put down, the hand is empty again")

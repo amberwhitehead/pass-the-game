@@ -126,7 +126,7 @@ func _draw_shoulder(box: Rect2, trigger: bool) -> void:
 		"xbox":
 			label = XBOX_NAMES[button]
 		_:
-			label = button.substr(0, 1).to_upper()  # Just L or R on an unknown pad.
+			label = button.to_upper()  # L1 / R1 / L2 / R2 on an unknown pad too.
 	_text(box.get_center() + Vector2(0, box.size.y * (0.06 if trigger else 0.0)), label, box.size.y * 0.55, Color.WHITE)
 
 
