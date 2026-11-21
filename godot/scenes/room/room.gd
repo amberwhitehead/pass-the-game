@@ -137,8 +137,8 @@ func _create_rewards() -> void:
 ## screen facing them. Its laser finds each objective's place in the hall.
 func _create_objective_console() -> void:
 	objective_console = ObjectiveConsole.new()
-	objective_console.position = Vector3(-7.9, 0, -1.7)
-	objective_console.rotation.y = atan2(-1.6, 2.1)  # Its screen faces the spot the player walks in at.
+	objective_console.position = Vector3(-6.6, 0, -1.0)
+	objective_console.rotation.y = atan2(-2.9, 1.4)  # Its screen faces the spot the player walks in at.
 	objective_console.locate = _objective_place
 	add_child(objective_console)
 
