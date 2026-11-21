@@ -31,6 +31,7 @@ var _pad: Node  ## PadPointer: the controller's cursor, used while it is active.
 func _ready() -> void:
 	use_touch_controls = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	_hide_system_cursor()
 	var bg := ColorRect.new()
 	bg.color = Color("1d1410")
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -154,6 +155,7 @@ func _gui_input(event: InputEvent) -> void:
 
 ## A click at the pointer, from the mouse or the controller's A button.
 func _press() -> void:
+	_cursor.poke()
 	_update_hover()  # The pad may have moved the pointer since the last frame.
 	if _bubble.advance():
 		return
@@ -191,6 +193,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		_drop_held()
 		return
 	super(event)
+
+
+## The drawn hand is the Workshop's cursor, so the system arrow is hidden over the scene:
+## the scene uses a cursor shape no other screen does, swapped for a blank image while the
+## Workshop is open. Buttons and menus keep the ordinary arrow.
+func _hide_system_cursor() -> void:
+	mouse_default_cursor_shape = Control.CURSOR_CROSS
+	var blank := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	blank.fill(Color(0, 0, 0, 0))
+	Input.set_custom_mouse_cursor(ImageTexture.create_from_image(blank), Input.CURSOR_CROSS)
+
+
+func _exit_tree() -> void:
+	Input.set_custom_mouse_cursor(null, Input.CURSOR_CROSS)
 
 
 func _drop_held() -> void:
