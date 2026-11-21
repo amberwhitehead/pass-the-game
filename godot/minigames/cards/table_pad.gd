@@ -3,7 +3,7 @@ extends Node
 ##
 ## Rows, top to bottom: his lanes, your lanes with the bell at their right end, your hand.
 ## D-pad or left stick moves the focus (held, it repeats), A chooses what is focused
-## (exactly as clicking it would), X (Square) rings the bell, L1 opens the rules, and B
+## (exactly as clicking it would), X (Square) rings the bell, Options (Start) opens the rules, and B
 ## is the table's usual back (cancel a swap or a selected card, close a panel, or leave).
 ## Y is the pause menu everywhere, so the table leaves it alone.
 ## Focus shows as the same highlight and card inspector the mouse's hover uses; moving
@@ -57,7 +57,7 @@ func _input(event: InputEvent) -> void:
 				row = PLAYER
 				index = table.lane_count
 				_activate(table.end_button)
-		JOY_BUTTON_LEFT_SHOULDER:
+		JOY_BUTTON_START:
 			get_viewport().set_input_as_handled()
 			game._show_rules()
 

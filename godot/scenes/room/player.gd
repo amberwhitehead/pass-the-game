@@ -192,7 +192,11 @@ func _can_see(area: Interactable, point: Vector3) -> bool:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("interact") or event.is_echo():
+	# A left click interacts while the mouse is looking around (E still works too).
+	var click: bool = event is InputEventMouseButton and event.pressed \
+		and event.button_index == MOUSE_BUTTON_LEFT and event.device != InputEvent.DEVICE_ID_EMULATION \
+		and mouse_capture != null and mouse_capture.is_captured()
+	if not (click or event.is_action_pressed("interact")) or event.is_echo():
 		return
 	if _frozen() or target == null:
 		return

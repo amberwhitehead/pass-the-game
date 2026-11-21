@@ -1,13 +1,13 @@
 extends Node
-## Extra controller buttons that act as A (Cross): R1 and R2 confirm and interact
+## Extra controller buttons that act as A (Cross): L1, R1 and R2 confirm and interact
 ## everywhere A does, because each press is re-sent as an A press from the same pad.
 ## Code that checks for A, or for the interact / ui_accept actions, needs no changes.
 ##
 ## A re-sent press also shows up in polled Input.is_joy_button_pressed, so a minigame that
-## gives R1/R2 their own meaning sets `pad_aliases = false` (Chrono Raider: R1 gear, R2
-## fire) and the aliases stay off while it runs.
+## gives the shoulders their own meaning sets `pad_aliases = false` (Chrono Raider: L1/R1
+## gear, R2 fire) and the aliases stay off while it runs.
 
-const ALIASES := [JOY_BUTTON_RIGHT_SHOULDER]
+const ALIASES := [JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER]
 const TRIGGER_ON := 0.6    ## R2 travel that counts as a press...
 const TRIGGER_OFF := 0.3   ## ...and as a release (hysteresis, so a half press doesn't chatter).
 

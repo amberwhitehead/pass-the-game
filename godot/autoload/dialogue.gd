@@ -62,6 +62,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not active or Sound.settings_open:
 		return
 	var advance := event.is_action_pressed("interact")
+	# A click continues the conversation it started (the hall interacts on click).
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT \
+			and event.device != InputEvent.DEVICE_ID_EMULATION:
+		advance = true
 	# Tapping the dialogue panel itself also advances.
 	if event is InputEventScreenTouch and event.pressed \
 			and _panel.get_global_rect().has_point(event.position):

@@ -12,7 +12,7 @@ extends Node2D
 ##   GlyphWarmup.add_to(stage, [[Style.font(), 22], [Style.font(true), 15]])
 
 const CHARSET := " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" \
-	+ "°±²·×áéü–—‘’“”…‹›←→▲▶▼◀"
+	+ "°±²·×áéü–—‘’“”…‹›←→▲▶▼◀✕○□△↔"
 const FRAMES := 2
 
 var jobs: Array = []  ## [[Font, size], ...]

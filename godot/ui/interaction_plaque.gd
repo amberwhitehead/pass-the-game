@@ -1,10 +1,10 @@
 extends VBoxContainer
-## The interaction hint: a small caption just above the crosshair, such as "[E] Talk",
+## The interaction hint: a small caption just below the crosshair, such as "[Click] Talk",
 ## rather than a box at the bottom of the screen. While aiming the optics it says
-## "ALIGN THE LIGHT" above the longer hint. Place it with place_above_center().
+## "ALIGN THE LIGHT" above the longer hint. Place it with place_below_center().
 const Style := preload("res://ui/game_style.gd")
 const MAX_WIDTH := 460.0
-const GAP := 22.0  ## Pixels between the caption and the centre of the screen.
+const GAP := 18.0  ## Pixels between the centre of the screen and the caption's top.
 var key: Label
 var title: Label
 var detail: Label
@@ -13,7 +13,7 @@ var _last := ""
 func _ready() -> void:
 	theme = Style.theme()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	alignment = BoxContainer.ALIGNMENT_END
+	alignment = BoxContainer.ALIGNMENT_BEGIN
 	add_theme_constant_override("separation", 2)
 	detail = Style.eyebrow("ALIGN THE LIGHT")
 	detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -44,16 +44,16 @@ func _ready() -> void:
 	row.add_child(title)
 
 
-## Centres the caption horizontally, its bottom edge just above the screen's centre.
-func place_above_center() -> void:
+## Centres the caption horizontally, its top edge just below the screen's centre.
+func place_below_center() -> void:
 	anchor_left = .5
 	anchor_right = .5
 	anchor_top = .5
 	anchor_bottom = .5
 	grow_horizontal = Control.GROW_DIRECTION_BOTH
-	grow_vertical = Control.GROW_DIRECTION_BEGIN
-	offset_bottom = -GAP
-	offset_top = -GAP
+	grow_vertical = Control.GROW_DIRECTION_END
+	offset_top = GAP
+	offset_bottom = GAP
 
 
 func present(text: String, input_key: String, aiming: bool) -> void:

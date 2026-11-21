@@ -88,7 +88,7 @@ func _aliases() -> void:
 	l2.device = PAD
 	l2.axis = JOY_AXIS_TRIGGER_LEFT
 	l2.axis_value = 1.0
-	_expect(l1.is_action("jump") and l2.is_action("jump"), "L1 and L2 jump")
+	_expect(not l1.is_action("jump") and l2.is_action("jump"), "L2 jumps (L1 interacts)")
 
 
 class _Probe extends Node:
