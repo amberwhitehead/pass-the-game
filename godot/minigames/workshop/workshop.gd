@@ -13,6 +13,7 @@ const Bubble := preload("res://minigames/workshop/bubble.gd")
 const Overlays := preload("res://minigames/workshop/overlays.gd")
 const RadioView := preload("res://minigames/workshop/radio_view.gd")
 const PadPointer := preload("res://minigames/workshop/pad_pointer.gd")
+const GlyphWarmup := preload("res://ui/glyph_warmup.gd")
 const STAGE_SIZE := Vector2(1600, 900)
 
 var _stage: Node2D
@@ -51,6 +52,8 @@ func _ready() -> void:
 	_stage.add_child(radio_view)
 	_bubble = Bubble.new()
 	_stage.add_child(_bubble)
+	# Speech text (bubble.gd) and the cursor label, so the first line doesn't hitch.
+	GlyphWarmup.add_to(_stage, [[Style.font(), Bubble.FONT_SIZE], [Style.font(true), 15], [Style.font(true), 18]])
 	_cursor = Overlays.Cursor.new()
 	_cursor.follow = _stage_mouse
 	_stage.add_child(_cursor)

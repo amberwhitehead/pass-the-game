@@ -31,6 +31,9 @@ func _ready() -> void:
 	_name = _panel.speaker
 	_text = _panel.copy
 	_hint = _panel.hint
+	# The sheet's speaker, body and hint text (ui/conversation_sheet.gd).
+	var Style := preload("res://ui/game_style.gd")
+	preload("res://ui/glyph_warmup.gd").add_to(self, [[Style.font(true), 28], [_text.get_theme_font("normal_font"), 22], [_hint.get_theme_font("font"), 12]])
 
 
 func say(speaker: String, lines: Array) -> void:
