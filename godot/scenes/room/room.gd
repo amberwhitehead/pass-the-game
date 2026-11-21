@@ -12,6 +12,7 @@ const Soundscape := preload("res://audio/hub_soundscape.gd")
 const CardCache := preload("res://scenes/escape/card_cache.gd")
 const SecretRoom := preload("res://scenes/escape/secret_room.gd")
 const Revisits := preload("res://scenes/escape/revisits.gd")
+const HallResume := preload("res://scenes/escape/hall_resume.gd")
 
 @onready var _player: Player = $Player
 var inventory: Node
@@ -21,6 +22,7 @@ var reward_reveal: Node
 var architecture: Dictionary
 var hud: CanvasLayer
 var revisits: Node3D
+var resume: Node  ## HallResume: the saved spot, and reopening an interrupted room.
 var _reward_pending := false
 
 
@@ -68,12 +70,19 @@ func _ready() -> void:
 	if Game.get_flag("escape_prism_solved"):
 		architecture.locked_door.unlock(false)
 	_start_at_entrance()
+	resume = HallResume.new()
+	resume.name = "HallResume"
+	resume.configure(_player)
+	add_child(resume)
+	resume.restore_spot()
 	var soundscape := Soundscape.new()
 	soundscape.name = "HubSoundscape"
 	add_child(soundscape)
 	soundscape.configure(_player)
 	if Game.completed_minigames.has("newton") and not Game.get_flag("escape_rewards_revealed"):
 		_on_minigame_ended.call_deferred("newton", {"won": true})
+	else:
+		resume.resume_minigame.call_deferred(get_tree().get_nodes_in_group("interactable"))
 
 
 func _move_stations() -> void:

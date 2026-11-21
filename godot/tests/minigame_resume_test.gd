@@ -35,6 +35,7 @@ func _run() -> void:
 	await _egypt()
 	await _roman()
 	await _cards()
+	await _interrupted()
 	await _quit_from_minigame()
 	SaveGame.erase(SaveGame.slot_path(0))
 	_game.autosave = false
@@ -112,6 +113,54 @@ func _cards() -> void:
 	table._close_dialog()
 	await _leave_through_menu()
 	_expect(_game.minigame_progress("cards_older").is_empty(), "Leaving an untouched match keeps nothing")
+
+
+## A page closed or reloaded mid-minigame gives no warning: progress is snapshotted every
+## few seconds, the save remembers which minigame was open, and the next hall reopens it.
+## The player's spot in the hall comes back too.
+func _interrupted() -> void:
+	var player: Node3D = _room.get_node("Player")
+	player.position = Vector3(2.0, 0.0, 3.0)
+	player.rotation.y = 1.0
+	_room.resume.save_spot()
+	var puzzle: Node = await _open("newton")
+	_expect(_game.get_flag(_games.RESUME_FLAG, "") == "newton", "The save notes that Egypt is open")
+	_set_value(puzzle, "re", 2.5)
+	await create_timer(_games.CAPTURE_EVERY + 0.5).timeout
+	_game.save_now()
+	var on_disk: Dictionary = SaveGame.read(SaveGame.slot_path(0)).get("flags", {})
+	_expect(on_disk.get(_games.RESUME_FLAG, "") == "newton" \
+		and is_equal_approx(on_disk.get("minigame_progress", {}).get("newton", {}).get("values", {}).get("re", 0.0), 2.5),
+		"Without leaving, the save already holds Egypt's progress and that it was open")
+	await _leave_through_menu()
+	_expect(_game.get_flag(_games.RESUME_FLAG, "") == "", "Leaving on purpose clears it")
+
+	# What a reload finds: that save, loaded into a fresh hall.
+	_game.set_flag(_games.RESUME_FLAG, "newton")
+	_reload_save()
+	_room.queue_free()
+	_room = load("res://scenes/room/room.tscn").instantiate()
+	root.add_child(_room)
+	current_scene = _room
+	player = _room.get_node("Player")
+	_expect(player.position.distance_to(Vector3(2.0, 0.0, 3.0)) < 0.01 and is_equal_approx(player.rotation.y, 1.0),
+		"The hall puts the player back where they stood")
+	_returned = false
+	for frame in 600:
+		if _games.current != null:
+			break
+		await process_frame
+	_expect(_games.current != null and _games.current_title() == "Egypt Fractal", "...and reopens Egypt")
+	if _games.current != null:
+		_expect(is_equal_approx(_games.current._value("re"), 2.5), "...where it was")
+		await _escape()
+		_menu.leave_button.pressed.emit()
+		for frame in 600:
+			if _games.current == null:
+				break
+			await process_frame
+		for frame in 3:
+			await process_frame
 
 
 func _quit_from_minigame() -> void:
