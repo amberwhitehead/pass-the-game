@@ -61,23 +61,37 @@ class Inventory extends Node2D:
 				Items.draw_icon(self, items[i], r.get_center())
 
 
-## Follows the mouse: shows what is under it, and the held item.
+## Follows the pointer: a hand-drawn pointing hand (its fingertip is the hotspot) that
+## pokes when you click, the name of what is under it, and the held item in its place.
 class Cursor extends Node2D:
+	const TILT := -0.5      ## The hand leans so the finger points up and to the left.
+	const POKE_TIME := 0.16
 	var label := ""
 	var held := ""
+	var _poke := 0.0
+	## Returns the pointer in the parent's coordinates (the mouse, or the controller's
+	## cursor); unset, the cursor follows the mouse.
+	var follow := Callable()
 
 	func _ready() -> void:
 		z_index = 60
 
-	func _process(_d: float) -> void:
-		position = get_parent().get_local_mouse_position()
+	func _process(d: float) -> void:
+		position = follow.call() if follow.is_valid() else get_parent().get_local_mouse_position()
+		_poke = maxf(0.0, _poke - d)
 		queue_redraw()
+
+	## A click: the hand jabs, squashing toward the fingertip for a moment.
+	func poke() -> void:
+		_poke = POKE_TIME
 
 	func _draw() -> void:
 		# A held item sits right under the pointer: the item itself is what you aim with.
 		if held != "":
 			draw_circle(Vector2.ZERO, 34, Color(1, 0.95, 0.7, 0.25))
 			Items.draw_icon(self, held, Vector2.ZERO)
+		else:
+			_draw_hand()
 		if label == "":
 			return
 		var font := Style.font(true)
@@ -88,6 +102,22 @@ class Cursor extends Node2D:
 			r.position.x = -r.size.x - 12
 		draw_rect(r, Color(0.16, 0.11, 0.08, 0.85))
 		draw_string(font, r.position + Vector2(10, size.y + 1), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("fff3d6"))
+
+
+	## Drawn finger-up with the tip at the origin, then tilted; a poke shrinks it toward
+	## the tip and a hover over something lifts the finger a touch.
+	func _draw_hand() -> void:
+		var squash := 1.0 - 0.18 * sin(PI * _poke / POKE_TIME) if _poke > 0.0 else 1.0
+		draw_set_transform(Vector2.ZERO, TILT + (0.08 if label != "" else 0.0), Vector2(squash, squash))
+		var skin := P.SKIN
+		Ink.shape(self, Ink.rrect(Rect2(-11, 44, 40, 13), 4), Color("fbf4e4"), 2.5, 960, 0.1, 0.1)   # cuff
+		Ink.shape(self, Ink.rrect(Rect2(-10, 20, 38, 30), 11), skin, 2.5, 961, 0.15, 0.14)            # palm
+		for k in 3:  # the three curled fingers, as knuckles along the top of the palm
+			Ink.dot(self, Vector2(10 + k * 7.5, 24 + k * 1.5), 5.5, skin, 2.0, 962 + k, 0.0, 0.0)
+		Ink.shape(self, Ink.rrect(Rect2(-19, 28, 15, 11), 5), skin, 2.5, 966, 0.0, 0.0)               # thumb
+		Ink.shape(self, Ink.rrect(Rect2(-7, 0, 14, 32), 7), skin, 2.5, 967, 0.0, 0.0)                  # finger
+		Ink.line(self, PackedVector2Array([Vector2(-3, 6), Vector2(3, 6)]), Ink.OUTLINE.lightened(0.25), 1.5, 968)  # nail
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## The Futurescope filling the screen: a big wooden set around the live feed.

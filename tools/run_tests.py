@@ -30,7 +30,7 @@ GRAPHICAL = {"cards_transition_render_test": "pixel comparison needs a graphical
 QUICK = {"cards_test", "older_rules_test", "card_progression_test", "card_face_test", "optics_model_test",
          "sim_config_test", "sim_policies_test", "sim_runner_test", "sim_blindspots_test"}
 SUMMARY = re.compile(r"(\d+) checks?, (\d+) failures?", re.IGNORECASE)
-TIMEOUT = 20  # Seconds a suite may run; the slowest takes about 4.
+TIMEOUT = 40  # Seconds a suite may run; the slowest (workshop_story) takes about 19 on an idle machine.
 STARTUP = 15  # Seconds for Godot to start, compile everything and begin the first suite.
 
 

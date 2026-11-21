@@ -1,7 +1,11 @@
 extends Interactable
-## A physical handle separated horizontally from the prism's pickup socket.
+## A physical handle on an optical stand. What it does is set by the stand: `primary`
+## (click / A / E) and `secondary` (right-click / R2 / R) name an action, "turn" or
+## "exchange", and used(action) reports which one the player chose.
 
-signal used
+signal used(action: String)
+var primary := ""
+var secondary_action := ""
 var _focus_tween: Tween
 
 
@@ -18,8 +22,20 @@ func _ready() -> void:
 	add_child(shape)
 
 
+## Both knobs of a stand do the same things now, so the whole stand is the target.
+func outline_root() -> Node3D:
+	return get_parent() as Node3D
+
+
 func interact(_player: Node3D) -> void:
-	used.emit()
+	if primary != "":
+		used.emit(primary)
+	interacted.emit()
+
+
+func secondary(_player: Node3D) -> void:
+	if secondary_action != "":
+		used.emit(secondary_action)
 	interacted.emit()
 
 

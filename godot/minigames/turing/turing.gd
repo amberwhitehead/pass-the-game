@@ -744,6 +744,8 @@ func _tick_solver(delta: float) -> void:
 	if _task_id < 0 and _solve_timer >= _solve_interval:
 		_solve_timer = 0.0
 		var img: Image = _tap.get_texture().get_image()
+		if img == null:
+			return  # No GPU readback (headless runs); try again next interval.
 		_task_id = WorkerThreadPool.add_task(_solve_job.bind(img.get_data()))
 
 

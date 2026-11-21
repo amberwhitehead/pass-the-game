@@ -61,11 +61,16 @@ Click things to poke them. Click an item in the tray to hold it, then click wher
 use it; right-click or Escape puts it back. Click to skip or dismiss speech. Escape
 otherwise opens the pause menu (Leave, Sound, Quit to title).
 
+On a controller (any slot), the left stick moves the cursor and the D-pad nudges it
+slowly; A (Cross) clicks, B (Circle) puts a held item back, closes the radio, or leaves
+the Workshop; Y (Triangle) opens the pause menu. Moving or clicking the mouse hands the cursor back to it.
+
 ## Module map
 
 | File | Job |
 | --- | --- |
 | `workshop.gd` | The MiniGame: builds the stage, hover, clicks, inventory selection, save/resume. |
+| `pad_pointer.gd` | The controller's cursor: stick/D-pad movement, and when it, rather than the mouse, is pointing. |
 | `story.gd` | The state machine: what every click does in each phase (`setup`, `loop`, `break`, `done`), and the scenes. |
 | `engineer.gd` | The Engineer turning up after you, minding his things (annoyance, his milk), once-only remarks and nudges. |
 | `pounce.gd` | The flashlight: where Fuse lands for each thing, and what happens. |

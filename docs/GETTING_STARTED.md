@@ -69,6 +69,7 @@ the hall without writing a save; **Save** or **Save as new slot** keeps it.
 
 The [setup and project guide](../godot/README.md) has controls, the project map
 and how to add a minigame; each area has its own guide linked from there.
+UI and input work follows [UI and input patterns](UI_PATTERNS.md).
 
 ## 3. What is open
 
@@ -100,8 +101,8 @@ friend group (card faces accept an `art_path`); more interesting card
 discoveries; recorded character speech; music and a listening pass on the mix.
 Persistent saves, listed there as unbuilt, now exist.
 
-**Smaller gaps.** No way to edit the deck; card play has no full gamepad
-navigation; Roman Flow's puzzle itself (simulation, solver, win detection) has no
+**Smaller gaps.** No way to edit the deck; the card table's Journal and
+New match buttons are mouse-only; Roman Flow's puzzle itself (simulation, solver, win detection) has no
 automated tests, only its menu and resume behavior; the card balance needs human
 playtesting rather than more simulation.
 

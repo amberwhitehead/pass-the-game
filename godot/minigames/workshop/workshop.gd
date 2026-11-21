@@ -2,8 +2,10 @@ extends MiniGame
 ## 04 Workshop: the 50s Engineer's garage lab, a hand-drawn 2D point-and-click story.
 ##
 ## Click things to poke them; click an inventory item to hold it, then click where to use
-## it (right-click or Escape puts it back). The story lives in story.gd and lines.gd; the
-## room is built by world.gd; everything is drawn from code (ink.gd).
+## it (right-click or Escape puts it back). On a controller the left stick (or D-pad) moves
+## the cursor, A (Cross) clicks and B (Circle) puts a held item back, otherwise leaves
+## (pad_pointer.gd). The story lives in story.gd and lines.gd; the room is built by
+## world.gd; everything is drawn from code (ink.gd).
 
 const World := preload("res://minigames/workshop/world.gd")
 const Cat := preload("res://minigames/workshop/cat.gd")
@@ -11,6 +13,8 @@ const Story := preload("res://minigames/workshop/story.gd")
 const Bubble := preload("res://minigames/workshop/bubble.gd")
 const Overlays := preload("res://minigames/workshop/overlays.gd")
 const RadioView := preload("res://minigames/workshop/radio_view.gd")
+const PadPointer := preload("res://minigames/workshop/pad_pointer.gd")
+const GlyphWarmup := preload("res://ui/glyph_warmup.gd")
 const STAGE_SIZE := Vector2(1600, 900)
 
 var _stage: Node2D
@@ -21,11 +25,13 @@ var _inventory: Node2D
 var _cursor: Node2D
 var _hovered: Node2D
 var _held := ""
+var _pad: Node  ## PadPointer: the controller's cursor, used while it is active.
 
 
 func _ready() -> void:
 	use_touch_controls = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	_hide_system_cursor()
 	var bg := ColorRect.new()
 	bg.color = Color("1d1410")
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -48,8 +54,15 @@ func _ready() -> void:
 	_stage.add_child(radio_view)
 	_bubble = Bubble.new()
 	_stage.add_child(_bubble)
+	# Speech text (bubble.gd) and the cursor label, so the first line doesn't hitch.
+	GlyphWarmup.add_to(_stage, [[Style.font(), Bubble.FONT_SIZE], [Style.font(true), 15], [Style.font(true), 18]])
 	_cursor = Overlays.Cursor.new()
+	_cursor.follow = _stage_mouse
 	_stage.add_child(_cursor)
+	_pad = PadPointer.new()
+	_pad.bounds = Rect2(Vector2.ZERO, STAGE_SIZE)
+	_pad.mouse_position = func() -> Vector2: return _stage.get_local_mouse_position()
+	add_child(_pad)
 	_story = Story.new()
 	_story.world = _world
 	_story.bubble = _bubble
@@ -86,7 +99,11 @@ func _process(_delta: float) -> void:
 	_update_hover()
 
 
+## Where the player is pointing, in stage coordinates: the controller's cursor while it
+## is in use, otherwise the mouse.
 func _stage_mouse() -> Vector2:
+	if _pad != null and _pad.active:
+		return _pad.position
 	return _stage.get_local_mouse_position()
 
 
@@ -101,7 +118,7 @@ func _update_hover() -> void:
 		_cursor.held = ""
 		return
 	if not _story.busy and not _bubble.is_open():
-		var p := get_global_mouse_position()
+		var p := _stage.to_global(_stage_mouse())
 		for t in _world.hotspots():
 			if t.hit_test(p):
 				# The bare floor only matters while holding something.
@@ -133,27 +150,40 @@ func _gui_input(event: InputEvent) -> void:
 			return
 		if event.button_index != MOUSE_BUTTON_LEFT:
 			return
-		if _bubble.advance():
-			return
-		if _story.busy:
-			return
-		if _story.radio_open():
-			_story.radio_click(_stage_mouse())
-			return
-		var item: String = _inventory.item_at(_stage_mouse())
-		if item != "":
-			_held = "" if _held == item else item
-			_inventory.selected = _held
-			return
-		if _hovered == null:
-			_drop_held()
-			return
-		var held := _held
+		_press()
+
+
+## A click at the pointer, from the mouse or the controller's A button.
+func _press() -> void:
+	_cursor.poke()
+	_update_hover()  # The pad may have moved the pointer since the last frame.
+	if _bubble.advance():
+		return
+	if _story.busy:
+		return
+	if _story.radio_open():
+		_story.radio_click(_stage_mouse())
+		return
+	var item: String = _inventory.item_at(_stage_mouse())
+	if item != "":
+		_held = "" if _held == item else item
+		_inventory.selected = _held
+		return
+	if _hovered == null:
 		_drop_held()
-		_story.click(_hovered.id, held, _stage_mouse())
+		return
+	var held := _held
+	_drop_held()
+	_story.click(_hovered.id, held, _stage_mouse())
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_A \
+			and not Sound.settings_open:
+		get_viewport().set_input_as_handled()
+		_pad.activate()
+		_press()
+		return
 	if event.is_action_pressed("back") and _story.radio_open():
 		get_viewport().set_input_as_handled()
 		_story.radio_view.close()
@@ -163,6 +193,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		_drop_held()
 		return
 	super(event)
+
+
+## The drawn hand is the Workshop's cursor, so the system arrow is hidden over the scene:
+## the scene uses a cursor shape no other screen does, swapped for a blank image while the
+## Workshop is open. Buttons and menus keep the ordinary arrow.
+func _hide_system_cursor() -> void:
+	mouse_default_cursor_shape = Control.CURSOR_CROSS
+	var blank := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	blank.fill(Color(0, 0, 0, 0))
+	Input.set_custom_mouse_cursor(ImageTexture.create_from_image(blank), Input.CURSOR_CROSS)
+
+
+func _exit_tree() -> void:
+	Input.set_custom_mouse_cursor(null, Input.CURSOR_CROSS)
 
 
 func _drop_held() -> void:

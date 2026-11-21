@@ -18,6 +18,7 @@ var _screen: TextureRect
 
 func _ready() -> void:
 	use_touch_controls = false
+	pad_aliases = false  # R1 changes gear and R2 fires here, rather than acting as A.
 	var bg := ColorRect.new()
 	bg.color = Color("050308")
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)

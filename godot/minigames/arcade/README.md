@@ -12,7 +12,7 @@ This is a **foundation**: one stage, one boss, three weapons, ready for a design
 | --- | --- | --- |
 | Move | Arrows / WASD | Left stick / D-pad |
 | Fire (hold) | Z / J / Space | A / right trigger |
-| Switch weapon | X / K | X / Y |
+| Switch weapon | X / K | X (Square) |
 | Speed gear (4 settings) | Shift / V | Shoulders |
 | Start (title screen) | Fire / Enter | A / Start |
 | Pause menu | Escape | B |

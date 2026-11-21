@@ -4,7 +4,7 @@ extends CanvasLayer
 ## Layout (computed from the *actual* viewport, re-laid-out on resize/rotate):
 ##   - lower third of the screen
 ##   - left quarter  : D-pad  (move_up/down/left/right)
-##   - right quarter : A (interact) and B (back)
+##   - right quarter : A (interact), B (back) and T (take: a target's second action)
 ## Pads are square and hug the bottom corners, in portrait and landscape.
 ##
 ## Buttons press/release the same InputMap actions as the keyboard, and each
@@ -14,7 +14,7 @@ extends CanvasLayer
 const TouchButton := preload("res://scenes/ui/touch_button.gd")
 const MARGIN := 12.0
 const GAP := 6.0
-const ACTIONS := ["move_up", "move_down", "move_left", "move_right", "interact", "back"]
+const ACTIONS := ["move_up", "move_down", "move_left", "move_right", "interact", "back", "secondary"]
 
 var _root: Control
 var _btn: Dictionary = {}   # action -> TouchButton
@@ -35,7 +35,7 @@ func _ready() -> void:
 	add_child(_root)
 
 	var glyphs := {"move_up": "▲", "move_down": "▼", "move_left": "◀", "move_right": "▶",
-		"interact": "A", "back": "B"}
+		"interact": "A", "back": "B", "secondary": "T"}  # T: take (a target's second action)
 	for action: String in ACTIONS:
 		var b := TouchButton.new()
 		b.action = action
@@ -127,6 +127,7 @@ func _layout() -> void:
 	var rx := vp.x - MARGIN - pad
 	_place("interact", rx + pad * 0.40, top + pad * 0.30, pad * 0.60, pad * 0.70)
 	_place("back", rx, top, pad * 0.45, pad * 0.55)
+	_place("secondary", rx, top + pad * 0.62, pad * 0.36, pad * 0.38)
 
 
 func _place(action: String, x: float, y: float, w: float, h: float) -> void:

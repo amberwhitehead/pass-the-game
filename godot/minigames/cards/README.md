@@ -11,7 +11,7 @@ player's deck without changing the opponent when a card is found.
 
 Select a card in your hand, then click a highlighted lane. Creature cards need an
 empty friendly lane; Bolt targets an enemy; Patch targets a wounded ally. Clicking
-a selected hand card again cancels selection. Ring the brass bell to resolve combat.
+a selected hand card again, or pressing Esc, cancels selection. Ring the brass bell to resolve combat.
 The duel uses a seated first-person view: cards, lane targets, draw pile, score
 track and bell live on a 3D table, with Little Brother sitting opposite you.
 Opening from the hub creates a live 3D window into the table. The hub camera moves
@@ -26,6 +26,17 @@ a card also lowers the hand so it cannot block its target. On touch, tap the bot
 edge to reveal the hand, then tap a card and its target.
 Hover a card to read its enlarged face; selecting a card also keeps its details
 visible for touch play. The Journal button reveals the latest combat messages.
+
+On a controller (any slot), the D-pad or left stick moves a focus between three rows:
+his lanes, your lanes with the bell at their right end, and your hand (focusing the
+hand raises it). The focused target gets the hover highlight and inspector. **A**
+chooses it exactly as a click would; choosing a card jumps the focus to its first
+legal target, and after a play it returns to the hand. **Y** rings the bell, **X**
+opens the rules, and **B** cancels a pending swap or a selected card, closes a panel,
+or opens the pause menu. In dialogs the D-pad moves between buttons and A presses.
+Moving the mouse hands control back to it. The Journal and New match buttons are
+mouse-only. `table_pad.gd` holds all of this; `table_view.gd` only exposes
+`pad_active` and `activate(actor)`.
 
 Little Brother's tutorial uses these rules:
 
@@ -152,6 +163,7 @@ When returning to simulation, compare all 32 subsets and include human feedback.
 - `hub_camera_state.gd`: exact caller camera, HUD, pause and touch-state restoration.
 - `table_entrance.gd`: fallback entrance for running the card scene directly without a hub.
 - `table_hand.gd`: camera-relative hand layout, reveal/retreat and selection.
+- `table_pad.gd`: controller focus over lanes, bell and hand; A/X/Options/B handling (Y is the pause menu; R1 acts as A).
 - `lane_intent.gd`: anonymous destination glows; accepts one or several plans.
 - `card_actor.gd`, `table_button.gd`: physical card and bell targets. Card-face
   textures redraw only when their contents change.

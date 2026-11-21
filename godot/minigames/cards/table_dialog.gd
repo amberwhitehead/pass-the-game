@@ -49,3 +49,9 @@ func setup(title: String, body: String, actions: Array, eyebrow := "THE LITTLE B
 			button.grab_focus()
 	panel.modulate.a = 0
 	create_tween().tween_property(panel, "modulate:a", 1.0, .18)
+
+## Gives the first button focus again, for a controller after the mouse took it away.
+func focus_first() -> void:
+	for button: Button in find_children("*", "Button", true, false):
+		button.grab_focus()
+		return

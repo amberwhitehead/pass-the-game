@@ -33,11 +33,28 @@ var _launching := false
 var _cancel_loading := false
 const TableHandoff := preload("res://minigames/cards/table_handoff.gd")
 const HubState := preload("res://minigames/cards/hub_camera_state.gd")
+const SaveGame := preload("res://autoload/save_game.gd")
+## The minigame being played, so Continue after a closed or reloaded page reopens it
+## (see scenes/escape/hall_resume.gd). Cleared when the player leaves the minigame.
+const RESUME_FLAG := "resume_minigame"
+const CAPTURE_EVERY := 3.0  ## Seconds between progress snapshots while a minigame runs.
+var _capture_t := 0.0
 
 
 func _ready() -> void:
 	layer = 20
 	process_mode = Node.PROCESS_MODE_ALWAYS
+
+
+## Snapshots the running minigame's progress every few seconds, so a closed or reloaded
+## page (which may give no warning) loses at most that much.
+func _process(delta: float) -> void:
+	if current == null or _launching or not Game.autosave:
+		return
+	_capture_t += delta
+	if _capture_t >= CAPTURE_EVERY:
+		_capture_t = 0.0
+		capture_progress()
 
 
 func is_running() -> bool:
@@ -51,7 +68,10 @@ func current_title() -> String:
 ## Stores the running minigame's progress without leaving it (before the app closes).
 func capture_progress() -> void:
 	if is_instance_valid(current) and not current.is_queued_for_deletion():
-		Game.set_minigame_progress(_current_id, current.save_state())
+		var state: Dictionary = current.save_state()
+		# Only write when something changed; this also runs every few seconds.
+		if not SaveGame.same_data(state, Game.minigame_progress(_current_id)):
+			Game.set_minigame_progress(_current_id, state)
 
 
 ## Pauses the calling scene, runs the mini-game, resolves with its result.
@@ -98,6 +118,9 @@ func play(id: String) -> Dictionary:
 	current.resume_state = Game.minigame_progress(id)
 	add_child(current)
 	_launching = false
+	_capture_t = 0.0
+	if Game.autosave:
+		Game.set_flag(RESUME_FLAG, id)
 	started.emit(id)
 	Sound.play("transition", current)
 	if use_handoff:
@@ -109,6 +132,8 @@ func play(id: String) -> Dictionary:
 	var result: Dictionary = await current.finished
 	# A win starts the next visit fresh; otherwise keep where the player left off.
 	Game.set_minigame_progress(id, {} if result.get("won", false) else current.save_state())
+	if Game.get_flag(RESUME_FLAG, "") == id:
+		Game.set_flag(RESUME_FLAG, "")
 	Sound.stop_owner(current)
 	if is_instance_valid(transition):
 		transition.abort()

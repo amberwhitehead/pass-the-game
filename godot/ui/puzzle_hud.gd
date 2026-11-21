@@ -2,10 +2,12 @@ extends Control
 ## A shared instrument readout, with a quiet hierarchy around the physical puzzle.
 const Style := preload("res://ui/game_style.gd")
 const KeyBindings := preload("res://autoload/key_bindings.gd")
+const PadLabels := preload("res://autoload/pad_labels.gd")
 var values: Label
 var hint: Label
 var _hint_copy := ""
 var _button_prompts := false
+var _pad_device := -1  ## The controller last used, for its button symbols; -1 for touch.
 
 func _ready() -> void:
 	_button_prompts = TouchControls.button_prompts
@@ -26,9 +28,16 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		buttons = false
 	elif (event is InputEventJoypadButton and event.pressed) \
-			or (event is InputEventJoypadMotion and absf(event.axis_value) > .5) \
-			or (event is InputEventScreenTouch and event.device != -1):
+			or (event is InputEventJoypadMotion and absf(event.axis_value) > .5):
 		buttons = true
+		if event.device != _pad_device:
+			_pad_device = event.device
+			_button_prompts = not buttons  # Relabel for this pad.
+	elif event is InputEventScreenTouch and event.device != -1:
+		buttons = true
+		if _pad_device != -1:
+			_pad_device = -1  # Touch shows the touch pad's A and B.
+			_button_prompts = not buttons
 	if buttons != _button_prompts:
 		_button_prompts = buttons
 		_refresh_hint()
@@ -37,7 +46,9 @@ func _refresh_hint() -> void:
 	if hint == null:
 		return
 	if _button_prompts:
-		hint.text = _hint_copy.format({"interact": "A", "continue": "A or B", "steer": "◀ ▶", "reach": "▲ ▼"})
+		var a := PadLabels.face(JOY_BUTTON_A, _pad_device) if _pad_device >= 0 else "A"
+		var b := PadLabels.face(JOY_BUTTON_B, _pad_device) if _pad_device >= 0 else "B"
+		hint.text = _hint_copy.format({"interact": a, "continue": "%s or %s" % [a, b], "steer": "◀ ▶", "reach": "▲ ▼"})
 		return
 	var interact := KeyBindings.labels("interact", 2)
 	hint.text = _hint_copy.format({

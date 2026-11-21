@@ -35,6 +35,8 @@ var banter: Label
 var hint: Label
 var history: RichTextLabel
 var locked := true
+## True while a controller drives the focus (table_pad.gd); moving the mouse clears it.
+var pad_active := false
 var _accessories: Node3D
 var _attention: Node3D
 var _preview: Node3D
@@ -152,13 +154,22 @@ func render(state: Dictionary, selected: int, blocked: bool, swap_source := -1) 
 				card.set_empty("Lane %d" % (lane + 1), side)
 			else:
 				card.configure(unit, true)
-			card.set_selected(_eligible(side, lane))
+			var eligible := _eligible(side, lane)
+			card.set_selected(eligible)
+			# Mark every place the selected card can go: red to hit, gold to place or heal.
+			card.set_cue((Actor.Cue.HOSTILE if side == "enemy" else Actor.Cue.TARGET) if eligible else Actor.Cue.NONE)
 			card.disabled = locked
 	if _hand_ids != state.hand:
 		_set_hover(null)
 		_hand_ids = state.hand.duplicate()
 	hand.render(state.hand, state.energy, selected, locked)
 	end_button.disabled = locked
+	# With nothing selected, the cards you can afford pulse; with none, the bell does.
+	var playable := false
+	for id in state.hand:
+		if int(Catalog.get_card(id).cost) <= int(state.energy):
+			playable = true
+	end_button.set_cue(not locked and selected < 0 and not playable)
 	if locked:
 		_set_hover(null)
 	elif selected >= 0:
@@ -203,7 +214,12 @@ func pick_actor(screen_position: Vector2) -> Node3D:
 func activate_at(screen_position: Vector2) -> void:
 	if locked or Sound.settings_open:
 		return
-	var actor := pick_actor(screen_position)
+	activate(pick_actor(screen_position))
+
+## Presses a target as a click on it would: from the pointer, or the controller's focus.
+func activate(actor: Node3D) -> void:
+	if locked or Sound.settings_open:
+		return
 	if actor != null and not actor.disabled:
 		if actor == end_button:
 			end_button.press_animation()
@@ -213,6 +229,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if Sound.settings_open:
 		return
 	if event is InputEventMouseMotion and event.device != -1 and not locked:
+		if pad_active and event.relative.length() < 4.0:
+			return  # A nudged mouse or trackpad doesn't take the table back from the controller.
+		pad_active = false
 		_pointer = event.position - global_position
 		hand.pointer_at(_pointer, size)
 		_set_hover(pick_actor(_pointer))
@@ -228,7 +247,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(_delta: float) -> void:
 	# Re-pick a stationary pointer while the hand moves under it.
-	if not locked and _pointer.x >= 0 and not hand.is_settled():
+	if not locked and not pad_active and _pointer.x >= 0 and not hand.is_settled():
 		_set_hover(pick_actor(_pointer))
 
 func _set_hover(actor: Node3D) -> void:

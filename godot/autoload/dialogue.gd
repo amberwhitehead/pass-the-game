@@ -1,5 +1,5 @@
 extends CanvasLayer
-## Bottom-of-screen dialogue box.
+## Bottom-of-screen dialogue box (above the touch pad and the hall's notices).
 ##   await Dialogue.say("Mira", ["Hello!", "Nice day."])
 ## Advance with the A button / tap / E / Enter / F. Resolves when finished.
 
@@ -23,14 +23,17 @@ func _ready() -> void:
 	_panel = preload("res://ui/conversation_sheet.gd").new()
 	_panel.anchor_left = .12
 	_panel.anchor_right = .88
-	_panel.anchor_top = .07
-	_panel.anchor_bottom = .07
-	_panel.grow_vertical = Control.GROW_DIRECTION_END
+	_panel.anchor_top = .95
+	_panel.anchor_bottom = .95
+	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_panel.visible = false
 	add_child(_panel)
 	_name = _panel.speaker
 	_text = _panel.copy
 	_hint = _panel.hint
+	# The sheet's speaker, body and hint text (ui/conversation_sheet.gd).
+	var Style := preload("res://ui/game_style.gd")
+	preload("res://ui/glyph_warmup.gd").add_to(self, [[Style.font(true), 28], [_text.get_theme_font("normal_font"), 22], [_hint.get_theme_font("font"), 12]])
 
 
 func say(speaker: String, lines: Array) -> void:
@@ -59,6 +62,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not active or Sound.settings_open:
 		return
 	var advance := event.is_action_pressed("interact")
+	# A click continues the conversation it started (the hall interacts on click).
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT \
+			and event.device != InputEvent.DEVICE_ID_EMULATION:
+		advance = true
 	# Tapping the dialogue panel itself also advances.
 	if event is InputEventScreenTouch and event.pressed \
 			and _panel.get_global_rect().has_point(event.position):

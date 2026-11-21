@@ -43,7 +43,9 @@ func render(ids: Array, energy: int, selected: int, locked: bool) -> void:
 			cards.append(card)
 	for i in cards.size():
 		cards[i].set_selected(i == selected)
-		cards[i].set_available(int(Catalog.get_card(ids[i]).cost) <= energy)
+		var affordable := int(Catalog.get_card(ids[i]).cost) <= energy
+		cards[i].set_available(affordable)
+		cards[i].set_cue(Actor.Cue.PLAYABLE if affordable and selected < 0 and not locked else Actor.Cue.NONE)
 		cards[i].disabled = locked
 	_update_collisions()
 	_layout()

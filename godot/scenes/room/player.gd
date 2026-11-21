@@ -8,6 +8,8 @@ extends CharacterBody3D
 ## Gamepad:   left stick walk/strafe, right stick look, D-pad walk/turn, A interact.
 
 signal focus_changed(target: Interactable)
+## The player has just used `target` (the first-person hands reach toward it).
+signal reached(target: Interactable)
 
 const MouseCapture := preload("res://scenes/room/mouse_capture.gd")
 ## Ignored while still held from a menu or modal, until released (see suppress_held_inputs).
@@ -153,22 +155,43 @@ func _update_target() -> void:
 	var best: Interactable = null
 	var best_score := -INF
 	var fwd := -camera.global_basis.z
+	# What the crosshair is actually on wins: any part of an object (a stand's body, its
+	# prism, either knob) picks that object, even when a neighbour's knob is nearer in
+	# angle. Without a hit, the nearest in angle within the reach cone is used.
+	var hit := _crosshair_hit(fwd)
+	var on: Node = hit.get("collider")
+	var on_best: Interactable = null
+	var on_score := -INF
 	for area in _reach.get_overlapping_areas():
 		if area is Interactable and area.is_visible_in_tree() and not _frozen():
 			var point: Vector3 = area.get_focus_position()
 			var to: Vector3 = point - camera.global_position
 			var dist := to.length()
-			if dist > reach:
-				continue
 			var facing := fwd.dot(to / maxf(dist, 0.001))
-			if facing < reach_cone:
-				continue
-			if not _can_see(area, point):
-				continue
 			var score := facing - dist * 0.025
+			# Part of what the crosshair is on: its knob may sit round the side, a little
+			# out of the cone or reach, and still be the one meant.
+			var root: Node = area.outline_root()
+			if on != null and (on == root or root.is_ancestor_of(on)) and dist <= reach + 0.6 \
+					and score > on_score:
+				on_best = area
+				on_score = score
+			if dist > reach or facing < reach_cone or not _can_see(area, point):
+				continue
 			if score > best_score:
 				best = area
 				best_score = score
+	# It wins only if the hit is nearer that object's middle than the angle pick's own
+	# point: so stand M beats stand D's nearby knob, while a small tray resting on a big
+	# station's table stays the tray's.
+	if on_best != null and best == null:
+		best = on_best
+	elif on_best != null and on_best != best:
+		var at: Vector3 = hit.position
+		var flat := func(a: Vector3, b: Vector3) -> float: return Vector2(a.x - b.x, a.z - b.z).length()
+		var to_middle: float = flat.call(at, on_best.outline_root().global_position)
+		if to_middle < ON_FOOTPRINT or to_middle < flat.call(at, best.get_focus_position()):
+			best = on_best
 	if best != target:
 		if target:
 			target.set_focused(false)
@@ -178,6 +201,16 @@ func _update_target() -> void:
 		focus_changed.emit(target)
 
 
+const ON_FOOTPRINT := 0.45  ## A hit this close to an object's middle is plainly on it.
+
+## The first solid thing straight ahead of the crosshair within reach: the ray's hit
+## ({collider, position, ...}), or {} for nothing.
+func _crosshair_hit(fwd: Vector3) -> Dictionary:
+	var ray := PhysicsRayQueryParameters3D.create(camera.global_position, camera.global_position + fwd * reach, 1, [get_rid(), _reach.get_rid()])
+	ray.collide_with_areas = false
+	return get_world_3d().direct_space_state.intersect_ray(ray)
+
+
 func _can_see(area: Interactable, point: Vector3) -> bool:
 	var ray := PhysicsRayQueryParameters3D.create(camera.global_position, point, 1, [get_rid()])
 	ray.collide_with_areas = false
@@ -185,16 +218,71 @@ func _can_see(area: Interactable, point: Vector3) -> bool:
 	if hit.is_empty():
 		return true
 	var collider: Node = hit.collider
-	return area.is_ancestor_of(collider) or collider == area \
+	# A knob seen past its own stand's body still counts as seen: it's the same object.
+	var root: Node = area.outline_root()
+	return area.is_ancestor_of(collider) or collider == area or root.is_ancestor_of(collider) \
 		or camera.global_position.distance_to(hit.position) + 0.18 >= camera.global_position.distance_to(point)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("interact") or event.is_echo():
+	if event is InputEventJoypadMotion and event.axis == JOY_AXIS_TRIGGER_RIGHT:
+		_r2_motion(event)
 		return
-	if _frozen() or target == null:
+	# A left click interacts while the mouse is looking around (E still works too).
+	var click: bool = event is InputEventMouseButton and event.pressed \
+		and event.button_index == MOUSE_BUTTON_LEFT and event.device != InputEvent.DEVICE_ID_EMULATION \
+		and mouse_capture != null and mouse_capture.is_captured()
+	var right_click: bool = event is InputEventMouseButton and event.pressed \
+		and event.button_index == MOUSE_BUTTON_RIGHT and event.device != InputEvent.DEVICE_ID_EMULATION \
+		and mouse_capture != null and mouse_capture.is_captured()
+	if right_click or ((event is InputEventKey or event is InputEventAction or event is InputEventJoypadButton) \
+			and event.is_action_pressed("secondary") and not event.is_echo()):
+		_use_secondary()
+		return
+	if not (click or event.is_action_pressed("interact")) or event.is_echo():
+		return
+	if _frozen():
 		return
 	if Dialogue.last_closed_frame == Engine.get_process_frames():
 		return  # same press that just closed a dialogue
 	get_viewport().set_input_as_handled()
+	if target == null:
+		shrug()  # Nothing here to use.
+		return
+	reached.emit(target)
 	target.interact(self)
+
+
+## "You tried, but that does nothing here": the hands shrug (fp_hands.gd).
+func shrug() -> void:
+	get_tree().call_group("player_feedback", "shrug")
+
+
+## A target's second action (right-click, R, R2 or □), e.g. taking a prism off its stand.
+func _use_secondary() -> void:
+	if _frozen() or Dialogue.last_closed_frame == Engine.get_process_frames():
+		return
+	get_viewport().set_input_as_handled()
+	if target == null or target.secondary_prompt.is_empty():
+		shrug()  # Nothing here has a second action.
+		return
+	reached.emit(target)
+	target.secondary(self)
+
+
+
+## R2 is analog. Read per event, with hysteresis, so a quick tap that goes up and back
+## between two game ticks still counts (polling once per tick missed those), and a
+## trigger resting around the threshold doesn't fire twice.
+const R2_PRESS := 0.35
+const R2_RELEASE := 0.15
+var _r2_down := {}  ## device -> R2 counted as held
+
+
+func _r2_motion(event: InputEventJoypadMotion) -> void:
+	var down: bool = _r2_down.get(event.device, false)
+	if not down and event.axis_value >= R2_PRESS:
+		_r2_down[event.device] = true
+		_use_secondary()
+	elif down and event.axis_value <= R2_RELEASE:
+		_r2_down[event.device] = false

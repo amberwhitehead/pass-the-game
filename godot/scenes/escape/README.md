@@ -67,7 +67,11 @@ removing pieces afterward does not trap the player.
   physical controls and rendering. Beam meshes/materials are pooled during aiming;
   `optics_hardware.gd` builds the door receiver and relay cabinet.
 - `carry_inventory.gd`, `carry_slot.gd`, `carry_visual.gd`: one-item ownership,
-  compatible exchanges, reward cradles and the object held in view.
+  compatible exchanges, reward cradles and the object held in view (in the right hand).
+- `fp_hands.gd`: the player's first-person hands, built from primitives on the camera:
+  they swing while walking, one reaches out on interact, the left waves when a
+  conversation opens, and the right holds the carried item. Hidden in minigames,
+  cinematics and optics aiming. (They replaced the HUD's "In your hand" panel.)
 - `reward_pedestal.gd`, `reward_reveal.gd`: reward contents, animation and camera
   lifecycle. The reveal does not pause or replace the room.
 - `hub_hud.gd`: carry state, objective and interaction/caption feedback.

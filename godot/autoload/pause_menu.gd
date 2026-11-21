@@ -16,6 +16,7 @@ var sound_button: Button
 var controls_button: Button
 var credits_button: Button
 var quit_button: Button
+var relaunch_button: Button
 var controls: ControlsMenu
 var credits: CreditsScreen
 var _veil: ColorRect
@@ -53,6 +54,8 @@ func _ready() -> void:
 	credits_button = _button(column, "Credits", func():
 		if is_open():
 			credits.open())
+	relaunch_button = _button(column, "Relaunch game", relaunch)
+	relaunch_button.tooltip_text = "Save, reload the page with the latest build, and carry on where you were"
 	quit_button = _button(column, "Quit to title", _quit_to_title)
 	_veil.hide()
 	controls = ControlsMenu.new()
@@ -139,6 +142,26 @@ func _leave_minigame() -> void:
 		game.finish({"won": false, "quit": true})
 
 
+## Saves everything (a minigame's progress and that it was open included), then reloads
+## the game, the same as the browser's reload, so it runs the latest build. The reloaded
+## page skips the title and continues straight back to where the player was (title.gd
+## reads ?resume=1). On desktop it starts a fresh copy of the game and closes this one.
+func relaunch() -> void:
+	if Game.autosave:
+		MiniGames.capture_progress()
+	Game.save_now()
+	relaunch_button.disabled = true
+	# The Web build writes saves to IndexedDB in the background; give it a moment.
+	await get_tree().create_timer(.6, true, false, true).timeout
+	if OS.has_feature("web"):
+		var resume := "1" if Game.autosave else "0"
+		JavaScriptBridge.eval("(function(){var u=new URL(window.location.href);" \
+			+ "u.searchParams.set('resume','%s');window.location.replace(u.toString());})()" % resume)
+	else:
+		OS.create_instance(OS.get_cmdline_args())
+		get_tree().quit()
+
+
 ## From a minigame this leaves it first, which keeps its progress for the next visit.
 func _quit_to_title() -> void:
 	if _minigame != null:
@@ -153,6 +176,6 @@ func _quit_to_title() -> void:
 func _input(event: InputEvent) -> void:
 	if not is_open() or Sound.settings_open or controls.is_open() or credits.is_open():
 		return  # Controls and Credits own every key while up, including Escape.
-	if event.is_action_pressed("back") and not event.is_echo():
+	if (event.is_action_pressed("back") or event.is_action_pressed("pause")) and not event.is_echo():
 		get_viewport().set_input_as_handled()
 		close()

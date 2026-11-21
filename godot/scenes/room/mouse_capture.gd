@@ -4,7 +4,9 @@ extends CanvasLayer
 ##
 ## Browsers only grant pointer lock from a genuine input event and may drop it at any moment
 ## (Escape, switching windows), so capture is requested from input callbacks and never assumed.
-## While keyboard/mouse play is waiting for it, a "click to continue" card blocks the player.
+## While it waits, nothing is shown and nothing is blocked: keys and the controller work at
+## once, and the first click (which a browser needs anyway) takes the cursor for looking.
+## The controls are on the placard by the entrance (controls_placard.gd).
 ## Touch and gamepad play never need capture; the last device used decides.
 
 const Style := preload("res://ui/game_style.gd")
@@ -58,8 +60,14 @@ func wants_capture() -> bool:
 		and not MiniGames.is_running() and not SceneManager.is_busy()
 
 
-## True while keyboard/mouse play is waiting for the cursor: the player ignores input.
+## Kept for callers; the player is never held up waiting for the cursor any more (the
+## "Click to look around" card is gone), so this is always false.
 func blocks_input() -> bool:
+	return false
+
+
+## True while keyboard/mouse play is still waiting for the browser to give it the cursor.
+func awaiting_capture() -> bool:
 	return wants_capture() and not is_captured()
 
 
@@ -91,7 +99,7 @@ func _process(_delta: float) -> void:
 	if captured and not _was_captured:
 		_captured_frame = Engine.get_process_frames()
 	_was_captured = captured
-	var show := blocks_input()
+	var show := false  # The card is retired; see the note at the top.
 	if show and not _card.visible:
 		_hint.text = _hint_text()  # Keys may have been rebound in Controls.
 	_card.visible = show
@@ -108,9 +116,9 @@ func _input(event: InputEvent) -> void:
 		keyboard_mouse = supported()
 	elif event is InputEventMouseButton and event.pressed and not emulated:
 		keyboard_mouse = supported()
-		if wants_capture() and not is_captured():
+		if awaiting_capture():
 			request()
-			get_viewport().set_input_as_handled()  # The recovery click does nothing else.
+			get_viewport().set_input_as_handled()  # The click that takes the cursor does nothing else.
 	elif event is InputEventScreenTouch or event is InputEventJoypadButton \
 			or (event is InputEventJoypadMotion and absf(event.axis_value) > 0.5):
 		keyboard_mouse = false
@@ -138,8 +146,10 @@ func _build_card() -> void:
 	var title := Style.label("Click to look around", 22, Style.PAPER, true)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(title)
+	# The controls are on the placard by the entrance (controls_placard.gd), not here.
 	_hint = Style.label(_hint_text(), 14, Style.MUTED)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint.visible = false
 	column.add_child(_hint)
 	_card.visible = false
 	add_child(_card)

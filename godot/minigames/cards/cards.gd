@@ -12,6 +12,7 @@ const Copy := preload("res://minigames/cards/encounter_text.gd")
 const Config := preload("res://minigames/cards/match_config.gd")
 const Progression := preload("res://minigames/cards/deck_progression.gd")
 const SaveGame := preload("res://autoload/save_game.gd")
+const Pad := preload("res://minigames/cards/table_pad.gd")
 
 @export_enum("little_brother", "older_brother") var opponent_id := "little_brother"
 var match_state: RefCounted
@@ -31,6 +32,7 @@ var _encounter_settings: Dictionary = {}
 var _match_seed := 1
 var _actions: Array = []  # Every rules call this match, so a later visit can replay it exactly.
 var _resumed := false
+var pad: Node  ## Controller focus and buttons (table_pad.gd).
 
 
 func _ready() -> void:
@@ -49,6 +51,10 @@ func _ready() -> void:
 	table.end_requested.connect(_end_turn)
 	table.rules_requested.connect(_show_rules)
 	table.restart_requested.connect(_confirm_restart)
+	pad = Pad.new()
+	pad.name = "Pad"
+	pad.configure(self, table)
+	add_child(pad)
 	super()
 	if _older():
 		# Re-entering the room starts a fresh deal; the pure rules stay seedable.
@@ -295,6 +301,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("back") and _swap_source >= 0 and not _busy:
 		_swap_source = -1
 		table.hint.text = "Switcheroo: choose the first friendly creature."
+		_refresh()
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("back") and _selected >= 0 and not _busy and _shown.winner == "":
+		_selected = -1
+		table.hint.text = "Select a card, then choose its target."
 		_refresh()
 		get_viewport().set_input_as_handled()
 		return

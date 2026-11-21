@@ -5,6 +5,7 @@ extends Node
 const DeckProgression := preload("res://minigames/cards/deck_progression.gd")
 const SaveGame := preload("res://autoload/save_game.gd")
 const KeyBindings := preload("res://autoload/key_bindings.gd")
+const ALL_DEVICES := -1  # InputEvent.device value that matches every controller.
 const SAVE_DELAY := 0.5  # Batches rapid changes, such as turning a prism wheel, into one write.
 
 signal flag_changed(flag: String, value: Variant)
@@ -135,6 +136,9 @@ func _ready() -> void:
 	# system fonts to fall back on), so ship DejaVu Sans as the default and the fallback.
 	ThemeDB.fallback_font = load("res://assets/fonts/DejaVuSans.ttf")
 	_register_actions()
+	var aliases := preload("res://autoload/pad_aliases.gd").new()
+	aliases.name = "PadAliases"
+	add_child(aliases)  # R1 and R2 act as A.
 	# Background browser QA can mute this run without changing normal playtests.
 	if OS.has_feature("web") and bool(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('muted') === '1'")):
 		AudioServer.set_bus_mute(0, true)
@@ -155,8 +159,10 @@ func get_flag(flag: String, default: Variant = false) -> Variant:
 ##   move_left/right  turn left/right       (arrows, D-pad, touch ◀ ▶)
 ##   strafe_left/right sidestep             (A/D, left stick X)
 ##   look_*           look around           (right stick; the captured mouse looks directly)
-##   jump                                   (Space)
-##   interact / back                        (E/Enter/F, pad A) / (Esc/Backspace, pad B)
+##   jump                                   (Space, pad L1)
+##   interact / back                        (click in the hall, E/Enter/F, pad A/R1) / (Esc/Backspace, pad B)
+##   secondary        a target's second action, e.g. take a prism (right-click in the hall, R, pad R2 or X/Square)
+##   pause            the pause menu        (pad Y; keyboard and touch use back)
 ## Touch: on-screen pad buttons + drag-to-look (see TouchControls / Player).
 ## Keyboard keys come from KeyBindings (defaults, then the player's saved choices).
 func _register_actions() -> void:
@@ -167,6 +173,9 @@ func _register_actions() -> void:
 		"move_right": [JOY_BUTTON_DPAD_RIGHT],
 		"interact": [JOY_BUTTON_A],
 		"back": [JOY_BUTTON_B],
+		"pause": [JOY_BUTTON_Y],  # Triangle: the pause menu, in the hall and in minigames.
+		"jump": [JOY_BUTTON_LEFT_SHOULDER],  # L1 (R1 interacts: pad_aliases.gd)
+		"secondary": [JOY_BUTTON_X],  # Square / X, like R2: a target's second action
 	}
 	# [action, axis, direction]
 	var pad_axes := [
@@ -174,22 +183,40 @@ func _register_actions() -> void:
 		["strafe_left", JOY_AXIS_LEFT_X, -1.0], ["strafe_right", JOY_AXIS_LEFT_X, 1.0],
 		["look_left", JOY_AXIS_RIGHT_X, -1.0], ["look_right", JOY_AXIS_RIGHT_X, 1.0],
 		["look_up", JOY_AXIS_RIGHT_Y, -1.0], ["look_down", JOY_AXIS_RIGHT_Y, 1.0],
+		["secondary", JOY_AXIS_TRIGGER_RIGHT, 1.0],  # R2: a target's second action (the player reads it per event)
 	]
-	for action in ["look_left", "look_right", "look_up", "look_down", "strafe_left", "strafe_right"]:
+	for action in ["look_left", "look_right", "look_up", "look_down", "strafe_left", "strafe_right", "pause", "secondary"]:
 		_ensure(action)
 	for entry: Dictionary in KeyBindings.ACTIONS:
 		_ensure(entry.action)
 	KeyBindings.apply(KeyBindings.defaults())
+	# Pad events made in code default to device 0, so they only matched the first
+	# controller; browsers often report a pad in a later slot (a DualSense in Chrome
+	# showed up as 2). ALL_DEVICES (-1) matches any pad, like Godot's own ui_* events.
 	for action: String in pad_buttons:
 		for btn: int in pad_buttons[action]:
 			var ev := InputEventJoypadButton.new()
+			ev.device = ALL_DEVICES
 			ev.button_index = btn as JoyButton
 			InputMap.action_add_event(action, ev)
 	for a: Array in pad_axes:
 		var ev := InputEventJoypadMotion.new()
+		ev.device = ALL_DEVICES
 		ev.axis = a[1] as JoyAxis
 		ev.axis_value = a[2]
 		InputMap.action_add_event(a[0], ev)
+	# Godot's built-in ui_accept/ui_cancel have no pad buttons, so menus could be
+	# navigated with the D-pad but not confirmed. Mirror the keyboard, where Enter
+	# and Escape are both ui_* and interact/back: pad A accepts, pad B cancels.
+	for pair: Array in [["ui_accept", JOY_BUTTON_A], ["ui_cancel", JOY_BUTTON_B]]:
+		var ev := InputEventJoypadButton.new()
+		ev.device = ALL_DEVICES
+		ev.button_index = pair[1] as JoyButton
+		if not InputMap.action_has_event(pair[0], ev):
+			InputMap.action_add_event(pair[0], ev)
+	var take_key := InputEventKey.new()
+	take_key.physical_keycode = KEY_R
+	InputMap.action_add_event("secondary", take_key)
 	# Saved keyboard choices replace only key events. Headless runs (tests, exports)
 	# keep the defaults so they never depend on, or read, the player's preferences.
 	if DisplayServer.get_name() != "headless":

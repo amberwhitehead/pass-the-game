@@ -37,6 +37,9 @@ const CONTRIBUTORS := [
 	# Wording agreed with Patrick Doane, who asked that Claude take most of the credit.
 	{"name": "Claude Opus 5.5, with Patrick Doane", "role": "November 19, 2026",
 		"work": "04 Workshop: the 50s Engineer, his cat Fuse and a time loop, a hand-drawn point-and-click story drawn entirely from code, with a TV that shows the future and a radio with three stations. CHRONO RAIDER, a 1985 arcade shooter in the secret room. A procedural chiptune music system. Room revisits: rooms that change each other, starting with Egypt's lost sun. Written, drawn and composed by Claude Opus 5.5 in Claude Code; designed with, directed and playtested by Patrick Doane."},
+	# Name agreed with the contributor.
+	{"name": "Daniel Pennypacker", "role": "November 20, 2026",
+		"work": "Controller support across the hall and every minigame, with button icons drawn to match a PlayStation or Xbox pad. A cleaner interface: a small prompt under the crosshair, a white outline on what you target, first-person hands that reach, wave and shrug, an objective console with a laser pointer and a How to play placard. Continue and Relaunch return you to where you were. Written UI rules for future contributors and AI agents. Built with Claude Opus 5.5 in Claude Code."},
 ]
 
 ## Third-party work used in the game. Their license notices stay beside the assets.

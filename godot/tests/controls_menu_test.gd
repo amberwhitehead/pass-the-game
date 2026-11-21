@@ -255,11 +255,13 @@ func _hints_follow_bindings() -> void:
 	close.mouse_entered.emit()
 	_expect(close.tooltip_text.begins_with("Leave · Q (keyboard)"), "The puzzle close tooltip names the new Back key")
 	var rules: String = load("res://minigames/cards/encounter_text.gd").rules(false)
-	_expect("Q opens the menu" in rules and not "Esc opens" in rules, "Card table rules name the new Back key")
+	_expect("Q cancels a selected card" in rules and not "Esc cancels" in rules, "Card table rules name the new Back key")
 	var sheet: PanelContainer = load("res://ui/conversation_sheet.gd").new()
 	root.add_child(sheet)
 	sheet.arrive()
-	_expect(sheet.hint.text == "G  /  CONTINUE", "Dialogue names the new Interact key (%s)" % sheet.hint.text)
+	var pad_in := not Input.get_connected_joypads().is_empty()  # This machine may have a pad plugged in.
+	_expect((sheet.glyph.visible and sheet.hint.text.strip_edges() == "CONTINUE") if pad_in else sheet.hint.text == "CLICK  /  CONTINUE",
+		"Dialogue shows the pad's R1, or says click, to continue (%s)" % sheet.hint.text)
 	sheet.queue_free()
 	_expect("J" in _player.mouse_capture._hint_text() and "Q for the menu" in _player.mouse_capture._hint_text(),
 		"The click-to-look card names the new keys")

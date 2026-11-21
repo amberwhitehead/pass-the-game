@@ -2,9 +2,12 @@ extends PanelContainer
 ## Shared dialogue typography and frame; callers retain their story/typewriter logic.
 const Style := preload("res://ui/game_style.gd")
 const KeyBindings := preload("res://autoload/key_bindings.gd")
+const PadGlyph := preload("res://ui/pad_glyph.gd")
+const PadLabels := preload("res://autoload/pad_labels.gd")
 var speaker: Label
 var copy: RichTextLabel
 var hint: Label
+var glyph: Control  ## The controller's R1, drawn, before the hint while a pad is plugged in.
 var _arrival: Tween
 var _key := ""  # Empty = keyboard: the current Interact key.
 
@@ -25,8 +28,14 @@ func _init() -> void:
 	speaker.add_theme_color_override("font_color", Style.GOLD)
 	speaker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(speaker)
+	glyph = PadGlyph.new()
+	glyph.button = "r1"
+	glyph.glyph_height = 16.0
+	glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	glyph.visible = false
+	header.add_child(glyph)
 	hint = Label.new()
-	hint.text = "E  /  CONTINUE"
+	hint.text = "CLICK  /  CONTINUE"
 	hint.add_theme_font_size_override("font_size", 12)
 	hint.add_theme_color_override("font_color", Style.MUTED)
 	header.add_child(hint)
@@ -53,13 +62,20 @@ func arrive() -> void:
 func _input(event: InputEvent) -> void:
 	if not visible or event is InputEventMouseMotion:
 		return
-	if event is InputEventKey:
+	if event is InputEventKey or event is InputEventMouseButton \
+			or event is InputEventJoypadButton or event is InputEventJoypadMotion:
 		_key = ""
-	elif event is InputEventJoypadButton or event is InputEventJoypadMotion:
-		_key = "A"
 	elif event is InputEventScreenTouch and event.device != -1:
 		_key = "TAP"
 	_show_hint()
 
+## The controller's R1 button, drawn, while one is plugged in; otherwise CLICK (TAP
+## after touching the screen).
 func _show_hint() -> void:
-	hint.text = (_key if not _key.is_empty() else KeyBindings.label("interact")) + "  /  CONTINUE"
+	var pad := _key.is_empty() and not Input.get_connected_joypads().is_empty()
+	glyph.visible = pad
+	if pad:
+		glyph.kind = PadLabels.kind()
+		hint.text = "  CONTINUE"
+		return
+	hint.text = (_key if not _key.is_empty() else "CLICK") + "  /  CONTINUE"

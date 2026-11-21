@@ -527,3 +527,65 @@ the sun disc's glow going out on success. All fixed, with tests for each.
 ### This entry and the credits
 
 Patrick Doane asked that Claude take most of the credit; `ui/credits.gd` says so.
+
+## Daniel Pennypacker — November 20, 2026
+
+Built with Claude Opus 5.5 in Claude Code, playtested with a PlayStation (DualSense)
+controller and a mouse in the Web build. The rules this turn settled are written down in
+[`docs/UI_PATTERNS.md`](docs/UI_PATTERNS.md).
+
+### Controller support
+
+- **Any pad, any slot.** Chrome put the DualSense in slot 2, and every pad binding made in
+  code only listened to slot 0, so ✕ did nothing in menus. All bindings now listen to every
+  pad, and ✕/○ confirm and cancel in menus.
+- **One layout everywhere:** ✕ or R1 acts, R2 or □ is a thing's second action (R2 read per
+  event, so quick analog taps count), ○ goes back (and in a minigame leaves it like its ×
+  button), △ opens the pause menu, L1 jumps.
+- **The Workshop** gets a stick-driven cursor, drawn as a hand-inked pointing hand.
+- **The card tables** get a controller focus that steps between hand, lanes and bell, only
+  between legal targets once a card is chosen; options pulse quietly and the current one
+  has a bold white frame; a card with nowhere to go says why.
+- **Drawn button icons** (`ui/pad_glyph.gd`) match the pad that is plugged in: PlayStation
+  ✕ ○ □ △ in their colours and L1/R1/L2/R2, Xbox A B X Y and LB/RB/LT/RT, plain shapes for
+  others. Prompts say Click / Right-click when no pad is plugged in.
+- **Chrono Raider** already read every pad; it keeps its own shoulder and trigger buttons.
+
+### A cleaner interface
+
+- **Prompts.** A small caption under the crosshair (`[R1] Adjust prism B`), naming the
+  thing; two actions stack with their keys aligned. Characters lost the name over their
+  heads ("Talk to …" instead), and prism stands their floating tags (their letter is on the
+  stand). The Click to look around card is gone.
+- **Targeting** picks what the crosshair is on (a stand's body no longer targets its
+  neighbour's knob) and outlines its silhouette in white.
+- **First-person hands** swing while walking, reach to use or place (the right hand holds
+  the item), wave when a conversation opens, and shrug, palms up, when an action does
+  nothing here (an empty mount, nothing targeted, ○ with nothing to go back from).
+- **Prism stands:** click / R1 adjusts, right-click / R2 / □ takes the prism into your hand.
+- **In-world information:** the objective moved from a screen panel to a console by the
+  entrance whose laser points at the next goal; the controls to a How to play placard;
+  conversations to the bottom of the screen.
+- **Smoother:** the font cache is warmed so the first speech bubble doesn't hitch; outline
+  and laser shaders are warmed during the fade-in; the prompt no longer redraws every frame.
+
+### Never losing your place
+
+- The save records the room you were in and where you stood; Continue after a reload or a
+  closed tab reopens that room (its progress is now snapshotted every few seconds) or puts
+  you back on your spot. Leaving on purpose still returns to the hall.
+- **Pause → Relaunch game** saves, reloads the page so the latest build runs, and continues
+  straight back. The local server sends `Cache-Control: no-store`, so a reload always gets
+  the latest build.
+
+### Rules for Claude and other agents
+
+[`docs/UI_PATTERNS.md`](docs/UI_PATTERNS.md) records the controller layout, button icons,
+prompts, targeting, feedback and highlighting rules; `AGENTS.md` asks agents to read it
+before UI work, and a project skill (`.claude/skills/ui-patterns`) carries the summary.
+
+### Tests and tools
+
+New suites: `workshop_pad_test`, `cards_pad_test`, `pad_back_test`, `objective_console_test`,
+`fp_hands_test`, `hall_perf_test`; `minigame_resume_test` covers an interrupted visit. The
+test runner's per-suite limit went from 20 s to 40 s (`workshop_story_test` takes ~19 s).

@@ -33,6 +33,7 @@ var _leaving := false
 
 func _ready() -> void:
 	theme = Style.theme()
+	_resume_after_relaunch.call_deferred()
 	TouchControls.set_enabled(false)
 	SaveGame.adopt_legacy()
 	set_anchors_preset(PRESET_FULL_RECT)
@@ -191,3 +192,16 @@ static func _when(unix: int) -> String:
 	var bias := int(Time.get_time_zone_from_system().get("bias", 0)) * 60
 	var t := Time.get_datetime_dict_from_unix_time(unix + bias)
 	return "%s %d, %02d:%02d" % [MONTHS[t.month - 1], t.day, t.hour, t.minute]
+
+
+## After "Relaunch game" (pause menu), the page comes back with ?resume=1: continue the
+## latest save at once, so a relaunch lands where the player was. The flag is removed
+## from the address first, so a later manual reload shows the title as usual.
+func _resume_after_relaunch() -> void:
+	if not OS.has_feature("web"):
+		return
+	var flag: Variant = JavaScriptBridge.eval("(function(){var u=new URL(window.location.href);" \
+		+ "var r=u.searchParams.get('resume');if(r!==null){u.searchParams.delete('resume');" \
+		+ "history.replaceState(null,'',u.toString());}return r||'';})()")
+	if str(flag) == "1":
+		_continue()
