@@ -5,6 +5,7 @@ extends Node
 const DeckProgression := preload("res://minigames/cards/deck_progression.gd")
 const SaveGame := preload("res://autoload/save_game.gd")
 const KeyBindings := preload("res://autoload/key_bindings.gd")
+const ALL_DEVICES := -1  # InputEvent.device value that matches every controller.
 const SAVE_DELAY := 0.5  # Batches rapid changes, such as turning a prism wheel, into one write.
 
 signal flag_changed(flag: String, value: Variant)
@@ -180,13 +181,18 @@ func _register_actions() -> void:
 	for entry: Dictionary in KeyBindings.ACTIONS:
 		_ensure(entry.action)
 	KeyBindings.apply(KeyBindings.defaults())
+	# Pad events made in code default to device 0, so they only matched the first
+	# controller; browsers often report a pad in a later slot (a DualSense in Chrome
+	# showed up as 2). ALL_DEVICES (-1) matches any pad, like Godot's own ui_* events.
 	for action: String in pad_buttons:
 		for btn: int in pad_buttons[action]:
 			var ev := InputEventJoypadButton.new()
+			ev.device = ALL_DEVICES
 			ev.button_index = btn as JoyButton
 			InputMap.action_add_event(action, ev)
 	for a: Array in pad_axes:
 		var ev := InputEventJoypadMotion.new()
+		ev.device = ALL_DEVICES
 		ev.axis = a[1] as JoyAxis
 		ev.axis_value = a[2]
 		InputMap.action_add_event(a[0], ev)
@@ -195,6 +201,7 @@ func _register_actions() -> void:
 	# and Escape are both ui_* and interact/back: pad A accepts, pad B cancels.
 	for pair: Array in [["ui_accept", JOY_BUTTON_A], ["ui_cancel", JOY_BUTTON_B]]:
 		var ev := InputEventJoypadButton.new()
+		ev.device = ALL_DEVICES
 		ev.button_index = pair[1] as JoyButton
 		if not InputMap.action_has_event(pair[0], ev):
 			InputMap.action_add_event(pair[0], ev)
