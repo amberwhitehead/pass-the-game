@@ -30,7 +30,31 @@ func secondary(_player: Node3D) -> void:
 
 func set_focused(value: bool) -> void:
 	focused = value
+	_set_outline(value)
 	_on_focus_changed(value)
+
+
+## The whole object this belongs to, for the focus outline and for matching what the
+## crosshair is on: itself, unless it is one part of something bigger (a stand's knob).
+func outline_root() -> Node3D:
+	return self
+
+
+static var _outline: ShaderMaterial
+
+## A thin white rim round the targeted object, so it is clear which one a press will use.
+func _set_outline(on: bool) -> void:
+	if _outline == null:
+		_outline = ShaderMaterial.new()
+		_outline.shader = preload("res://shaders/focus_outline.gdshader")
+	for mesh: Node in outline_root().find_children("*", "MeshInstance3D", true, false):
+		var m := mesh as MeshInstance3D
+		if on and m.material_overlay == null:
+			m.material_overlay = _outline
+			m.set_meta("focus_outline", true)
+		elif not on and m.has_meta("focus_outline"):
+			m.material_overlay = null
+			m.remove_meta("focus_outline")
 
 
 func get_focus_position() -> Vector3:

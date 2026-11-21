@@ -155,22 +155,43 @@ func _update_target() -> void:
 	var best: Interactable = null
 	var best_score := -INF
 	var fwd := -camera.global_basis.z
+	# What the crosshair is actually on wins: any part of an object (a stand's body, its
+	# prism, either knob) picks that object, even when a neighbour's knob is nearer in
+	# angle. Without a hit, the nearest in angle within the reach cone is used.
+	var hit := _crosshair_hit(fwd)
+	var on: Node = hit.get("collider")
+	var on_best: Interactable = null
+	var on_score := -INF
 	for area in _reach.get_overlapping_areas():
 		if area is Interactable and area.is_visible_in_tree() and not _frozen():
 			var point: Vector3 = area.get_focus_position()
 			var to: Vector3 = point - camera.global_position
 			var dist := to.length()
-			if dist > reach:
-				continue
 			var facing := fwd.dot(to / maxf(dist, 0.001))
-			if facing < reach_cone:
-				continue
-			if not _can_see(area, point):
-				continue
 			var score := facing - dist * 0.025
+			# Part of what the crosshair is on: its knob may sit round the side, a little
+			# out of the cone or reach, and still be the one meant.
+			var root: Node = area.outline_root()
+			if on != null and (on == root or root.is_ancestor_of(on)) and dist <= reach + 0.6 \
+					and score > on_score:
+				on_best = area
+				on_score = score
+			if dist > reach or facing < reach_cone or not _can_see(area, point):
+				continue
 			if score > best_score:
 				best = area
 				best_score = score
+	# It wins only if the hit is nearer that object's middle than the angle pick's own
+	# point: so stand M beats stand D's nearby knob, while a small tray resting on a big
+	# station's table stays the tray's.
+	if on_best != null and best == null:
+		best = on_best
+	elif on_best != null and on_best != best:
+		var at: Vector3 = hit.position
+		var flat := func(a: Vector3, b: Vector3) -> float: return Vector2(a.x - b.x, a.z - b.z).length()
+		var to_middle: float = flat.call(at, on_best.outline_root().global_position)
+		if to_middle < ON_FOOTPRINT or to_middle < flat.call(at, best.get_focus_position()):
+			best = on_best
 	if best != target:
 		if target:
 			target.set_focused(false)
@@ -180,6 +201,16 @@ func _update_target() -> void:
 		focus_changed.emit(target)
 
 
+const ON_FOOTPRINT := 0.45  ## A hit this close to an object's middle is plainly on it.
+
+## The first solid thing straight ahead of the crosshair within reach: the ray's hit
+## ({collider, position, ...}), or {} for nothing.
+func _crosshair_hit(fwd: Vector3) -> Dictionary:
+	var ray := PhysicsRayQueryParameters3D.create(camera.global_position, camera.global_position + fwd * reach, 1, [get_rid(), _reach.get_rid()])
+	ray.collide_with_areas = false
+	return get_world_3d().direct_space_state.intersect_ray(ray)
+
+
 func _can_see(area: Interactable, point: Vector3) -> bool:
 	var ray := PhysicsRayQueryParameters3D.create(camera.global_position, point, 1, [get_rid()])
 	ray.collide_with_areas = false
@@ -187,7 +218,9 @@ func _can_see(area: Interactable, point: Vector3) -> bool:
 	if hit.is_empty():
 		return true
 	var collider: Node = hit.collider
-	return area.is_ancestor_of(collider) or collider == area \
+	# A knob seen past its own stand's body still counts as seen: it's the same object.
+	var root: Node = area.outline_root()
+	return area.is_ancestor_of(collider) or collider == area or root.is_ancestor_of(collider) \
 		or camera.global_position.distance_to(hit.position) + 0.18 >= camera.global_position.distance_to(point)
 
 

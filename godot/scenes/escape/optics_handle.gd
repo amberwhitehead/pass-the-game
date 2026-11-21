@@ -22,6 +22,11 @@ func _ready() -> void:
 	add_child(shape)
 
 
+## Both knobs of a stand do the same things now, so the whole stand is the target.
+func outline_root() -> Node3D:
+	return get_parent() as Node3D
+
+
 func interact(_player: Node3D) -> void:
 	if primary != "":
 		used.emit(primary)

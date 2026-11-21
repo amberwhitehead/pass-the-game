@@ -58,7 +58,9 @@ func _run() -> void:
 		check(handle.primary == "turn" and handle.secondary_action == "exchange" \
 			and handle.prompt.begins_with("Adjust prism") and handle.secondary_prompt.begins_with("Take prism"),
 			"%s: click adjusts, right-click takes (%s / %s)" % [handle.name, handle.prompt, handle.secondary_prompt])
-	check(b.find_children("*", "Label3D", true, false).is_empty(), "no labels float over the prism stand")
+	var labels := b.find_children("*", "Label3D", true, false)
+	check(labels.size() == 1 and labels[0].text == "B" and labels[0].position.y < 0.9,
+		"no labels float over the prism stand; its letter is on the stand itself")
 	var empty: Node3D = optics.devices.C
 	check(empty.take_handle.primary == "exchange" and empty.take_handle.secondary_prompt == "", "an empty stand only takes or places")
 	carry.held_item = ""

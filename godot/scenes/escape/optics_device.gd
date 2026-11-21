@@ -39,6 +39,13 @@ func _ready() -> void:
 	_alignment_materials = [Art.material(Color(.28, .45, .49), true), Art.material(Color(.9, .67, .26), true), Art.material(Color(.35, 1, .65), true)]
 	_alignment_ring = Art.ring(self, .225, .242, Vector3(0, 1.013, 0), _alignment_materials[0])
 	_build_ticks()
+	# The stand's letter, on its front plate (no floating tags over the stands).
+	var letter := Label3D.new()
+	Sign.style(letter, .11, Sign.GOLD)
+	letter.text = device_id
+	letter.position = Vector3(0, .56, .2)
+	letter.visibility_range_end = 9.0
+	add_child(letter)
 	_contents = Node3D.new()
 	_contents.name = "OpticalHead"
 	add_child(_contents)

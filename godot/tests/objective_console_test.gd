@@ -65,6 +65,7 @@ func _run() -> void:
 
 	await _r2_taps()
 	await _shrugs()
+	await _aim_at_stands()
 	await _point_at(console, _room.get_node("Challenge4").global_position, "Egypt's station")
 
 	_game.set_flag("escape_prism_solved")
@@ -93,6 +94,50 @@ func _point_at(console: Node3D, place: Vector3, what: String) -> void:
 	var want := (place + Vector3(0, 1.0, 0) - pivot.global_position).normalized()
 	_expect(aim.dot(want) > 0.99, "The laser turns toward %s (%.3f)" % [what, aim.dot(want)])
 	_expect(console.blinks_done == 3 and not console._beam.visible, "It blinks three times at %s, then goes dark" % what)
+
+
+## Looking straight at a stand targets that stand, even when a neighbour's knob is nearer
+## in angle; the target gets a white outline, and the stand wears its letter.
+func _aim_at_stands() -> void:
+	var player = _room.get_node("Player")
+	var devices: Dictionary = _room.optics.devices
+	# Stand M beside D was the worst case: from its D side the old angle-only rule picked
+	# D's knob more than half the time. Walk round each and look straight at its body.
+	for id in ["M", "D", "K", "A"]:
+		var dev: Node3D = devices[id]
+		var body: Vector3 = dev.global_position + Vector3(0, 0.55, 0)
+		var views := 0
+		var wrong: Array = []
+		for r in [1.2, 1.7]:
+			for k in 16:
+				var ang: float = TAU * k / 16.0
+				var spot: Vector3 = dev.global_position + Vector3(cos(ang), 0, sin(ang)) * r
+				player.global_position = Vector3(spot.x, 0, spot.z)
+				player.velocity = Vector3.ZERO
+				await physics_frame
+				var to: Vector3 = body - player.camera.global_position
+				player.rotation.y = atan2(-to.x, -to.z)
+				player.camera.rotation.x = atan2(to.y, Vector2(to.x, to.z).length())
+				await physics_frame
+				await physics_frame
+				var hit: Dictionary = player._crosshair_hit(-player.camera.global_basis.z)
+				if hit.is_empty() or not dev.is_ancestor_of(hit.collider):
+					continue  # Something else is in the way from here.
+				views += 1
+				var got = player.target.outline_root().get("device_id") if player.target != null else null
+				if got != id:
+					wrong.append("%s from r%.1f/%d" % [got, r, k])
+		_expect(views > 10 and wrong.is_empty(), "Looking straight at stand %s targets it (%d views; wrong: %s)" % [id, views, wrong])
+		if player.target != null:
+			var outlined := 0
+			for m in player.target.outline_root().find_children("*", "MeshInstance3D", true, false):
+				if (m as MeshInstance3D).material_overlay != null:
+					outlined += 1
+			_expect(outlined > 3, "The targeted stand is outlined (%d meshes)" % outlined)
+		var letters := dev.find_children("*", "Label3D", true, false).filter(func(l): return l.text == id)
+		_expect(letters.size() == 1, "Stand %s wears its letter" % id)
+	player.global_position = Vector3(-9.5, 0, .4)
+	for f in 3: await physics_frame
 
 
 ## Trying something that does nothing here gets a shrug: B on a controller with nothing to
