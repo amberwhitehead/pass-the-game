@@ -163,7 +163,7 @@ When returning to simulation, compare all 32 subsets and include human feedback.
 - `hub_camera_state.gd`: exact caller camera, HUD, pause and touch-state restoration.
 - `table_entrance.gd`: fallback entrance for running the card scene directly without a hub.
 - `table_hand.gd`: camera-relative hand layout, reveal/retreat and selection.
-- `table_pad.gd`: controller focus over lanes, bell and hand; A/Y/X/B handling.
+- `table_pad.gd`: controller focus over lanes, bell and hand; A/X/L1/B handling (Y is the pause menu; R1/R2 act as A).
 - `lane_intent.gd`: anonymous destination glows; accepts one or several plans.
 - `card_actor.gd`, `table_button.gd`: physical card and bell targets. Card-face
   textures redraw only when their contents change.

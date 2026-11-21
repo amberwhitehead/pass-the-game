@@ -3,8 +3,9 @@ extends Node
 ##
 ## Rows, top to bottom: his lanes, your lanes with the bell at their right end, your hand.
 ## D-pad or left stick moves the focus (held, it repeats), A chooses what is focused
-## (exactly as clicking it would), Y rings the bell, X opens the rules, and B is the
-## table's usual back (cancel a swap or a selected card, close a panel, or the menu).
+## (exactly as clicking it would), X (Square) rings the bell, L1 opens the rules, and B
+## is the table's usual back (cancel a swap or a selected card, close a panel, or leave).
+## Y is the pause menu everywhere, so the table leaves it alone.
 ## Focus shows as the same highlight and card inspector the mouse's hover uses; moving
 ## the mouse hands control back to it. Dialogs use their own buttons: the D-pad moves
 ## between them and A presses (Godot's ui_* actions). Any connected pad works.
@@ -49,14 +50,14 @@ func _input(event: InputEvent) -> void:
 			if _idle():
 				_wake()
 				_activate(_actor())
-		JOY_BUTTON_Y:
+		JOY_BUTTON_X:
 			get_viewport().set_input_as_handled()
 			if _idle():
 				_wake()
 				row = PLAYER
 				index = table.lane_count
 				_activate(table.end_button)
-		JOY_BUTTON_X:
+		JOY_BUTTON_LEFT_SHOULDER:
 			get_viewport().set_input_as_handled()
 			game._show_rules()
 

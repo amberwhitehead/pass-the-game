@@ -118,7 +118,7 @@ verified on Windows.
 | Keyboard | W/S or up/down to walk; A/D to strafe; left/right to turn; Space to jump; E, Enter, or F to interact; Escape or Backspace to go back, or open the pause menu when there is nothing to go back from. All of these can be changed in Pause → Controls |
 | Mouse | In the hall the game captures the cursor and the mouse looks directly, no button needed; menus, settings and minigames get the cursor back. Click cards and their targets at the table |
 | Touch | On-screen movement/turn pad, A to interact, B to go back; drag elsewhere to look |
-| Gamepad (any slot) | Left stick to walk/strafe; right stick to look; D-pad to walk/turn; A to interact or confirm in menus; B to go back. In the Workshop the left stick moves the cursor and A clicks. At the card tables the D-pad or stick moves between hand, lanes and bell; A chooses, Y rings the bell, X shows the rules |
+| Gamepad (any slot) | Left stick to walk/strafe; right stick to look; D-pad to walk/turn; A (or R1/R2) to interact or confirm in menus; B to go back, and in a minigame to leave it (like its × button) once nothing is left to cancel; Y opens the pause menu. In the Workshop the left stick moves the cursor and A clicks. At the card tables the D-pad or stick moves between hand, lanes and bell; A chooses, X rings the bell, L1 shows the rules |
 
 The touch pad fades after keyboard/gamepad input and returns on touch. Input
 actions are registered in `autoload/game.gd`.

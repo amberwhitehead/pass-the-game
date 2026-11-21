@@ -2,7 +2,7 @@ extends "res://tests/test_suite.gd"
 ## The card tables on a controller, through the real input path from a pad in slot 2
 ## (Chrome put a DualSense there): A presses the rules dialog's button, the D-pad wakes
 ## the focus in the hand, A selects a card and jumps to its target, A plays it, B cancels
-## a selection, Y rings the bell, X opens the rules, moving the mouse hands back control,
+## a selection, X (Square) rings the bell, L1 opens the rules, moving the mouse hands back control,
 ## and Older Brother's four lanes plus the bell are all reachable.
 
 const ROOM_PATH := "res://scenes/room/room.tscn"
@@ -73,12 +73,12 @@ func _little_brother() -> void:
 	_expect(game.pad.row == Pad.ENEMY and game.pad.index == table.lane_count - 1, "Up from the bell reaches his last lane")
 
 	var turn: int = game._shown.turn
-	await _press(JOY_BUTTON_Y)
-	await _idle(game)
-	_expect(int(game._shown.turn) == turn + 1, "Y rings the bell and the turn resolves")
-
 	await _press(JOY_BUTTON_X)
-	_expect(is_instance_valid(game._dialog), "X opens the rules")
+	await _idle(game)
+	_expect(int(game._shown.turn) == turn + 1, "X rings the bell and the turn resolves")
+
+	await _press(JOY_BUTTON_LEFT_SHOULDER)
+	_expect(is_instance_valid(game._dialog), "L1 opens the rules")
 	await _press(JOY_BUTTON_B)
 	_expect(not is_instance_valid(game._dialog), "B closes them")
 

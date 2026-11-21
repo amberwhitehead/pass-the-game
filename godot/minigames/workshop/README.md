@@ -62,8 +62,8 @@ use it; right-click or Escape puts it back. Click to skip or dismiss speech. Esc
 otherwise opens the pause menu (Leave, Sound, Quit to title).
 
 On a controller (any slot), the left stick moves the cursor and the D-pad nudges it
-slowly; A (Cross) clicks, B (Circle) puts a held item back, closes the radio, or opens
-the pause menu. Moving or clicking the mouse hands the cursor back to it.
+slowly; A (Cross) clicks, B (Circle) puts a held item back, closes the radio, or leaves
+the Workshop; Y (Triangle) opens the pause menu. Moving or clicking the mouse hands the cursor back to it.
 
 ## Module map
 

@@ -3,8 +3,9 @@ extends MiniGame
 ##
 ## Click things to poke them; click an inventory item to hold it, then click where to use
 ## it (right-click or Escape puts it back). On a controller the left stick (or D-pad) moves
-## the cursor, A (Cross) clicks and B (Circle) puts a held item back (pad_pointer.gd). The story lives in story.gd and lines.gd; the
-## room is built by world.gd; everything is drawn from code (ink.gd).
+## the cursor, A (Cross) clicks and B (Circle) puts a held item back, otherwise leaves
+## (pad_pointer.gd). The story lives in story.gd and lines.gd; the room is built by
+## world.gd; everything is drawn from code (ink.gd).
 
 const World := preload("res://minigames/workshop/world.gd")
 const Cat := preload("res://minigames/workshop/cat.gd")

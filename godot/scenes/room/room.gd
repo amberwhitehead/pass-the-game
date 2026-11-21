@@ -149,7 +149,7 @@ func _on_minigame_ended(id: String, result: Dictionary) -> void:
 
 ## Children (wheel aiming, the reward reveal) see back first; the menu gets what's left.
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("back") and not event.is_echo() and not Sound.settings_open:
+	if (event.is_action_pressed("back") or event.is_action_pressed("pause")) and not event.is_echo() and not Sound.settings_open:
 		get_viewport().set_input_as_handled()
 		PauseMenu.open_hall()
 

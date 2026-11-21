@@ -136,6 +136,9 @@ func _ready() -> void:
 	# system fonts to fall back on), so ship DejaVu Sans as the default and the fallback.
 	ThemeDB.fallback_font = load("res://assets/fonts/DejaVuSans.ttf")
 	_register_actions()
+	var aliases := preload("res://autoload/pad_aliases.gd").new()
+	aliases.name = "PadAliases"
+	add_child(aliases)  # R1 and R2 act as A.
 	# Background browser QA can mute this run without changing normal playtests.
 	if OS.has_feature("web") and bool(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('muted') === '1'")):
 		AudioServer.set_bus_mute(0, true)
@@ -158,6 +161,7 @@ func get_flag(flag: String, default: Variant = false) -> Variant:
 ##   look_*           look around           (right stick; the captured mouse looks directly)
 ##   jump                                   (Space)
 ##   interact / back                        (E/Enter/F, pad A) / (Esc/Backspace, pad B)
+##   pause            the pause menu        (pad Y; keyboard and touch use back)
 ## Touch: on-screen pad buttons + drag-to-look (see TouchControls / Player).
 ## Keyboard keys come from KeyBindings (defaults, then the player's saved choices).
 func _register_actions() -> void:
@@ -168,6 +172,7 @@ func _register_actions() -> void:
 		"move_right": [JOY_BUTTON_DPAD_RIGHT],
 		"interact": [JOY_BUTTON_A],
 		"back": [JOY_BUTTON_B],
+		"pause": [JOY_BUTTON_Y],  # Triangle: the pause menu, in the hall and in minigames.
 	}
 	# [action, axis, direction]
 	var pad_axes := [
@@ -176,7 +181,7 @@ func _register_actions() -> void:
 		["look_left", JOY_AXIS_RIGHT_X, -1.0], ["look_right", JOY_AXIS_RIGHT_X, 1.0],
 		["look_up", JOY_AXIS_RIGHT_Y, -1.0], ["look_down", JOY_AXIS_RIGHT_Y, 1.0],
 	]
-	for action in ["look_left", "look_right", "look_up", "look_down", "strafe_left", "strafe_right"]:
+	for action in ["look_left", "look_right", "look_up", "look_down", "strafe_left", "strafe_right", "pause"]:
 		_ensure(action)
 	for entry: Dictionary in KeyBindings.ACTIONS:
 		_ensure(entry.action)

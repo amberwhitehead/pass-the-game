@@ -7,9 +7,11 @@ extends Control
 ## through Game.record_win) can also place that stage's piece on the Easter Egg room's
 ## board; see the STAGES mapping in res://scenes/escape/egg_board.gd. Update that mapping
 ## only; this stage should not reference the secret room itself.
-## Call finish({"won": true, ...}) when done. Pressing "back" opens the pause menu,
-## which can leave the game; override _back_leaves() for states where back should
-## leave directly (a solved puzzle, a finished match).
+## Call finish({"won": true, ...}) when done. Pressing "back" on the keyboard or touch
+## pad opens the pause menu, which can leave the game; override _back_leaves() for states
+## where back should leave directly (a solved puzzle, a finished match). On a controller,
+## B leaves directly, like the × button, and Y ("pause") opens the menu. Games that use
+## back to cancel something of their own handle it first and call super otherwise.
 ## Set `use_touch_controls = false` for games that use tap/drag UI instead.
 ## To resume where the player left off, return progress from save_state() and read it
 ## back from resume_state in _ready(). Progress is kept until the game is won.
@@ -19,6 +21,8 @@ const Style := preload("res://ui/game_style.gd")
 signal finished(result: Dictionary)
 
 var use_touch_controls := true
+## False for games that give R1/R2 their own meaning; otherwise they act as A (see autoload/pad_aliases.gd).
+var pad_aliases := true
 var resume_state: Dictionary = {}  # Set by MiniGames before _ready() when there is saved progress.
 var _done := false
 
@@ -47,18 +51,24 @@ func _ready() -> void:
 
 
 static func _close_tooltip() -> String:
-	return "Leave · %s (keyboard) / B (controller or touch) opens the menu" \
+	return "Leave · %s (keyboard) / B (touch) / Y (controller) opens the menu; B (controller) leaves" \
 		% preload("res://autoload/key_bindings.gd").label("back")
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if Sound.settings_open:
 		return
+	if event.is_action_pressed("pause") and not event.is_echo():
+		get_viewport().set_input_as_handled()
+		if not _done:
+			PauseMenu.open_minigame(self, MiniGames.current_title() if MiniGames.current == self else name)
+		return
 	if not event.is_action_pressed("back") or event.is_echo():
 		return
 	get_viewport().set_input_as_handled()
 	# A camera move into the minigame keeps its original cancel-by-back behavior.
-	if _back_leaves() or MiniGames.transition != null:
+	# A controller's B is the way out, the same as the × button.
+	if _back_leaves() or MiniGames.transition != null or event is InputEventJoypadButton:
 		finish({"won": false, "quit": true})
 	else:
 		PauseMenu.open_minigame(self, MiniGames.current_title() if MiniGames.current == self else name)

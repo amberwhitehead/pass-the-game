@@ -153,6 +153,6 @@ func _quit_to_title() -> void:
 func _input(event: InputEvent) -> void:
 	if not is_open() or Sound.settings_open or controls.is_open() or credits.is_open():
 		return  # Controls and Credits own every key while up, including Escape.
-	if event.is_action_pressed("back") and not event.is_echo():
+	if (event.is_action_pressed("back") or event.is_action_pressed("pause")) and not event.is_echo():
 		get_viewport().set_input_as_handled()
 		close()
