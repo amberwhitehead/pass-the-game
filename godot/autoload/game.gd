@@ -190,6 +190,14 @@ func _register_actions() -> void:
 		ev.axis = a[1] as JoyAxis
 		ev.axis_value = a[2]
 		InputMap.action_add_event(a[0], ev)
+	# Godot's built-in ui_accept/ui_cancel have no pad buttons, so menus could be
+	# navigated with the D-pad but not confirmed. Mirror the keyboard, where Enter
+	# and Escape are both ui_* and interact/back: pad A accepts, pad B cancels.
+	for pair: Array in [["ui_accept", JOY_BUTTON_A], ["ui_cancel", JOY_BUTTON_B]]:
+		var ev := InputEventJoypadButton.new()
+		ev.button_index = pair[1] as JoyButton
+		if not InputMap.action_has_event(pair[0], ev):
+			InputMap.action_add_event(pair[0], ev)
 	# Saved keyboard choices replace only key events. Headless runs (tests, exports)
 	# keep the defaults so they never depend on, or read, the player's preferences.
 	if DisplayServer.get_name() != "headless":
