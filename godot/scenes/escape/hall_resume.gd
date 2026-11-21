@@ -2,17 +2,22 @@ extends Node
 ## Puts the player back where they were: the spot and facing in the hall, and, if the
 ## page was closed or reloaded inside a room, back into that room.
 ##
-## The spot is saved every few seconds while the player moves (flag HALL_SPOT_FLAG).
+## The spot is saved once the player stops for a moment, at most every MAX_WAIT while
+## they keep moving, and when the window loses focus or closes (flag HALL_SPOT_FLAG).
+## Each save is a file write (on the Web, an IndexedDB sync), so not every few seconds.
 ## MiniGames records the room being played (MiniGames.RESUME_FLAG) and clears it when the
 ## player leaves it, so only an interrupted visit reopens the room on Continue.
 ## Nothing is written while autosave is off (tests, the save editor's unsaved play).
 
 const HALL_SPOT_FLAG := "hall_spot"
-const SAVE_EVERY := 3.0     ## Seconds between checks while in the hall.
+const SETTLED := 1.0        ## Seconds standing still before the spot is saved...
+const MAX_WAIT := 30.0      ## ...or at most this long while moving.
 const MIN_MOVE := 0.25      ## Metres (or radians of turn) that count as having moved.
 
 var _player: Node3D
-var _since := 0.0
+var _still := 0.0
+var _since_save := 0.0
+var _last := Vector3.INF
 
 
 func configure(player: Node3D) -> void:
@@ -46,11 +51,21 @@ func resume_minigame(stations: Array[Node]) -> void:
 func _process(delta: float) -> void:
 	if _player == null or not Game.autosave or MiniGames.is_running():
 		return
-	_since += delta
-	if _since < SAVE_EVERY:
-		return
-	_since = 0.0
-	save_spot()
+	var at := _player.global_position
+	var moving := at.distance_to(_last) > 0.002
+	_last = at
+	_since_save += delta
+	_still = 0.0 if moving else _still + delta
+	if (_still >= SETTLED and _still - delta < SETTLED) or _since_save >= MAX_WAIT:
+		_since_save = 0.0
+		save_spot()
+
+
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]:
+		if _player != null and Game.autosave and not MiniGames.is_running():
+			save_spot()
+			Game.save_now()  # Now, not after the usual short batching delay.
 
 
 func save_spot() -> void:

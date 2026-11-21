@@ -5,6 +5,7 @@ const Architecture := preload("res://scenes/escape/hub_architecture.gd")
 const Inventory := preload("res://scenes/escape/carry_inventory.gd")
 const HeldVisual := preload("res://scenes/escape/carry_visual.gd")
 const Hands := preload("res://scenes/escape/fp_hands.gd")
+const ShaderWarmup := preload("res://scenes/escape/shader_warmup.gd")
 const Optics := preload("res://scenes/escape/optics_controller.gd")
 const Reward := preload("res://scenes/escape/reward_pedestal.gd")
 const Reveal := preload("res://scenes/escape/reward_reveal.gd")
@@ -77,6 +78,7 @@ func _ready() -> void:
 	_player.camera.add_child(hands)
 	hands.configure(_player, inventory)
 	held.attach_to(hands.grip)
+	ShaderWarmup.add_to(_player.camera)  # Outline and laser shaders compile now, not mid-play.
 	MiniGames.ended.connect(_on_minigame_ended)
 	if Game.get_flag("escape_prism_solved"):
 		architecture.locked_door.unlock(false)

@@ -42,9 +42,8 @@ func outline_root() -> Node3D:
 
 static var _outline: ShaderMaterial
 
-## A thin white rim round the targeted object's silhouette, so it is clear which one a
-## press will use.
-func _set_outline(on: bool) -> void:
+## The shared focus-outline material (built on first use).
+static func focus_outline_material() -> ShaderMaterial:
 	if _outline == null:
 		# Two passes: mark the object's pixels in the stencil, then draw the rim outside
 		# them. Both sort after everything else, the mark first, so every part is marked
@@ -56,10 +55,17 @@ func _set_outline(on: bool) -> void:
 		_outline.shader = preload("res://shaders/focus_mask.gdshader")
 		_outline.render_priority = 100
 		_outline.next_pass = rim
+	return _outline
+
+
+## A thin white rim round the targeted object's silhouette, so it is clear which one a
+## press will use.
+func _set_outline(on: bool) -> void:
+	var outline := focus_outline_material()
 	for mesh: Node in outline_root().find_children("*", "MeshInstance3D", true, false):
 		var m := mesh as MeshInstance3D
 		if on and m.material_overlay == null:
-			m.material_overlay = _outline
+			m.material_overlay = outline
 			m.set_meta("focus_outline", true)
 		elif not on and m.has_meta("focus_outline"):
 			m.material_overlay = null

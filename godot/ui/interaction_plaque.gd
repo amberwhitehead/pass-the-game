@@ -68,6 +68,11 @@ func _badge(row: Control) -> Label:
 ## drawn controller button (ui/pad_glyph.gd), e.g. "pad:r1:playstation".
 static func set_key(label: Label, spec: String) -> void:
 	var badge := label.get_parent() as PanelContainer
+	# The HUD calls this every frame; only a change touches the badge, since restyling it
+	# redraws and re-lays-out the whole caption (twice and four times a frame, measured).
+	if badge.get_meta("spec", "") == spec:
+		return
+	badge.set_meta("spec", spec)
 	var glyph := badge.get_child(1) as Control
 	var pad := spec.begins_with("pad:")
 	label.visible = not pad
