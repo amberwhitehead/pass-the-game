@@ -259,7 +259,7 @@ func _hints_follow_bindings() -> void:
 	var sheet: PanelContainer = load("res://ui/conversation_sheet.gd").new()
 	root.add_child(sheet)
 	sheet.arrive()
-	var continue_key := "L1" if not Input.get_connected_joypads().is_empty() else "CLICK"  # This machine may have a pad plugged in.
+	var continue_key := "R1" if not Input.get_connected_joypads().is_empty() else "CLICK"  # This machine may have a pad plugged in.
 	_expect(sheet.hint.text == continue_key + "  /  CONTINUE", "Dialogue says %s to continue, whatever the keys (%s)" % [continue_key, sheet.hint.text])
 	sheet.queue_free()
 	_expect("J" in _player.mouse_capture._hint_text() and "Q for the menu" in _player.mouse_capture._hint_text(),

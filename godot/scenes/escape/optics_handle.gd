@@ -1,6 +1,6 @@
 extends Interactable
 ## A physical handle on an optical stand. What it does is set by the stand: `primary`
-## (click / A / E) and `secondary` (right-click / L2 / R) name an action, "turn" or
+## (click / A / E) and `secondary` (right-click / R2 / R) name an action, "turn" or
 ## "exchange", and used(action) reports which one the player chose.
 
 signal used(action: String)

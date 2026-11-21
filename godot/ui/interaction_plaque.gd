@@ -9,7 +9,6 @@ var key: Label
 var title: Label
 var key2: Label    ## The second action's key, hidden when there is none.
 var title2: Label
-var _gap: Control
 var detail: Label
 var _last := ""
 
@@ -22,20 +21,21 @@ func _ready() -> void:
 	detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_outline(detail)
 	add_child(detail)
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 7)
-	add_child(row)
-	key = _badge(row)
-	title = _caption(row)
+	# Two columns, so a second action stacks under the first with the keys lined up:
+	#   [R1] Adjust prism B
+	#   [R2] Take prism from B
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	grid.add_theme_constant_override("h_separation", 7)
+	grid.add_theme_constant_override("v_separation", 3)
+	add_child(grid)
+	key = _badge(grid)
+	title = _caption(grid)
 	# A second action, such as taking a prism off the stand it can also adjust.
-	_gap = Control.new()
-	_gap.custom_minimum_size.x = 8
-	_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(_gap)
-	key2 = _badge(row)
-	title2 = _caption(row)
+	key2 = _badge(grid)
+	title2 = _caption(grid)
 
 
 func _badge(row: Control) -> Label:
@@ -58,7 +58,7 @@ func _badge(row: Control) -> Label:
 
 func _caption(row: Control) -> Label:
 	var label := Style.label("", 15, Style.PAPER)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_outline(label)
 	row.add_child(label)
 	return label
@@ -81,7 +81,6 @@ func present(text: String, input_key: String, aiming: bool, text2 := "", input_k
 	detail.visible = aiming
 	var second := text2 != "" and not aiming
 	key2.get_parent().visible = second
-	_gap.visible = second
 	title2.visible = second
 	key2.text = input_key2
 	if text + "|" + text2 == _last:

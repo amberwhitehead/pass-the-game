@@ -279,12 +279,12 @@ func _capture_gate() -> void:
 	_expect(not capture.keyboard_mouse and not capture.blocks_input(), "Headless runs never wait for a cursor")
 	capture.keyboard_mouse = true
 	await _place(Vector3.ZERO, 0.0)
-	_expect(capture.wants_capture() and capture.blocks_input() and _player._frozen(),
-		"Keyboard/mouse play without capture blocks the player")
+	_expect(capture.wants_capture() and capture.awaiting_capture() and not capture.blocks_input() and not _player._frozen(),
+		"Keyboard/mouse play waiting for the cursor doesn't hold the player up")
 	var moved := await _hold(["move_up"], 10)
-	_expect(moved.length() < 0.001, "Blocked keyboard input does not walk")
+	_expect(moved.length() > 0.001, "Keys walk before the first click")
 	await process_frame
-	_expect(capture._card.visible, "The click-to-continue card shows while capture is missing")
+	_expect(not capture._card.visible, "No 'Click to look around' card")
 	_menu.open_hall()
 	_expect(not capture.wants_capture(), "The pause menu gets the cursor")
 	_menu.close()

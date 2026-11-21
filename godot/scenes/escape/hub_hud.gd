@@ -81,19 +81,19 @@ func _input(event: InputEvent) -> void:
 		_interact_key = "touch"
 
 
-## The interact prompt's badge: L1 while a controller is plugged in (✕ and R2 work too),
+## The interact prompt's badge: R1 while a controller is plugged in (✕ works too),
 ## A after touching the screen, otherwise Click.
 func _interact_label() -> String:
 	if not Input.get_connected_joypads().is_empty():
-		return "L1"
+		return "R1"
 	return "A" if _interact_key == "touch" else "Click"
 
 
-## The second action's badge: L2 while a controller is plugged in, T after touching the
+## The second action's badge: R2 while a controller is plugged in, T after touching the
 ## screen, otherwise Right-click.
 func _secondary_label() -> String:
 	if not Input.get_connected_joypads().is_empty():
-		return "L2"
+		return "R2"
 	return "T" if _interact_key == "touch" else "Right-click"
 
 

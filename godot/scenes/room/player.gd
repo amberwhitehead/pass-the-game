@@ -96,7 +96,7 @@ func _physics_process(delta: float) -> void:
 		pitch = -_axis("look_up", "look_down") * look_speed
 		_strength("jump")  # Clears a hold-over once Space is released.
 		jump = Input.is_action_just_pressed("jump") and not _suppressed.has("jump")
-		# L2 is an analog trigger, so it is read as a press here rather than per event.
+		# R2 is an analog trigger, so it is read as a press here rather than per event.
 		if Input.is_action_just_pressed("secondary") and _pad_secondary():
 			_use_secondary()
 	rotation.y += yaw * delta
@@ -216,7 +216,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	target.interact(self)
 
 
-## A target's second action (right-click, R, or L2), e.g. taking a prism off its stand.
+## A target's second action (right-click, R, or R2), e.g. taking a prism off its stand.
 func _use_secondary() -> void:
 	if _frozen() or target == null or target.secondary_prompt.is_empty():
 		return
@@ -231,6 +231,6 @@ func _use_secondary() -> void:
 ## arrives as an event in _unhandled_input).
 func _pad_secondary() -> bool:
 	for d in Input.get_connected_joypads():
-		if Input.get_joy_axis(d, JOY_AXIS_TRIGGER_LEFT) > 0.5:
+		if Input.get_joy_axis(d, JOY_AXIS_TRIGGER_RIGHT) > 0.5:
 			return true
 	return false

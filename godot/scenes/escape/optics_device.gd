@@ -136,8 +136,8 @@ func update_state(item: String, held: String, turn: int, incoming: Vector2 = Vec
 		turn_handle.collision_layer = 1 if enabled else 0
 		turn_handle.visible = enabled
 		turn_handle.prompt = "Adjust source" if kind == "starter" else ("Aim lamp " if kind == "lamp" else "Adjust prism ") + device_id
-		# Either knob of a stand holding something offers both: adjust it (click / L1),
-		# or take it off into your hand (right-click / L2). An empty stand only takes.
+		# Either knob of a stand holding something offers both: adjust it (click / R1),
+		# or take it off into your hand (right-click / R2). An empty stand only takes.
 		if is_instance_valid(take_handle):
 			for handle: Area3D in [turn_handle, take_handle]:
 				handle.primary = "turn" if enabled else "exchange"

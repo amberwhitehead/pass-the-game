@@ -60,9 +60,9 @@ func _input(event: InputEvent) -> void:
 		_key = "TAP"
 	_show_hint()
 
-## L1 while a controller is plugged in, otherwise CLICK (TAP after touching the screen).
+## R1 while a controller is plugged in, otherwise CLICK (TAP after touching the screen).
 func _show_hint() -> void:
 	var key := _key
 	if key.is_empty():
-		key = "L1" if not Input.get_connected_joypads().is_empty() else "CLICK"
+		key = "R1" if not Input.get_connected_joypads().is_empty() else "CLICK"
 	hint.text = key + "  /  CONTINUE"

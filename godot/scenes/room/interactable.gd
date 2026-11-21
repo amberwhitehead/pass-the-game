@@ -7,7 +7,7 @@ signal interacted
 
 @export var prompt := "Use"
 @export var minigame_id := ""
-## A second action, shown beside the first (right-click / L2 / R), e.g. "Take prism".
+## A second action, shown beside the first (right-click / R2 / R), e.g. "Take prism".
 ## Empty for things with only one. Override secondary() to do it.
 var secondary_prompt := ""
 

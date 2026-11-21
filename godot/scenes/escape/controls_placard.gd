@@ -10,10 +10,14 @@ const KeyBindings := preload("res://autoload/key_bindings.gd")
 const PadLabels := preload("res://autoload/pad_labels.gd")
 
 const BOARD_AT := Vector3(0, 1.3, .06)
-const BOARD_SIZE := Vector2(.95, .58)
+const BOARD_SIZE := Vector2(.95, .62)
 
-var keyboard: Label3D
-var controller: Label3D
+const LINE_H := .05
+const ROWS := 7
+## Per section, one [action, button] pair of labels per line: the action pinned left, the
+## button pinned right, so the buttons line up down the section's right edge.
+var keyboard: Array = []
+var controller: Array = []
 
 
 func _init() -> void:
@@ -28,32 +32,40 @@ func _ready() -> void:
 
 
 func refresh() -> void:
-	keyboard.text = "\n".join(keyboard_lines())
-	controller.text = "\n".join(controller_lines())
+	_fill(keyboard, keyboard_lines())
+	_fill(controller, controller_lines())
 
 
-static func keyboard_lines() -> PackedStringArray:
+static func _fill(rows: Array, lines: Array) -> void:
+	for i in rows.size():
+		var pair: Array = lines[i] if i < lines.size() else ["", ""]
+		rows[i][0].text = pair[0]
+		rows[i][1].text = pair[1]
+
+
+## [action, button] per line.
+static func keyboard_lines() -> Array:
 	var k := func(action: String) -> String: return KeyBindings.label(action)
-	return PackedStringArray([
-		"Mouse  —  look",
-		"%s %s %s %s  —  move" % [k.call("move_up"), k.call("strafe_left"), k.call("move_down"), k.call("strafe_right")],
-		"%s  —  jump" % k.call("jump"),
-		"Click  —  use",
-		"Right-click  —  take",
-		"%s  —  menu" % k.call("back"),
-	])
+	return [
+		["Look", "Mouse"],
+		["Move", "%s %s %s %s" % [k.call("move_up"), k.call("strafe_left"), k.call("move_down"), k.call("strafe_right")]],
+		["Jump", k.call("jump")],
+		["Use", "Click"],
+		["Take", "Right-click"],
+		["Menu", k.call("back")],
+	]
 
 
-static func controller_lines() -> PackedStringArray:
-	var a := PadLabels.face(JOY_BUTTON_A)
-	return PackedStringArray([
-		"Right stick  —  look",
-		"Left stick  —  move",
-		"R1  —  jump",
-		"L1 or %s  —  use" % a,
-		"L2  —  take",
-		"%s  —  menu,  %s  —  back" % [PadLabels.face(JOY_BUTTON_Y), PadLabels.face(JOY_BUTTON_B)],
-	])
+static func controller_lines() -> Array:
+	return [
+		["Look", "Right stick"],
+		["Move", "Left stick"],
+		["Jump", "L1"],
+		["Use", "R1 or %s" % PadLabels.face(JOY_BUTTON_A)],
+		["Take", "R2"],
+		["Menu", PadLabels.face(JOY_BUTTON_Y)],
+		["Back", PadLabels.face(JOY_BUTTON_B)],
+	]
 
 
 func _build() -> void:
@@ -81,13 +93,19 @@ func _build() -> void:
 		heading.text = "KEYBOARD  &  MOUSE" if column < 0 else "CONTROLLER"
 		heading.position = Vector3(column * BOARD_SIZE.x * .25, top - .13, .012)
 		board.add_child(heading)
-		var lines := Label3D.new()
-		Sign.style(lines, .03, Sign.PAPER)
-		lines.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-		lines.line_spacing = 4.0
-		lines.position = Vector3(column * BOARD_SIZE.x * .25, top - .17, .012)
-		board.add_child(lines)
-		if column < 0:
-			keyboard = lines
-		else:
-			controller = lines
+		var center: float = column * BOARD_SIZE.x * .25
+		var half := BOARD_SIZE.x * .2
+		var rows: Array = keyboard if column < 0 else controller
+		for i in ROWS:
+			var y := top - .19 - i * LINE_H
+			var action := Label3D.new()
+			Sign.style(action, .03, Sign.PAPER)
+			action.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+			action.position = Vector3(center - half, y, .012)
+			board.add_child(action)
+			var button := Label3D.new()
+			Sign.style(button, .03, Sign.GOLD)
+			button.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			button.position = Vector3(center + half, y, .012)
+			board.add_child(button)
+			rows.append([action, button])
