@@ -61,6 +61,12 @@ func _little_brother() -> void:
 		"Every place the card can go is marked, and nothing else (%d)" % lit)
 	await _press(JOY_BUTTON_DPAD_RIGHT)
 	_expect(game.pad.row == Pad.PLAYER and game.pad.index == 1, "The D-pad steps to the next place it can go")
+	var on: Node3D = table.slot("player", 1)
+	var other: Node3D = table.slot("player", 2)
+	_expect(on._cue_material.albedo_color.a > 0.95 and on._cue_frame.scale.x > 1.0,
+		"The place you're on has a bold, solid frame")
+	_expect(other._cue_frame.visible and other._cue_material.albedo_color.a < 0.45,
+		"The other places you could pick stay quiet")
 	await _press(JOY_BUTTON_DPAD_DOWN)
 	_expect(game.pad.row == Pad.PLAYER and game.pad.index == 2, "...and only between those places, never off into the hand")
 	await _press(JOY_BUTTON_DPAD_LEFT)

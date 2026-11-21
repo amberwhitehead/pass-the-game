@@ -25,8 +25,10 @@ var _face_material: StandardMaterial3D
 var _pulse_tween: Tween
 var _pulse_color := Color.BLACK
 var _built := false
-## "Choose me next": a pulsing frame (and, on targets, a bobbing marker) round a card or
-## lane the player can pick for the current step. Set by the table each render.
+## "Choose me next": a quiet pulsing frame (and, on targets, a small marker) round a card
+## or lane the player can pick for the current step. Set by the table each render. The
+## one the pointer or controller is on gets a bold white frame and a full-size marker, so
+## "what I'm on" always stands out from "what I could pick".
 enum Cue { NONE, TARGET, HOSTILE, PLAYABLE }
 const CUE_COLORS := {Cue.TARGET: Color("ffd36b"), Cue.HOSTILE: Color("ff5a3c"), Cue.PLAYABLE: Color("7fe0cf")}
 var cue := Cue.NONE
@@ -123,24 +125,45 @@ func set_cue(kind: Cue) -> void:
 	if cue == kind:
 		return
 	cue = kind
-	if kind != Cue.NONE and _cue_frame == null:
+	_cue_t = 0.0
+	_refresh_cue()
+
+
+## Frame and marker for the current cue and hover: none, quiet (an option), or bold (the
+## one being pointed at).
+func _refresh_cue() -> void:
+	var show := cue != Cue.NONE or (_hovered and not disabled)
+	if show and _cue_frame == null:
 		_build_cue()
-	if _cue_frame:
-		_cue_frame.visible = kind != Cue.NONE
-		_cue_marker.visible = kind == Cue.TARGET or kind == Cue.HOSTILE
-		_cue_material.albedo_color = CUE_COLORS.get(kind, Color.WHITE)
-		_cue_marker.modulate = CUE_COLORS.get(kind, Color.WHITE)
-		_cue_t = 0.0
+	if _cue_frame == null:
+		return
+	_cue_frame.visible = show
+	var target := cue == Cue.TARGET or cue == Cue.HOSTILE
+	_cue_marker.visible = target
+	var tint: Color = CUE_COLORS.get(cue, Color.WHITE)
+	if _hovered:
+		_cue_material.albedo_color = Color(1, 1, 1, 1)
+		_cue_frame.scale = Vector3(1.05, 1, 1.05)
+		_cue_marker.modulate = Color(tint, 1.0)
+		_cue_marker.pixel_size = 0.0034
+	else:
+		_cue_material.albedo_color = Color(tint, 0.25)
+		_cue_frame.scale = Vector3.ONE
+		_cue_marker.modulate = Color(tint, 0.55)
+		_cue_marker.pixel_size = 0.0022
 
 
 func _process(delta: float) -> void:
-	if cue == Cue.NONE or _cue_frame == null:
+	if _cue_frame == null or not _cue_frame.visible:
 		return
 	_cue_t += delta
-	var wave := 0.5 + 0.5 * sin(_cue_t * 5.0)
+	var wave := 0.5 + 0.5 * sin(_cue_t * 3.0)
+	if _hovered:
+		_cue_marker.position.y = 0.46 + 0.05 * wave  # The one you're on: solid, marker bobbing.
+		return
 	var soft := cue == Cue.PLAYABLE
-	_cue_material.albedo_color.a = (0.18 + 0.32 * wave) if soft else (0.45 + 0.5 * wave)
-	_cue_marker.position.y = 0.42 + 0.06 * wave
+	_cue_material.albedo_color.a = (0.08 + 0.14 * wave) if soft else (0.16 + 0.22 * wave)
+	_cue_marker.position.y = 0.4
 
 
 func _build_cue() -> void:
@@ -152,7 +175,7 @@ func _build_cue() -> void:
 	_cue_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	var w := CARD_SIZE.x + 0.12
 	var h := CARD_SIZE.y + 0.12
-	var bar := 0.045
+	var bar := 0.06
 	for spec in [[Vector3(0, 0, -h * .5), Vector3(w, .01, bar)], [Vector3(0, 0, h * .5), Vector3(w, .01, bar)],
 			[Vector3(-w * .5, 0, 0), Vector3(bar, .01, h)], [Vector3(w * .5, 0, 0), Vector3(bar, .01, h)]]:
 		var piece := MeshInstance3D.new()
@@ -187,6 +210,7 @@ func set_hovered(value: bool) -> void:
 		return
 	_hovered = value
 	_refresh_edge()
+	_refresh_cue()
 
 
 func pulse(color: Color) -> void:
