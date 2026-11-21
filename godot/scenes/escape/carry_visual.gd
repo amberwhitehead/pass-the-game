@@ -23,6 +23,15 @@ func configure(inventory: Node, camera: Camera3D) -> void:
 	_update_item(inventory.held_item)
 
 
+## Moves the carried item into a hand (the first-person hands' grip) instead of floating
+## in front of the camera. Positions are in the grip's own (rig) units.
+func attach_to(anchor: Node3D) -> void:
+	reparent(anchor, false)
+	position = Vector3(0, -0.02, -0.04)
+	rotation = Vector3(-0.1, -0.25, 0.0)
+	scale = Vector3.ONE * 0.42
+
+
 func _update_item(item: String) -> void:
 	if is_instance_valid(_item):
 		remove_child(_item)
@@ -37,8 +46,9 @@ func _process(_delta: float) -> void:
 		return
 	var player := _camera.get_parent()
 	var cinematic := player is Player and bool(player.get("cinematic_locked"))
+	# Stays in hand during a conversation: the box is at the bottom, clear of it.
 	visible = not _inventory.held_item.is_empty() and not cinematic \
-		and not MiniGames.is_running() and not Dialogue.active
+		and not MiniGames.is_running()
 
 
 static func build_item(item: String) -> Node3D:

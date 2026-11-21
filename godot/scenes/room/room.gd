@@ -4,6 +4,7 @@ extends Node3D
 const Architecture := preload("res://scenes/escape/hub_architecture.gd")
 const Inventory := preload("res://scenes/escape/carry_inventory.gd")
 const HeldVisual := preload("res://scenes/escape/carry_visual.gd")
+const Hands := preload("res://scenes/escape/fp_hands.gd")
 const Optics := preload("res://scenes/escape/optics_controller.gd")
 const Reward := preload("res://scenes/escape/reward_pedestal.gd")
 const Reveal := preload("res://scenes/escape/reward_reveal.gd")
@@ -23,6 +24,7 @@ var reward_reveal: Node
 var architecture: Dictionary
 var hud: CanvasLayer
 var revisits: Node3D
+var hands: Node3D  ## Hands: the player's first-person hands (walk, reach, wave, hold).
 var resume: Node  ## HallResume: the saved spot, and reopening an interrupted room.
 var objective_console: Node3D  ## Shows the next objective and points its laser at it.
 var _reward_pending := false
@@ -69,6 +71,10 @@ func _ready() -> void:
 	held.configure(inventory, _player.camera)
 	if held.get_parent() == null:
 		_player.camera.add_child(held)
+	hands = Hands.new()
+	_player.camera.add_child(hands)
+	hands.configure(_player, inventory)
+	held.attach_to(hands.grip)
 	MiniGames.ended.connect(_on_minigame_ended)
 	if Game.get_flag("escape_prism_solved"):
 		architecture.locked_door.unlock(false)

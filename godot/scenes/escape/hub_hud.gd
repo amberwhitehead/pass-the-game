@@ -6,8 +6,6 @@ const KeyBindings := preload("res://autoload/key_bindings.gd")
 var _player: Player
 var _inventory: Node
 var _prompt: Control  ## The small interaction caption above the crosshair.
-var _carrying: Label
-var _carry_icon: Label
 var _notice: Label
 var _notice_panel: PanelContainer
 var _notice_time := 0.0
@@ -23,20 +21,6 @@ func configure(player: Player, inventory: Node) -> void:
 func _ready() -> void:
 	layer = 5
 	# The objective lives on the console by the entrance (objective_console.gd).
-	var carry_panel := _panel(Vector2(.785, .035), Vector2(.975, .035))
-	var carry_row := HBoxContainer.new()
-	carry_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	carry_panel.add_child(carry_row)
-	_carry_icon = Style.label("◇", 30, Style.GOLD)
-	carry_row.add_child(_carry_icon)
-	var carry_column := VBoxContainer.new()
-	carry_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	carry_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	carry_row.add_child(carry_column)
-	carry_column.add_child(Style.eyebrow("IN YOUR HAND", Style.MUTED))
-	_carrying = Style.label("", 17, Style.PAPER)
-	_carrying.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	carry_column.add_child(_carrying)
 	_prompt = Plaque.new()
 	add_child(_prompt)
 	_prompt.place_above_center()
@@ -53,8 +37,6 @@ func _ready() -> void:
 	_crosshair.offset_left = -5
 	_crosshair.offset_top = -20
 	add_child(_crosshair)
-	_inventory.changed.connect(_carry_changed)
-	_carry_changed(_inventory.held_item)
 
 func _process(delta: float) -> void:
 	var target := _player.target
@@ -94,16 +76,6 @@ func notify(text: String, duration := 5.0) -> void:
 	_notice.text = text
 	_notice_time = duration
 
-func _carry_changed(item: String) -> void:
-	_carrying.text = _inventory.item_name(item)
-	var color := Style.PAPER
-	if item == "lens_yellow":
-		color = Color("e9c466")
-	elif item == "lens_blue":
-		color = Color("8cc8e7")
-	_carrying.add_theme_color_override("font_color", color)
-	_carry_icon.text = "◇" if item.is_empty() else ("◈" if item == "prism" else "◉")
-	_carry_icon.modulate = color
 
 func _panel(from: Vector2, to: Vector2) -> PanelContainer:
 	var panel := PanelContainer.new()

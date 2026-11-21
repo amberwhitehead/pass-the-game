@@ -8,6 +8,8 @@ extends CharacterBody3D
 ## Gamepad:   left stick walk/strafe, right stick look, D-pad walk/turn, A interact.
 
 signal focus_changed(target: Interactable)
+## The player has just used `target` (the first-person hands reach toward it).
+signal reached(target: Interactable)
 
 const MouseCapture := preload("res://scenes/room/mouse_capture.gd")
 ## Ignored while still held from a menu or modal, until released (see suppress_held_inputs).
@@ -197,4 +199,5 @@ func _unhandled_input(event: InputEvent) -> void:
 	if Dialogue.last_closed_frame == Engine.get_process_frames():
 		return  # same press that just closed a dialogue
 	get_viewport().set_input_as_handled()
+	reached.emit(target)
 	target.interact(self)
