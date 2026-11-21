@@ -47,10 +47,7 @@ func _ready() -> void:
 	_label.visibility_range_end_margin = .6
 	_label.text = npc_name
 	_label.position.y = label_height
-	_name_hint = Sign.text(self, "—  TALK  —", Vector3(0, label_height-.16, 0), .055, Sign.GOLD)
-	_name_hint.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_name_hint.visibility_range_end = 4.0
-	_name_hint.visible = false
+	# No "— TALK —" line under the name: the prompt under the cursor already says Talk.
 	_setup_model()
 	_blink_loop()
 

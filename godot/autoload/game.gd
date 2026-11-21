@@ -161,7 +161,7 @@ func get_flag(flag: String, default: Variant = false) -> Variant:
 ##   look_*           look around           (right stick; the captured mouse looks directly)
 ##   jump                                   (Space, pad L1)
 ##   interact / back                        (click in the hall, E/Enter/F, pad A/R1) / (Esc/Backspace, pad B)
-##   secondary        a target's second action, e.g. take a prism (right-click in the hall, R, pad R2)
+##   secondary        a target's second action, e.g. take a prism (right-click in the hall, R, pad R2 or X/Square)
 ##   pause            the pause menu        (pad Y; keyboard and touch use back)
 ## Touch: on-screen pad buttons + drag-to-look (see TouchControls / Player).
 ## Keyboard keys come from KeyBindings (defaults, then the player's saved choices).
@@ -175,6 +175,7 @@ func _register_actions() -> void:
 		"back": [JOY_BUTTON_B],
 		"pause": [JOY_BUTTON_Y],  # Triangle: the pause menu, in the hall and in minigames.
 		"jump": [JOY_BUTTON_LEFT_SHOULDER],  # L1 (R1 interacts: pad_aliases.gd)
+		"secondary": [JOY_BUTTON_X],  # Square / X, like R2: a target's second action
 	}
 	# [action, axis, direction]
 	var pad_axes := [

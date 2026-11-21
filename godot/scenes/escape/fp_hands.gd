@@ -6,6 +6,8 @@ extends Node3D
 ##   and landing dips them.
 ## - Interacting reaches one hand out toward the thing (the free one, if one holds an item).
 ## - A conversation opening gets a wave from the left hand, which then relaxes.
+## - Trying something that does nothing here gets a shrug: both hands out, palms up.
+##   Anything can ask for one: get_tree().call_group("player_feedback", "shrug").
 ## - A carried item sits in the right hand (`grip`), its fingers curled round it.
 ## - Hidden while a minigame runs (its camera handoff included), in cinematics, and while
 ##   aiming the optics.
@@ -23,6 +25,7 @@ const STEP_RATE := 9.0    ## Swing phase per second at full walking speed.
 const REACH_TIME := 0.5
 const REACH_DISTANCE := 0.15
 const WAVE_TIME := 2.0
+const SHRUG_TIME := 0.9
 const SKIN := Color(0.80, 0.61, 0.49)
 const SLEEVE := Color(0.10, 0.21, 0.23)
 const BRASS := Color(0.68, 0.50, 0.25)
@@ -33,6 +36,7 @@ var grip: Node3D           ## Where a carried item sits, in the right hand.
 var holding := false       ## True while the inventory holds something.
 var reach_t := -1.0        ## Seconds into a reach, or < 0.
 var wave_t := -1.0         ## Seconds into a wave, or < 0.
+var shrug_t := -1.0        ## Seconds into a shrug, or < 0.
 
 var _player: Node3D
 var _inventory: Node
@@ -59,6 +63,7 @@ func configure(player: Node3D, inventory: Node) -> void:
 
 func _ready() -> void:
 	name = "Hands"
+	add_to_group("player_feedback")
 	scale = Vector3.ONE * RIG_SCALE
 	right = _build_hand(1.0)
 	left = _build_hand(-1.0)
@@ -84,6 +89,11 @@ func wave() -> void:
 	wave_t = 0.0
 
 
+## "That doesn't do anything here": both hands come out to the sides, palms up, and drop.
+func shrug() -> void:
+	shrug_t = 0.0
+
+
 func _on_item_changed(item: String) -> void:
 	holding = not item.is_empty()
 
@@ -106,6 +116,10 @@ func _process(delta: float) -> void:
 		wave_t += delta
 		if wave_t >= WAVE_TIME:
 			wave_t = -1.0
+	if shrug_t >= 0.0:
+		shrug_t += delta
+		if shrug_t >= SHRUG_TIME:
+			shrug_t = -1.0
 
 	# Walking: the hands swing in opposition, bobbing twice per stride.
 	var swing := sin(_phase) * SWING * _speed
@@ -139,6 +153,17 @@ func _process(delta: float) -> void:
 		l_rot += Vector3(1.35 * w, 0.0, sin(wave_t * 11.0) * 0.5 * w)
 		l_curl = lerpf(l_curl, 0.0, w)
 
+	var s := _shrug_amount()
+	if s > 0.0:
+		# Out to the sides and up a little, wrists turned so the palms face up, fingers open.
+		r_offset += Vector3(0.07, 0.07, 0.02) * s
+		l_offset += Vector3(-0.07, 0.07, 0.02) * s
+		r_rot += Vector3(0.25 * s, 0.0, -1.1 * s)
+		l_rot += Vector3(0.25 * s, 0.0, 1.1 * s)
+		if not holding:
+			r_curl = lerpf(r_curl, 0.0, s)
+		l_curl = lerpf(l_curl, 0.0, s)
+
 	_pose(right, 1.0, r_offset, r_rot, r_curl)
 	_pose(left, -1.0, l_offset, l_rot, l_curl)
 
@@ -148,6 +173,13 @@ func _reach_amount() -> float:
 	if reach_t < 0.0:
 		return 0.0
 	return sin(PI * clampf(reach_t / REACH_TIME, 0.0, 1.0))
+
+
+## Out quickly, a beat, then back: 0..1.
+func _shrug_amount() -> float:
+	if shrug_t < 0.0:
+		return 0.0
+	return minf(smoothstep(0.0, 0.18, shrug_t), 1.0 - smoothstep(SHRUG_TIME - 0.35, SHRUG_TIME, shrug_t))
 
 
 ## Up quickly, wave, then down: 0..1.

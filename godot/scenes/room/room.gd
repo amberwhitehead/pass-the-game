@@ -193,6 +193,11 @@ func _on_minigame_ended(id: String, result: Dictionary) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if (event.is_action_pressed("back") or event.is_action_pressed("pause")) and not event.is_echo() and not Sound.settings_open:
 		get_viewport().set_input_as_handled()
+		# On a controller, B with nothing to go back from just shrugs; Y is the menu.
+		# (Escape on the keyboard, and the touch pad's B, still open it.)
+		if event is InputEventJoypadButton and event.is_action_pressed("back"):
+			_player.shrug()
+			return
 		PauseMenu.open_hall()
 
 

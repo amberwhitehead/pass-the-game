@@ -202,27 +202,37 @@ func _unhandled_input(event: InputEvent) -> void:
 	var right_click: bool = event is InputEventMouseButton and event.pressed \
 		and event.button_index == MOUSE_BUTTON_RIGHT and event.device != InputEvent.DEVICE_ID_EMULATION \
 		and mouse_capture != null and mouse_capture.is_captured()
-	if right_click or ((event is InputEventKey or event is InputEventAction) and event.is_action_pressed("secondary") and not event.is_echo()):
+	if right_click or ((event is InputEventKey or event is InputEventAction or event is InputEventJoypadButton) \
+			and event.is_action_pressed("secondary") and not event.is_echo()):
 		_use_secondary()
 		return
 	if not (click or event.is_action_pressed("interact")) or event.is_echo():
 		return
-	if _frozen() or target == null:
+	if _frozen():
 		return
 	if Dialogue.last_closed_frame == Engine.get_process_frames():
 		return  # same press that just closed a dialogue
 	get_viewport().set_input_as_handled()
+	if target == null:
+		shrug()  # Nothing here to use.
+		return
 	reached.emit(target)
 	target.interact(self)
 
 
-## A target's second action (right-click, R, or R2), e.g. taking a prism off its stand.
+## "You tried, but that does nothing here": the hands shrug (fp_hands.gd).
+func shrug() -> void:
+	get_tree().call_group("player_feedback", "shrug")
+
+
+## A target's second action (right-click, R, R2 or □), e.g. taking a prism off its stand.
 func _use_secondary() -> void:
-	if _frozen() or target == null or target.secondary_prompt.is_empty():
-		return
-	if Dialogue.last_closed_frame == Engine.get_process_frames():
+	if _frozen() or Dialogue.last_closed_frame == Engine.get_process_frames():
 		return
 	get_viewport().set_input_as_handled()
+	if target == null or target.secondary_prompt.is_empty():
+		shrug()  # Nothing here has a second action.
+		return
 	reached.emit(target)
 	target.secondary(self)
 

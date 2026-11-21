@@ -88,7 +88,7 @@ static func controller_lines() -> Array:
 		["Move", "Left stick"],
 		["Jump", ["l1"]],
 		["Use", ["r1", "a"]],
-		["Take", ["r2"]],
+		["Take", ["r2", "x"]],
 		["Menu", ["y"]],
 		["Back", ["b"]],
 	]

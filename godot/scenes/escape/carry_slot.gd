@@ -67,10 +67,12 @@ func interact(_player: Node3D) -> void:
 	var held: String = _inventory.held_item
 	if not accepts(held):
 		Sound.play("unavailable", self)
+		get_tree().call_group("player_feedback", "shrug")
 		message.emit("This cradle holds %s. Place your %s in an empty matching mount first." % [
 			"prisms" if accepted_kind == "prism" else "lenses", Inventory.item_name(held).to_lower()])
 		return
 	if held.is_empty() and slot_item.is_empty():
+		get_tree().call_group("player_feedback", "shrug")
 		message.emit("An empty cradle. You can return a matching item here.")
 		return
 	var taken := slot_item

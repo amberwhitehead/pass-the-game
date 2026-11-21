@@ -96,12 +96,14 @@ func exchange_item(id: String) -> void:
 	var item := String(model.items[id])
 	if not model.accepts(id, held):
 		Sound.play("unavailable", self)
+		get_tree().call_group("player_feedback", "shrug")
 		if id == Model.LAMP_SOCKET:
 			message.emit("Nothing from this century fits this lamp socket.")
 		else:
 			message.emit("That needs a %s. Your held item stays safe." % ["prism" if Model.SOCKETS.has(id) else "colored lens"])
 		return
 	if held.is_empty() and item.is_empty():
+		get_tree().call_group("player_feedback", "shrug")  # Nothing to take, nothing to place.
 		if id == Model.LAMP_SOCKET:
 			message.emit("An empty lamp socket, waiting for a lamp that hasn't arrived yet.")
 		else:

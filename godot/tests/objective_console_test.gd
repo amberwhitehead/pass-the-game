@@ -64,6 +64,7 @@ func _run() -> void:
 	await process_frame
 
 	await _r2_taps()
+	await _shrugs()
 	await _point_at(console, _room.get_node("Challenge4").global_position, "Egypt's station")
 
 	_game.set_flag("escape_prism_solved")
@@ -92,6 +93,30 @@ func _point_at(console: Node3D, place: Vector3, what: String) -> void:
 	var want := (place + Vector3(0, 1.0, 0) - pivot.global_position).normalized()
 	_expect(aim.dot(want) > 0.99, "The laser turns toward %s (%.3f)" % [what, aim.dot(want)])
 	_expect(console.blinks_done == 3 and not console._beam.visible, "It blinks three times at %s, then goes dark" % what)
+
+
+## Trying something that does nothing here gets a shrug: B on a controller with nothing to
+## go back from (instead of the menu), using nothing, an empty mount with empty hands.
+## Square is the second action, like R2.
+func _shrugs() -> void:
+	var player = _room.get_node("Player")
+	var hands: Array = player.get_tree().get_nodes_in_group("player_feedback")
+	_expect(hands.size() == 1, "The hands listen for shrugs")
+	var b := InputEventJoypadButton.new()
+	b.device = 2
+	b.button_index = JOY_BUTTON_B
+	b.pressed = true
+	hands[0].shrug_t = -1.0
+	_room._unhandled_input(b)
+	_expect(hands[0].shrug_t >= 0.0 and not root.get_node("PauseMenu").is_open(), "Circle with nothing to go back from shrugs, no menu")
+	hands[0].shrug_t = -1.0
+	_room.optics.exchange_item("C")  # An empty prism socket, empty hands.
+	_expect(hands[0].shrug_t >= 0.0, "Using an empty socket with empty hands shrugs")
+	var square := InputEventJoypadButton.new()
+	square.device = 2
+	square.button_index = JOY_BUTTON_X
+	square.pressed = true
+	_expect(square.is_action("secondary"), "Square is the second action, like R2")
 
 
 ## R2 is analog: a tap that rises and falls between two game ticks still takes, once;
