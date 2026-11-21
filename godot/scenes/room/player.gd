@@ -96,9 +96,6 @@ func _physics_process(delta: float) -> void:
 		pitch = -_axis("look_up", "look_down") * look_speed
 		_strength("jump")  # Clears a hold-over once Space is released.
 		jump = Input.is_action_just_pressed("jump") and not _suppressed.has("jump")
-		# R2 is an analog trigger, so it is read as a press here rather than per event.
-		if Input.is_action_just_pressed("secondary") and _pad_secondary():
-			_use_secondary()
 	rotation.y += yaw * delta
 	_pitch(pitch * delta)
 	# Yaw-only axes: looking up or down never tilts or slows walking.
@@ -195,6 +192,9 @@ func _can_see(area: Interactable, point: Vector3) -> bool:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventJoypadMotion and event.axis == JOY_AXIS_TRIGGER_RIGHT:
+		_r2_motion(event)
+		return
 	# A left click interacts while the mouse is looking around (E still works too).
 	var click: bool = event is InputEventMouseButton and event.pressed \
 		and event.button_index == MOUSE_BUTTON_LEFT and event.device != InputEvent.DEVICE_ID_EMULATION \
@@ -227,10 +227,19 @@ func _use_secondary() -> void:
 	target.secondary(self)
 
 
-## True while the secondary action is held on a controller (not the keyboard's R, which
-## arrives as an event in _unhandled_input).
-func _pad_secondary() -> bool:
-	for d in Input.get_connected_joypads():
-		if Input.get_joy_axis(d, JOY_AXIS_TRIGGER_RIGHT) > 0.5:
-			return true
-	return false
+
+## R2 is analog. Read per event, with hysteresis, so a quick tap that goes up and back
+## between two game ticks still counts (polling once per tick missed those), and a
+## trigger resting around the threshold doesn't fire twice.
+const R2_PRESS := 0.35
+const R2_RELEASE := 0.15
+var _r2_down := {}  ## device -> R2 counted as held
+
+
+func _r2_motion(event: InputEventJoypadMotion) -> void:
+	var down: bool = _r2_down.get(event.device, false)
+	if not down and event.axis_value >= R2_PRESS:
+		_r2_down[event.device] = true
+		_use_secondary()
+	elif down and event.axis_value <= R2_RELEASE:
+		_r2_down[event.device] = false

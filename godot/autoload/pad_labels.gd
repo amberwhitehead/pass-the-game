@@ -29,3 +29,24 @@ static func is_playstation(device := -1) -> bool:
 	# Browsers report a DualSense as "DualSense Wireless Controller"; some older pads
 	# only as "Wireless Controller", which is Sony's name for both.
 	return name.begins_with("wireless controller")
+
+
+## Lower-case pieces of a pad's reported name that mark an Xbox (or XInput) controller.
+const XBOX_NAMES := ["xbox", "xinput", "microsoft", "x-box"]
+
+
+## "playstation", "xbox", or "generic" when the pad's name says neither (or no pad).
+## device -1 checks the first connected pad.
+static func kind(device := -1) -> String:
+	if device < 0:
+		var pads := Input.get_connected_joypads()
+		if pads.is_empty():
+			return "generic"
+		device = pads[0]
+	if is_playstation(device):
+		return "playstation"
+	var name := Input.get_joy_name(device).to_lower()
+	for piece: String in XBOX_NAMES:
+		if piece in name:
+			return "xbox"
+	return "generic"

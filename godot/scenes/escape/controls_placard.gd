@@ -8,14 +8,18 @@ const Geometry := preload("res://scenes/escape/hub_geometry.gd")
 const Sign := preload("res://ui/world_sign.gd")
 const KeyBindings := preload("res://autoload/key_bindings.gd")
 const PadLabels := preload("res://autoload/pad_labels.gd")
+const PadGlyph := preload("res://ui/pad_glyph.gd")
 
 const BOARD_AT := Vector3(0, 1.3, .06)
 const BOARD_SIZE := Vector2(.95, .62)
 
 const LINE_H := .05
+const GLYPH_PX := 48.0        ## Drawn button height, in pixels, before it goes on the board...
+const GLYPH_H := .042         ## ...and its height on the board, in metres.
 const ROWS := 7
-## Per section, one [action, button] pair of labels per line: the action pinned left, the
-## button pinned right, so the buttons line up down the section's right edge.
+## Per section, one row per line: [action label, button label, glyph slots]. The action is
+## pinned left and the button right, so the buttons line up down the section's right edge.
+## Controller buttons are drawn (ui/pad_glyph.gd) to look like the pad that is plugged in.
 var keyboard: Array = []
 var controller: Array = []
 
@@ -36,11 +40,32 @@ func refresh() -> void:
 	_fill(controller, controller_lines())
 
 
-static func _fill(rows: Array, lines: Array) -> void:
+func _fill(rows: Array, lines: Array) -> void:
+	var kind := PadLabels.kind()
 	for i in rows.size():
 		var pair: Array = lines[i] if i < lines.size() else ["", ""]
-		rows[i][0].text = pair[0]
-		rows[i][1].text = pair[1]
+		var row: Array = rows[i]
+		row[0].text = pair[0]
+		var glyphs: Array = pair[1] if pair[1] is Array else []
+		row[1].text = pair[1] if pair[1] is String else ""
+		# Lay the drawn buttons right to left from the section's right edge.
+		var right: float = row[1].position.x
+		for k in row[2].size():
+			var slot: Dictionary = row[2][k]
+			var sprite: Sprite3D = slot.sprite
+			sprite.visible = k < glyphs.size()
+			if not sprite.visible:
+				continue
+			var glyph: Control = slot.glyph
+			glyph.button = glyphs[glyphs.size() - 1 - k]
+			glyph.kind = kind
+			var px := PadGlyph.size_for(glyph.button, kind, GLYPH_PX)
+			slot.viewport.size = Vector2i(px.ceil())
+			glyph.size = px
+			slot.viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+			var width := px.x * sprite.pixel_size
+			sprite.position = Vector3(right - width * 0.5, row[1].position.y, row[1].position.z + .002)
+			right -= width + .015
 
 
 ## [action, button] per line.
@@ -56,15 +81,16 @@ static func keyboard_lines() -> Array:
 	]
 
 
+## A list instead of a word means drawn buttons (ui/pad_glyph.gd names).
 static func controller_lines() -> Array:
 	return [
 		["Look", "Right stick"],
 		["Move", "Left stick"],
-		["Jump", "L1"],
-		["Use", "R1 or %s" % PadLabels.face(JOY_BUTTON_A)],
-		["Take", "R2"],
-		["Menu", PadLabels.face(JOY_BUTTON_Y)],
-		["Back", PadLabels.face(JOY_BUTTON_B)],
+		["Jump", ["l1"]],
+		["Use", ["r1", "a"]],
+		["Take", ["r2"]],
+		["Menu", ["y"]],
+		["Back", ["b"]],
 	]
 
 
@@ -108,4 +134,31 @@ func _build() -> void:
 			button.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			button.position = Vector3(center + half, y, .012)
 			board.add_child(button)
-			rows.append([action, button])
+			var slots: Array = []
+			if column > 0:
+				for k in 2:
+					slots.append(_glyph_slot(board))
+			rows.append([action, button, slots])
+
+
+## A drawn controller button on the board: a small viewport holding a PadGlyph, shown on a
+## Sprite3D. It is redrawn only when the button or the pad changes.
+func _glyph_slot(board: Node3D) -> Dictionary:
+	var viewport := SubViewport.new()
+	viewport.transparent_bg = true
+	viewport.disable_3d = true
+	viewport.gui_disable_input = true
+	viewport.size = Vector2i(64, 48)
+	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	add_child(viewport)
+	var glyph := PadGlyph.new()
+	glyph.glyph_height = GLYPH_PX
+	viewport.add_child(glyph)
+	var sprite := Sprite3D.new()
+	sprite.texture = viewport.get_texture()
+	sprite.pixel_size = GLYPH_H / GLYPH_PX
+	sprite.shaded = false
+	sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+	sprite.visible = false
+	board.add_child(sprite)
+	return {"viewport": viewport, "glyph": glyph, "sprite": sprite}

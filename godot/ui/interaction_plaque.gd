@@ -3,6 +3,7 @@ extends VBoxContainer
 ## rather than a box at the bottom of the screen. While aiming the optics it says
 ## "ALIGN THE LIGHT" above the longer hint. Place it with place_below_center().
 const Style := preload("res://ui/game_style.gd")
+const PadGlyph := preload("res://ui/pad_glyph.gd")
 const MAX_WIDTH := 460.0
 const GAP := 18.0  ## Pixels between the centre of the screen and the caption's top.
 var key: Label
@@ -53,7 +54,31 @@ func _badge(row: Control) -> Label:
 	var label := Style.label("E", 12, Style.INK)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	badge.add_child(label)
+	# A controller button shows as a drawn icon instead (see set_key).
+	var glyph := PadGlyph.new()
+	glyph.glyph_height = 18.0
+	glyph.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	glyph.visible = false
+	badge.add_child(glyph)
+	badge.set_meta("style", badge_style)
 	return label
+
+
+## Shows `spec` in a key badge: a word such as "Click", or "pad:<button>:<kind>" for a
+## drawn controller button (ui/pad_glyph.gd), e.g. "pad:r1:playstation".
+static func set_key(label: Label, spec: String) -> void:
+	var badge := label.get_parent() as PanelContainer
+	var glyph := badge.get_child(1) as Control
+	var pad := spec.begins_with("pad:")
+	label.visible = not pad
+	glyph.visible = pad
+	badge.add_theme_stylebox_override("panel", StyleBoxEmpty.new() if pad else badge.get_meta("style"))
+	if pad:
+		var parts := spec.split(":")
+		glyph.button = parts[1]
+		glyph.kind = parts[2] if parts.size() > 2 else "generic"
+	else:
+		label.text = spec
 
 
 func _caption(row: Control) -> Label:
@@ -77,12 +102,12 @@ func place_below_center() -> void:
 
 
 func present(text: String, input_key: String, aiming: bool, text2 := "", input_key2 := "") -> void:
-	key.text = "↔" if aiming else input_key
+	set_key(key, "↔" if aiming else input_key)
 	detail.visible = aiming
 	var second := text2 != "" and not aiming
 	key2.get_parent().visible = second
 	title2.visible = second
-	key2.text = input_key2
+	set_key(key2, input_key2)
 	if text + "|" + text2 == _last:
 		return
 	_last = text + "|" + text2

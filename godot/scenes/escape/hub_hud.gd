@@ -81,20 +81,25 @@ func _input(event: InputEvent) -> void:
 		_interact_key = "touch"
 
 
-## The interact prompt's badge: R1 while a controller is plugged in (✕ works too),
-## A after touching the screen, otherwise Click.
+## The interact prompt's badge: the R1 button drawn for the plugged-in controller (✕ and
+## its look-alikes work too), A after touching the screen, otherwise Click.
 func _interact_label() -> String:
 	if not Input.get_connected_joypads().is_empty():
-		return "R1"
+		return "pad:r1:" + _pad_kind()
 	return "A" if _interact_key == "touch" else "Click"
 
 
-## The second action's badge: R2 while a controller is plugged in, T after touching the
-## screen, otherwise Right-click.
+## The second action's badge: the R2 trigger drawn for the plugged-in controller, T after
+## touching the screen, otherwise Right-click.
 func _secondary_label() -> String:
 	if not Input.get_connected_joypads().is_empty():
-		return "R2"
+		return "pad:r2:" + _pad_kind()
 	return "T" if _interact_key == "touch" else "Right-click"
+
+
+## "playstation", "xbox" or "generic": the pad last used, or the first one plugged in.
+func _pad_kind() -> String:
+	return PadLabels.kind(_pad_device if _pad_device in Input.get_connected_joypads() else -1)
 
 
 ## A face button's name for the last input: the controller's own symbol, or the touch

@@ -182,7 +182,7 @@ func _register_actions() -> void:
 		["strafe_left", JOY_AXIS_LEFT_X, -1.0], ["strafe_right", JOY_AXIS_LEFT_X, 1.0],
 		["look_left", JOY_AXIS_RIGHT_X, -1.0], ["look_right", JOY_AXIS_RIGHT_X, 1.0],
 		["look_up", JOY_AXIS_RIGHT_Y, -1.0], ["look_down", JOY_AXIS_RIGHT_Y, 1.0],
-		["secondary", JOY_AXIS_TRIGGER_RIGHT, 1.0],  # R2: a target's second action (take a prism)
+		["secondary", JOY_AXIS_TRIGGER_RIGHT, 1.0],  # R2: a target's second action (the player reads it per event)
 	]
 	for action in ["look_left", "look_right", "look_up", "look_down", "strafe_left", "strafe_right", "pause", "secondary"]:
 		_ensure(action)

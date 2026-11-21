@@ -34,8 +34,8 @@ func _run() -> void:
 	_expect(console._text.text == Objectives.current().text and "EGYPT" in console._chapter.text, "It shows the first objective")
 	_expect(not _hud_mentions("FIELD NOTES"), "The top-left objective panel is gone")
 	var pads := not Input.get_connected_joypads().is_empty()  # This machine may have a pad plugged in.
-	_expect(_room.hud._interact_label() == ("R1" if pads else "Click"), "The prompt says Click, or R1 with a controller plugged in")
-	_expect(_room.hud._secondary_label() == ("R2" if pads else "Right-click"), "...and Right-click, or R2, for a second action")
+	_expect(_room.hud._interact_label().begins_with("pad:r1:") if pads else _room.hud._interact_label() == "Click", "The prompt says Click, or shows R1 with a controller plugged in")
+	_expect(_room.hud._secondary_label().begins_with("pad:r2:") if pads else _room.hud._secondary_label() == "Right-click", "...and Right-click, or R2, for a second action")
 	var drift := InputEventJoypadMotion.new()
 	drift.device = 2
 	drift.axis = JOY_AXIS_LEFT_X
@@ -52,7 +52,7 @@ func _run() -> void:
 	press.pressed = false
 	Input.parse_input_event(press)
 	await process_frame
-	_expect(_room.hud._interact_label() == ("R1" if not Input.get_connected_joypads().is_empty() else "Click"),
+	_expect(_room.hud._interact_label().begins_with("pad:r1:") != Input.get_connected_joypads().is_empty(),
 		"The prompt says R1 only while a controller is plugged in")
 	var key := InputEventKey.new()
 	key.keycode = KEY_SHIFT
@@ -63,6 +63,7 @@ func _run() -> void:
 	Input.parse_input_event(key)
 	await process_frame
 
+	await _r2_taps()
 	await _point_at(console, _room.get_node("Challenge4").global_position, "Egypt's station")
 
 	_game.set_flag("escape_prism_solved")
@@ -91,6 +92,32 @@ func _point_at(console: Node3D, place: Vector3, what: String) -> void:
 	var want := (place + Vector3(0, 1.0, 0) - pivot.global_position).normalized()
 	_expect(aim.dot(want) > 0.99, "The laser turns toward %s (%.3f)" % [what, aim.dot(want)])
 	_expect(console.blinks_done == 3 and not console._beam.visible, "It blinks three times at %s, then goes dark" % what)
+
+
+## R2 is analog: a tap that rises and falls between two game ticks still takes, once;
+## a trigger hovering around the threshold doesn't take twice.
+func _r2_taps() -> void:
+	var player = _room.get_node("Player")
+	var dummy := _Taker.new()
+	dummy.secondary_prompt = "Take it"
+	_room.add_child(dummy)
+	for values in [[0.0, 0.8, 0.0], [0.0, 0.4, 0.3, 0.38, 0.32, 0.0]]:
+		dummy.taken = 0
+		for v in values:
+			player.target = dummy  # Normally set by looking at it each tick.
+			var m := InputEventJoypadMotion.new()
+			m.device = 2
+			m.axis = JOY_AXIS_TRIGGER_RIGHT
+			m.axis_value = v
+			player._unhandled_input(m)
+		_expect(dummy.taken == 1, "R2 %s takes exactly once (%d)" % [values, dummy.taken])
+	dummy.queue_free()
+
+
+class _Taker extends Interactable:
+	var taken := 0
+	func secondary(_p: Node3D) -> void:
+		taken += 1
 
 
 func _hud_mentions(text: String) -> bool:
