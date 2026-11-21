@@ -71,8 +71,18 @@ def build(godot: Path, output: Path) -> None:
     print(f"Built: {output / 'index.html'}", flush=True)
 
 
+class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
+    """Tell the browser not to cache, so a plain reload always loads the latest build.
+
+    Without this, browsers may reuse a cached index.pck after a rebuild."""
+
+    def end_headers(self) -> None:
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
+
 def serve(output: Path, port: int) -> None:
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(output))
+    handler = functools.partial(NoCacheHandler, directory=str(output))
     with http.server.ThreadingHTTPServer(("127.0.0.1", port), handler) as server:
         print(f"Playtest: http://localhost:{port}/", flush=True)
         print("Serving on this computer. Ctrl-C stops the server.", flush=True)
