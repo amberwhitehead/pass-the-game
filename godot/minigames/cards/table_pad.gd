@@ -10,6 +10,7 @@ extends Node
 ## the mouse hands control back to it. Dialogs use their own buttons: the D-pad moves
 ## between them and A presses (Godot's ui_* actions). Any connected pad works.
 
+const PadLabels := preload("res://autoload/pad_labels.gd")
 const STICK := 0.5           ## Stick deflection that counts as a direction.
 const FIRST_REPEAT := 0.38   ## Seconds before a held direction repeats...
 const REPEAT := 0.14         ## ...and between repeats.
@@ -103,7 +104,8 @@ func _wake() -> void:
 	if table.pad_active:
 		return
 	table.pad_active = true
-	table.hint.text = "Controller: D-pad or stick to move, A to choose, Y rings the bell, X for rules, B to cancel."
+	table.hint.text = "Controller: D-pad or stick to move, %s to choose, %s rings the bell, Options for rules, %s to cancel." \
+		% [PadLabels.face(JOY_BUTTON_A), PadLabels.face(JOY_BUTTON_X), PadLabels.face(JOY_BUTTON_B)]
 	if game._selected >= 0:
 		_focus_first_target()
 	elif _hand_size() > 0:
@@ -177,18 +179,25 @@ func _activate(actor: Node3D) -> void:
 		return
 	var was_selected: int = game._selected
 	table.activate(actor)
-	# Choosing a card sends the focus to its first legal target.
+	# Choosing a card sends the focus to its first legal target. A card with nowhere to go
+	# (not enough Attention, no empty lane, nothing to hit or heal) stays in the hand, so
+	# say so: the hint explains, and the dull "unavailable" sound marks it.
 	if row == HAND and game._selected >= 0 and game._selected != was_selected:
-		_focus_first_target()
+		if not _focus_first_target():
+			Sound.play("unavailable", game)
+			if not table.hint.text.begins_with("Not enough Attention"):
+				table.hint.text = "Nowhere to play that card right now. Choose another, or ring the bell."
 
 
-func _focus_first_target() -> void:
+## Moves the focus to the selected card's first legal target; false if it has none.
+func _focus_first_target() -> bool:
 	for side in ["player", "enemy"]:
 		for lane in table.lane_count:
 			if table._eligible(side, lane):
 				row = PLAYER if side == "player" else ENEMY
 				index = lane
-				return
+				return true
+	return false
 
 
 ## After a play or a turn resolves, return to the hand (or the bell if it is empty).
