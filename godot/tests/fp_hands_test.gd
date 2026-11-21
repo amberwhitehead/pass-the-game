@@ -72,6 +72,19 @@ func _run() -> void:
 	_expect(tip_far < 0.35, "Even mid-reach it stays inside the capsule (%.2f)" % tip_far)
 	await create_timer(0.6).timeout
 
+	# A shrug: both hands roll palms up together, mirrored (right clockwise, left
+	# counter-clockwise by the same amount) and move out to their own sides.
+	var r_rest_z: float = _hands.right.rotation.z
+	var l_rest_z: float = _hands.left.rotation.z
+	_hands.shrug()
+	await create_timer(0.35).timeout
+	var r_turn: float = _hands.right.rotation.z - r_rest_z
+	var l_turn: float = _hands.left.rotation.z - l_rest_z
+	_expect(r_turn < -2.0 and l_turn > 2.0 and absf(r_turn + l_turn) < 0.05,
+		"The shrug rolls the hands palms up, mirrored (%.2f / %.2f)" % [r_turn, l_turn])
+	_expect(_hands.right.position.x > 0.0 and _hands.left.position.x < 0.0, "Each hand stays on its own side")
+	await create_timer(0.8).timeout
+
 	# A conversation opens with a wave of the left hand.
 	var dialogue: Node = root.get_node("Dialogue")
 	dialogue.say("Tester", ["Hello."])

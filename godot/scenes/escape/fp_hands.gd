@@ -158,10 +158,12 @@ func _process(delta: float) -> void:
 	if s > 0.0:
 		# Both hands together: out a little and up, each rolled over on its forearm so the
 		# palm faces up, fingers open.
+		# _pose() mirrors x offsets and the roll for the left hand, so both get the same
+		# values: the right rolls clockwise, the left the same amount counter-clockwise.
 		r_offset += Vector3(0.05, 0.06, 0.02) * s
-		l_offset += Vector3(-0.05, 0.06, 0.02) * s
+		l_offset += Vector3(0.05, 0.06, 0.02) * s
 		r_rot += Vector3(0.2 * s, 0.0, -2.9 * s)
-		l_rot += Vector3(0.2 * s, 0.0, 2.9 * s)
+		l_rot += Vector3(0.2 * s, 0.0, -2.9 * s)
 		if not holding:
 			r_curl = lerpf(r_curl, 0.0, s)
 		l_curl = lerpf(l_curl, 0.0, s)

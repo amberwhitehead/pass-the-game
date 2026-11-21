@@ -1,8 +1,10 @@
 shader_type spatial;
-// A screen-space outline for the thing the player is targeting: drawn as a material
-// overlay that pushes each vertex out along its normal by a fixed number of pixels and
-// shows only the back faces, so a thin rim appears round the silhouette.
-render_mode unshaded, cull_front, shadows_disabled;
+// A screen-space outline for the thing the player is targeting: pushes each vertex out
+// along its normal by a fixed number of pixels and shows only the back faces, so a thin
+// rim appears round each part. Drawn after focus_mask.gdshader, and only where that pass
+// did not mark the object, so only the rim round the whole object's silhouette remains.
+render_mode unshaded, cull_front, shadows_disabled, depth_draw_never;
+stencil_mode read, compare_not_equal, 1;
 
 uniform vec4 color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 uniform float width_px = 2.0;

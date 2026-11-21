@@ -42,11 +42,20 @@ func outline_root() -> Node3D:
 
 static var _outline: ShaderMaterial
 
-## A thin white rim round the targeted object, so it is clear which one a press will use.
+## A thin white rim round the targeted object's silhouette, so it is clear which one a
+## press will use.
 func _set_outline(on: bool) -> void:
 	if _outline == null:
+		# Two passes: mark the object's pixels in the stencil, then draw the rim outside
+		# them. Both sort after everything else, the mark first, so every part is marked
+		# before any part's rim is drawn.
+		var rim := ShaderMaterial.new()
+		rim.shader = preload("res://shaders/focus_outline.gdshader")
+		rim.render_priority = 101
 		_outline = ShaderMaterial.new()
-		_outline.shader = preload("res://shaders/focus_outline.gdshader")
+		_outline.shader = preload("res://shaders/focus_mask.gdshader")
+		_outline.render_priority = 100
+		_outline.next_pass = rim
 	for mesh: Node in outline_root().find_children("*", "MeshInstance3D", true, false):
 		var m := mesh as MeshInstance3D
 		if on and m.material_overlay == null:
