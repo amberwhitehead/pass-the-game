@@ -17,3 +17,14 @@
 - Keep automated playtests in the background and muted. Prefer headless Godot
   with `--audio-driver Dummy`; do not launch native windows that steal focus.
   Run browser visual checks in a hidden/background tab using `?muted=1`.
+
+# UI and input patterns
+
+- Before any UI, HUD, prompt, input or controller work, read
+  [`docs/UI_PATTERNS.md`](docs/UI_PATTERNS.md) and follow it: full controller
+  support from any pad slot (✕/R1 act, R2/□ second action, ○ back or leave,
+  △ menu, L1 jump), drawn PlayStation-aware button glyphs, the small prompt
+  under the crosshair naming the thing, no floating labels, a silhouette
+  outline on the target, a shrug instead of silence, quiet options and a bold
+  current choice. Update that file when a pattern changes.
+

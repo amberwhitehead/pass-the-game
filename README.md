@@ -11,6 +11,8 @@ duels. Three side rooms remain available for future games.
   (`tools/run_tests.py`), see the game, what is open to work on, and how earlier
   turns were handed over.
 - **[Changes](Changes.md):** what each contributor added, by turn.
+- **[UI and input patterns](docs/UI_PATTERNS.md):** controller layout, prompts, targeting,
+  feedback and highlighting rules every screen follows.
 - **[Handoff notes](docs/HANDOFF.md):** the state at the end of the latest turn,
   what changed for returning contributors, unfinished plans, and useful next
   steps. Earlier handoffs are in [docs/handoffs](docs/handoffs/).

@@ -69,6 +69,7 @@ the hall without writing a save; **Save** or **Save as new slot** keeps it.
 
 The [setup and project guide](../godot/README.md) has controls, the project map
 and how to add a minigame; each area has its own guide linked from there.
+UI and input work follows [UI and input patterns](UI_PATTERNS.md).
 
 ## 3. What is open
 
