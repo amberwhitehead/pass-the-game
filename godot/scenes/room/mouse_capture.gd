@@ -138,8 +138,10 @@ func _build_card() -> void:
 	var title := Style.label("Click to look around", 22, Style.PAPER, true)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(title)
+	# The controls are on the placard by the entrance (controls_placard.gd), not here.
 	_hint = Style.label(_hint_text(), 14, Style.MUTED)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint.visible = false
 	column.add_child(_hint)
 	_card.visible = false
 	add_child(_card)

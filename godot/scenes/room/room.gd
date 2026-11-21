@@ -15,6 +15,7 @@ const SecretRoom := preload("res://scenes/escape/secret_room.gd")
 const Revisits := preload("res://scenes/escape/revisits.gd")
 const HallResume := preload("res://scenes/escape/hall_resume.gd")
 const ObjectiveConsole := preload("res://scenes/escape/objective_console.gd")
+const ControlsPlacard := preload("res://scenes/escape/controls_placard.gd")
 
 @onready var _player: Player = $Player
 var inventory: Node
@@ -58,6 +59,7 @@ func _ready() -> void:
 	add_child(optics)
 	_create_rewards()
 	_create_objective_console()
+	_create_controls_placard()
 	# Changes in the hall after other rooms are won; see docs/INTERCONNECTION.md.
 	revisits = Revisits.new()
 	add_child(revisits)
@@ -141,6 +143,15 @@ func _create_objective_console() -> void:
 	objective_console.rotation.y = atan2(-2.9, 1.4)  # Its screen faces the spot the player walks in at.
 	objective_console.locate = _objective_place
 	add_child(objective_console)
+
+
+## Straight ahead of where the player comes in, a little to the right of the walk-in
+## path, facing them: the controls, readable from the first spot.
+func _create_controls_placard() -> void:
+	var placard := ControlsPlacard.new()
+	placard.position = Vector3(-7.4, 0, 1.1)
+	placard.rotation.y = atan2(-2.1, -0.7)  # Its face points back at the entrance spot.
+	add_child(placard)
 
 
 func _objective_place(place: String) -> Variant:
