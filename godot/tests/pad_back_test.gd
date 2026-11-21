@@ -80,6 +80,15 @@ func _aliases() -> void:
 		await process_frame
 	_expect(seen == [true, false], "R2 presses A once and releases it once (%s)" % [seen])
 	probe.queue_free()
+	var l1 := InputEventJoypadButton.new()
+	l1.device = PAD
+	l1.button_index = JOY_BUTTON_LEFT_SHOULDER
+	l1.pressed = true
+	var l2 := InputEventJoypadMotion.new()
+	l2.device = PAD
+	l2.axis = JOY_AXIS_TRIGGER_LEFT
+	l2.axis_value = 1.0
+	_expect(l1.is_action("jump") and l2.is_action("jump"), "L1 and L2 jump")
 
 
 class _Probe extends Node:

@@ -6,8 +6,6 @@ const KeyBindings := preload("res://autoload/key_bindings.gd")
 var _player: Player
 var _inventory: Node
 var _prompt: Control  ## The small interaction caption above the crosshair.
-var _objective: Label
-var _chapter: Label
 var _carrying: Label
 var _carry_icon: Label
 var _notice: Label
@@ -24,17 +22,7 @@ func configure(player: Player, inventory: Node) -> void:
 
 func _ready() -> void:
 	layer = 5
-	var objective_panel := _panel(Vector2(.025, .035), Vector2(.335, .035))
-	var objective_column := VBoxContainer.new()
-	objective_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	objective_panel.add_child(objective_column)
-	objective_column.add_child(Style.eyebrow("REFRACTION HALL  /  FIELD NOTES", Style.MUTED))
-	_chapter = Style.label("", 22, Style.PAPER, true)
-	_chapter.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	objective_column.add_child(_chapter)
-	_objective = Style.label("", 14, Style.MUTED)
-	_objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	objective_column.add_child(_objective)
+	# The objective lives on the console by the entrance (objective_console.gd).
 	var carry_panel := _panel(Vector2(.785, .035), Vector2(.975, .035))
 	var carry_row := HBoxContainer.new()
 	carry_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -66,9 +54,7 @@ func _ready() -> void:
 	_crosshair.offset_top = -20
 	add_child(_crosshair)
 	_inventory.changed.connect(_carry_changed)
-	Game.flag_changed.connect(_on_flag_changed)
 	_carry_changed(_inventory.held_item)
-	refresh_objective()
 
 func _process(delta: float) -> void:
 	var target := _player.target
@@ -107,25 +93,6 @@ func _input(event: InputEvent) -> void:
 func notify(text: String, duration := 5.0) -> void:
 	_notice.text = text
 	_notice_time = duration
-
-func refresh_objective() -> void:
-	if Game.get_flag("escape_prism_solved"):
-		_chapter.text = "02  /  Roman flow"
-		_objective.text = "The green receiver has opened the east room."
-	elif Game.get_flag("escape_rewards_revealed"):
-		_chapter.text = "The light in the hall"
-		var rewards: Array = Game.get_flag("escape_reward_items", [])
-		var remaining := rewards.count("prism")
-		_objective.text = "Bring green light to the receiver beside Room 2."
-		if remaining > 0:
-			_objective.text = "%d prism%s await%s in Egypt. Bring green light to Room 2." % [remaining, "s" if remaining > 1 else "", "" if remaining > 1 else "s"]
-	else:
-		_chapter.text = "01  /  Egypt fractal"
-		_objective.text = "Start in the amber room. The hall is missing its prisms."
-
-func _on_flag_changed(flag: String, _value: Variant) -> void:
-	if flag in ["escape_rewards_revealed", "escape_reward_items", "escape_prism_solved"]:
-		refresh_objective()
 
 func _carry_changed(item: String) -> void:
 	_carrying.text = _inventory.item_name(item)
