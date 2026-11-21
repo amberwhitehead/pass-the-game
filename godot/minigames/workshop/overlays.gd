@@ -61,16 +61,19 @@ class Inventory extends Node2D:
 				Items.draw_icon(self, items[i], r.get_center())
 
 
-## Follows the mouse: shows what is under it, and the held item.
+## Follows the pointer: shows what is under it, and the held item.
 class Cursor extends Node2D:
 	var label := ""
 	var held := ""
+	## Returns the pointer in the parent's coordinates (the mouse, or the controller's
+	## cursor); unset, the cursor follows the mouse.
+	var follow := Callable()
 
 	func _ready() -> void:
 		z_index = 60
 
 	func _process(_d: float) -> void:
-		position = get_parent().get_local_mouse_position()
+		position = follow.call() if follow.is_valid() else get_parent().get_local_mouse_position()
 		queue_redraw()
 
 	func _draw() -> void:
