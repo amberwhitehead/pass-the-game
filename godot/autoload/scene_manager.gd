@@ -38,6 +38,8 @@ func change_scene(path: String, fade_time := 0.4) -> void:
 		return
 	_busy = true
 	_fade.mouse_filter = Control.MOUSE_FILTER_STOP
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("var e=document.getElementById('loading-overlay'); if(e) e.style.display='flex';")
 	await _fade_to(1.0, fade_time)
 	var tw := create_tween()
 	tw.tween_property(_loading_label, "modulate:a", 1.0, 0.15)
@@ -64,6 +66,13 @@ func change_scene(path: String, fade_time := 0.4) -> void:
 			break
 		await get_tree().process_frame
 
+	if packed == null:
+		_loading_label.modulate.a = 0.0
+		if OS.has_feature("web"):
+			JavaScriptBridge.eval("var e=document.getElementById('loading-overlay'); if(e) e.style.display='none';")
+		_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_busy = false
+		return
 	var prev := get_tree().current_scene
 	var inst := packed.instantiate()
 	inst.visible = false
@@ -77,6 +86,8 @@ func change_scene(path: String, fade_time := 0.4) -> void:
 	await get_tree().process_frame
 
 	_loading_label.modulate.a = 0.0
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("var e=document.getElementById('loading-overlay'); if(e) e.style.display='none';")
 	await _fade_to(0.0, fade_time)
 	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_busy = false
