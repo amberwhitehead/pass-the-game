@@ -116,6 +116,7 @@ var _mat_wood: StandardMaterial3D
 var _mat_glass: StandardMaterial3D
 var _mat_enamel: StandardMaterial3D
 var _mat_aether: StandardMaterial3D
+var _grey_mat: StandardMaterial3D
 
 
 func _ready() -> void:
@@ -404,6 +405,10 @@ func _make_materials() -> void:
 	_mat_aether.emission_enabled = true
 	_mat_aether.emission = Color(0.3, 0.6, 1.0)
 	_mat_aether.emission_energy_multiplier = 1.4
+	_grey_mat = StandardMaterial3D.new()
+	_grey_mat.albedo_color = Color(0.4, 0.4, 0.45)
+	_grey_mat.metallic = 0.2
+	_grey_mat.roughness = 0.7
 
 
 func _std(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
@@ -851,6 +856,20 @@ func _refresh_visuals() -> void:
 	# void window tint
 	if _void_mat:
 		_void_mat.albedo_color = (Color(0.08, 0.12, 0.25, 0.7) if res else Color(0.04, 0.05, 0.12, 0.9))
+	# disabled-state greying on crank and lever
+	var plate_complete := (_layer >= LAYERS and Math.all_clean(_plate))
+	var can_inscribe: bool = plate_complete and not _collected[_sigil_target]
+	if _crank_node and _crank_node is MeshInstance3D:
+		if _layer >= LAYERS:
+			(_crank_node as MeshInstance3D).material_override = _grey_mat
+		else:
+			(_crank_node as MeshInstance3D).material_override = null
+	if _lever_node and _lever_node is MeshInstance3D:
+		if not can_inscribe:
+			(_lever_node as MeshInstance3D).material_override = _grey_mat
+		else:
+			(_lever_node as MeshInstance3D).material_override = null
+
 	# hud
 	if _hud_text:
 		var status := "COLLECTED %d/%d" % [_count_collected(), SIGIL_COUNT]
