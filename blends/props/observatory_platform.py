@@ -100,17 +100,18 @@ def main():
     # 2. VOID WINDOW (north): brass frame + glass pane
     # =====================================================================
     b = bl.Builder()
-    b.part("brass", (0, 1.62, VOID_Z - 0.08), (3.9, 0.16, 2.9))
-    b.part("bronze_dark", (0, 1.62, VOID_Z - 0.02), (3.5, 0.10, 2.5))
-    b.part("enamel_cream", (0, 1.6, VOID_Z), (3.4, 0.06, 2.4))
+    # vertical frame at the north wall (Blender y = 4.0 -> Godot z = -4.0)
+    b.part("brass", (0, 4.0, 1.6), (3.9, 0.16, 2.9))
+    b.part("bronze_dark", (0, 3.94, 1.6), (3.5, 0.10, 2.5))
+    b.part("enamel_cream", (0, 3.90, 1.6), (3.4, 0.06, 2.4))
     # frame bolts
     for sx in (1, -1):
         for sz in (1, -1):
-            b.part("brass", (sx * 1.7, 1.55, VOID_Z + 0.9 * sz), (0.12, 0.12, 0.12))
+            b.part("brass", (sx * 1.7, 3.98, 1.6 + 0.9 * sz), (0.12, 0.12, 0.12))
     voidw = b.finish("VoidWindow")
 
     # =====================================================================
-    # 3. TELESCOPE MOUNT (rear): pedestal, fork, tube, lens
+    # 3. TELESCOPE MOUNT (rear): pedestal, fork, tube pointing north
     # =====================================================================
     b = bl.Builder()
     # pedestal
@@ -121,13 +122,13 @@ def main():
     # fork arms
     b.part("brass", (-0.28, 1.5, 1.25), (0.08, 0.08, 0.5))
     b.part("brass", (0.28, 1.5, 1.25), (0.08, 0.08, 0.5))
-    # tube (pointing north/up)
-    b.part("bronze_dark", (0, 1.15, 1.45), (0.20, 0.20, 1.0))
-    b.part("brass", (0, 0.85, 1.45), (0.24, 0.24, 0.12))
-    # lens
-    b.part("enamel_cream", (0, 0.70, 1.45), (0.22, 0.08, 0.22))
-    # counterweight
-    b.part("bronze_dark", (0, 1.9, 1.2), (0.3, 0.3, 0.3))
+    # tube: a cylinder along Blender y (north), from y=1.4 toward the window
+    b.part("bronze_dark", (0, 1.0, 1.45), (0.22, 1.4, 0.22))
+    b.part("brass", (0, 0.35, 1.45), (0.26, 0.10, 0.26))  # objective ring
+    # lens at the north end
+    b.part("enamel_cream", (0, 0.28, 1.45), (0.24, 0.06, 0.24))
+    # counterweight at the south end
+    b.part("bronze_dark", (0, 1.75, 1.3), (0.32, 0.32, 0.32))
     telescope = b.finish("TelescopeMount")
 
     # =====================================================================
