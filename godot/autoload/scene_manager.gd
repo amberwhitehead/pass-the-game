@@ -49,13 +49,13 @@ func change_scene(path: String, fade_time := 0.4) -> void:
 	ResourceLoader.load_threaded_request(path)
 	var packed: PackedScene = null
 	var msg_index := 0
-	var msg_timer := 0.0
+	var start_ms := Time.get_ticks_msec()
 	_loading_label.text = LOADING_MESSAGES[0]
 	while true:
-		msg_timer += get_process_delta_time()
-		if msg_timer >= 2.0:
-			msg_timer = 0.0
-			msg_index = (msg_index + 1) % LOADING_MESSAGES.size()
+		var elapsed := (Time.get_ticks_msec() - start_ms) / 1000.0
+		var new_index := int(elapsed / 2.0) % LOADING_MESSAGES.size()
+		if new_index != msg_index:
+			msg_index = new_index
 			_loading_label.text = LOADING_MESSAGES[msg_index]
 		var status := ResourceLoader.load_threaded_get_status(path)
 		if status == ResourceLoader.THREAD_LOAD_LOADED:
