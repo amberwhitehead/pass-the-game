@@ -4,7 +4,7 @@ const Catalog := preload("res://minigames/cards/card_catalog.gd")
 const COLLECTIBLES: Array[String] = ["champion", "aegis", "tempest", "renewal", "thunderbolt"]
 ## Rewards from revisiting rooms (see docs/INTERCONNECTION.md). They join the deck like
 ## the hall's discoveries but aren't counted among "N / 5 found in the hall".
-const BONUS: Array[String] = ["fuse", "scarab"]
+const BONUS: Array[String] = ["fuse", "scarab", "sigil_focus", "sigil_flow", "sigil_aether", "sigil_resonance", "sigil_void"]
 const CORE_HAND: Array[String] = ["bruiser", "forkshot", "sentinel"]
 const OPENING_HAND := 5
 

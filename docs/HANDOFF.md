@@ -1,166 +1,185 @@
 # Pass The Game handoff
 
-Handoff snapshot: **November 17, 2026**, at the end of tesseract's turn. Earlier
-handoffs are kept in [`docs/handoffs/`](handoffs/); cee.wtf's
-[November 16 handoff](handoffs/2026-11-16-cee.wtf.md) describes the hall, prism
-connector and card game in depth, and most of it still holds.
+Handoff snapshot: **November 22, 2026**, at the end of eternaldensity's turn.
+Earlier handoffs are kept in [`docs/handoffs/`](handoffs/). The
+[November 16 handoff](handoffs/2026-11-16-cee.wtf.md) still describes the hall,
+prism connector and card game in depth; the
+[November 17 handoff](handoffs/2026-11-17-tesseract.md) covers saves and
+tooling. This file records the state after three more turns (Workshop, UI, and
+the Observatory).
 
-New here, or coming back? Start with [Getting started](GETTING_STARTED.md): setup,
-checking everything works, and what is open. [`Changes.md`](../Changes.md) lists
-every commit by contributor.
+New here? Start with [Getting started](GETTING_STARTED.md), then
+[`Changes.md`](../Changes.md) for every commit by contributor.
+
+## What changed since the previous handoff
+
+**Patrick Doane — November 19.** Room 04 Workshop became a hand-drawn
+point-and-click story (the Engineer, Fuse the cat, a time loop, a Futurescope TV,
+a three-station radio), drawn entirely in code. CHRONO RAIDER, a 1985 arcade
+shooter, sits in the secret room. A procedural chiptune music system (MML songs,
+a Music bus) was added. `docs/INTERCONNECTION.md` introduced room revisits:
+after the Workshop is won, Fuse naps in the hall and Egypt's sun disc can be relit
+for two bonus cards.
+
+**Daniel Pennypacker — November 20.** Full controller support from any pad slot
+with drawn PlayStation/Xbox glyphs; a small prompt under the crosshair naming the
+target; a white silhouette outline on what you aim at; first-person hands that
+reach, wave and shrug; an objective console with a laser pointer; a How-to-play
+placard. Continue and Pause → Relaunch return you to where you were.
+[`docs/UI_PATTERNS.md`](UI_PATTERNS.md) records the rules every screen follows.
+
+**eternaldensity — November 22.** Room 06 Observatory became a playable
+minigame: **The Observatory's Aetheric Foundry**. See below.
 
 ## What this turn added
 
-This turn worked on a Windows machine and focused on making the game easier to
-pick up and keep: saving, menus, tests and tooling. No new rooms or puzzles.
-
 **For players**
 
-- **Title screen with saves.** Continue (the latest save), New game (always a new
-  slot) and Load game (every save newest first, each with Delete). Progress
-  saves automatically as readable JSON, with as many slots as you like.
-- **Escape pause menu** in the hall and in minigames: Resume, Sound, Quit to
-  title, and Leave in a minigame. Escape keeps its existing jobs first (releasing
-  a prism wheel, closing card dialogs, leaving a solved puzzle).
-- **Minigames resume where you left them**, across quitting: Egypt's rollers,
-  Roman Flow's rollers and pins, and card matches (replayed exactly through the
-  rules). A win clears it.
-- **Sound** now opens from the title screen and pause menu instead of a floating
-  button.
-- **Fix:** pressing a prism's TURN or LIFT/PLACE handle raised a script error that
-  stopped editor runs (exported builds were unaffected).
+- **06 Observatory** is open. A brass-and-stone engine with a telescope, aether
+  valves, sight glasses, a press and a two-hand guarded reset. Five named sigils
+  (The Lantern, The Coil, The Weave, The Bell, The Hollow) are tuned, forged and
+  inscribed; each grants a bonus card that joins Older Brother's deck. Collecting
+  all five wins, leaves a sigil-plate trophy on the platform, and places the
+  Observatory's piece on the travellers' board.
+- **Ghost alignment**: a faint gold ghost shows the target sigil; the blue live
+  cloud is tuned (azimuth, elevation, focus) until it matches. The crank has a
+  physical lock bar that lifts only when the sigil is matched and flow is clean.
+- **The Observatory chamber's blackboard** in the hall fills with chalk sketches
+  of each sigil you forge (blank until you have some).
+- **Title easter egg**: a warm gold star low on the right opens a dancing-cat
+  screen when clicked while at least half bright.
+- **Controls**: A/D orbits the view at all times; while a control is grabbed,
+  W/S turns it (the crank only advances on S). Drawn pad glyphs in the prompts.
 
 **For contributors**
 
-- **One command for every check:** `python3 tools/run_tests.py` (`py -3` on
-  Windows). All Godot suites run in one process, about 30 s with import;
-  `--quick` about 2.5 s. Compile errors stop the run in about 2 s naming file and
-  line; a script error or hang fails only its suite.
-- **One command to build and serve the Web playtest** on any OS:
-  `python3 tools/build_web.py --serve`.
-- **Save editor** (developer mode: editor runs, `?dev=1`, or `--dev`): open any
-  save, tick wins, cards and hall progress or edit the raw JSON, then Save, Save
-  as new slot, or Play (unsaved). The quickest way to reach later content.
-- **Windows fixes:** three outdated card tests, a macOS-only temp path that hid
-  nine checks, Python tools now read files as UTF-8, and Godot no longer rewrites
-  texture imports (it was converting the character palettes to lossy compression).
-- **Docs:** [Getting started](GETTING_STARTED.md) and [`Changes.md`](../Changes.md).
+- New minigame module: `godot/minigames/observatory/` (main scene, pure
+  `observatory_math.gd`, trophy), Blender generator
+  `blends/props/observatory_platform.py`, and the shaders
+  `observatory_plate.gdshader` (layer solidification), `trail_field.gdshader`
+  and `lcd_display.gdshader` (dot/screen display).
+- New hall module `godot/scenes/escape/observatory_board.gd`.
+- New title module `godot/ui/easter_egg_cat.gd`; the secret star is in
+  `story_bg.gdshader` (cell 79,36) and `scenes/title/title.gd`.
+- New test suites: `observatory_test`, `observatory_explore_test` (real input
+  events), `observatory_board_test`, `easter_egg_title_test`.
+- New native screenshot tools (non-Web visual checks):
+  `tools/observatory_shot`, `tools/hall_board_shot`, `tools/easter_egg_shot`,
+  `tools/star_click_check`. Run with
+  `xvfb-run -a godot --rendering-driver opengl3 --path godot res://tools/<tool>.tscn`.
+- **Web build fix**: threaded Web export enabled (`variant/thread_support=true`)
+  and the local server sends COOP/COEP, so loading is non-blocking. The title
+  and scene transitions show cycling loading messages via a CSS overlay injected
+  by `tools/build_web.py`.
 
 ## What changed for you
 
-**rmurrish** (foundation, characters, Egypt Fractal, Roman Flow)
+**Amber** — this turn, like the previous three, arrived as a pull request from a
+fork rather than a commit on `main`. How turns reach the repository is your call.
 
-- The game opens on a title screen (`scenes/title/`); your intro is unchanged and
-  plays for New game.
-- In Egypt and Roman Flow, Escape opens the pause menu instead of leaving, except
-  once solved, where it still leaves (`_back_leaves()`). The × button still leaves.
-- Both games save and resume their state (`save_state()` / `resume_state`).
-  Roman Flow also stops its GPU simulation while paused.
-- The character and prop palette `.import` files have "Detect 3D" off, so they
-  stay lossless as committed; `project.godot` defaults new textures the same way.
+**rmurrish** (foundation, Egypt, Roman Flow) — unchanged. The Web build is now
+threaded; the serve script sends COOP/COEP headers, so run the playtest through
+`tools/build_web.py --serve` (or the Bash wrapper) rather than a plain static
+server if you want the threaded build to load assets off the main thread.
 
-**cee.wtf** (hall, prism connector, card game, sound, tests)
+**cee.wtf** (hall, optics, cards, sound, tests) — the hall gained the
+Observatory board; `Challenge6` now launches the Observatory minigame. The hall's
+shader warm-up and prompt caching are unchanged. The special gold star in
+`story_bg.gdshader` only shows when `show_secret` is set (the title screen sets
+it), so the intro is unchanged.
 
-- `cards_motion`, `cards_scene` and `cards_transition` tests were updated for a
-  slow first frame, the card stand and the resize-fitted FOV; they now pass.
-- Every test suite's first line changed to `extends "res://tests/test_suite.gd"` so
-  they all run in one process; the checks themselves are untouched. Run a single
-  suite with `--script res://tests/run_suites.gd -- <suite>`.
-- At the card table, Escape opens the pause menu unless it has a job (closing a
-  dialog, cancelling a swap, the entrance, a decided match). The rules text says so.
-- Card matches resume by replaying the seed and actions; a replay that no longer
-  matches the saved snapshot deals a fresh match.
-- The optics handle error is fixed; the floating Sound button is gone (the mixer
-  is unchanged); `AGENTS.md` now points to the Python build script.
+**tesseract** (saves, pause menu, tooling) — `SceneManager.change_scene` now
+loads threaded, shows cycling loading text, and warms the incoming scene's
+shaders for a few frames before revealing it. The title screen shows the secret
+star.
 
-**Amber**
+**Patrick Doane** (Workshop, arcade, music, revisits) — the Workshop's Cat is
+reused, scaled, as the title easter egg's dancing cat. Nothing in the Workshop
+changed.
 
-- This turn arrives as a pull request from a fork
-  (`tessprime/pass-the-game`, branch `tesseract-changes-11-17`) rather than a
-  commit on `main`. How turns should reach the repository is your call.
+**Daniel Pennypacker** (controller, prompts, hands) — the Observatory follows the
+UI patterns: drawn pad glyphs, prompt under the crosshair naming the control, a
+shrug on no-op, and a white outline on the focused control (gold glow when
+grabbed). A/D still orbits while a control is grabbed; W/S turns it.
 
-**Anyone adding a minigame**
-
-- Escape opens the pause menu by default; override `_back_leaves()` to leave
-  directly. Return state from `save_state()` and read `resume_state` to resume.
-- Saved values come back as plain data: convert numbers with `int()`/`float()`
-  and compare saved structures with `SaveGame.same_data()`. The
-  [project guide](../godot/README.md#adding-a-minigame) has the details.
+**Anyone adding a minigame** — the Observatory is a worked example of
+`save_state()` / `resume_state`, a trophy, a board piece, a bonus card, and a
+real-input test suite. Escape opens the pause menu; override `_back_leaves()` to
+leave directly. The minigame's save values are plain data.
 
 ## What a player can do now
 
 | Place | Current behavior |
 | --- | --- |
-| Title screen | Continue, New game, Load game (with Delete), Sound; Save editor in developer mode. |
-| 01 — Egypt Fractal | Open from the start; its first win reveals the two prisms. Resumes where left. |
-| Main hall optics | Route green light to Door 2 to open Roman Flow. Saved across quitting. |
-| 02 — Roman Flow | Open after the optics puzzle. Resumes where left. |
-| 03 — The Brothers | Little Brother's tutorial and Older Brother's match; matches resume. Five hall cards join Older Brother's deck. |
-| 04 Workshop, 05 Calendar, 06 Observatory | Furnished, no games yet. |
+| Title screen | Continue, New game, Load game, Sound, Credits; a secret star opens the dancing cat. |
+| 01 — Egypt Fractal | Open from the start; its first win reveals the two prisms. |
+| Main hall optics | Route green light to Door 2; a second lamp (flashlight) relights Egypt after the Workshop. |
+| 02 — Roman Flow | Open after the optics puzzle; resumes where left. |
+| 03 — The Brothers | Little Brother's tutorial and Older Brother's match; five hall cards and revisit bonus cards join the deck. |
+| 04 Workshop | The Engineer's time loop; after a win, Fuse and the sun-disc revisit in the hall. |
+| 05 Calendar | Furnished, no game yet. |
+| 06 Observatory | **Playable**: forge five sigil plates; win places the board piece and a trophy. |
+| Secret room | CHRONO RAIDER arcade and the travellers' board. |
 | Final exit | Still sealed. |
 
 Card balance is unchanged from cee.wtf's handoff (Older Brother's 12-card base
-deck, five discoveries, "very hard with none, very easy with all five"); see
-[that handoff](handoffs/2026-11-16-cee.wtf.md#card-balance-at-handoff). It still
-needs human playtesting.
+deck plus discoveries and bonus cards; "very hard with none, very easy with all").
+It still needs human playtesting.
 
 ## Where to make changes
 
 cee.wtf's [table](handoffs/2026-11-16-cee.wtf.md#where-to-make-changes) still
-applies for the hall, optics, cards and audio. New this turn:
+applies for the hall, optics, cards and audio. Newer areas:
 
 | Area | Main entry points |
 | --- | --- |
-| Saving, slots, save format | `godot/autoload/save_game.gd` (JSON format, type allow list, migration); `godot/autoload/game.gd` (autosave, Continue, New game) |
-| Title screen | `godot/scenes/title/title.gd` |
-| Pause menu | `godot/autoload/pause_menu.gd`; `MiniGame._back_leaves()` in `godot/minigames/mini_game.gd` |
-| Minigame resume | `save_state()` / `resume_state` in each minigame; storage in `godot/autoload/minigames.gd` |
-| Developer tools | `godot/autoload/dev_mode.gd`; `godot/scenes/dev/` (save editor and its rules) |
-| Tests | `tools/run_tests.py`; `godot/tests/run_suites.gd` and `test_suite.gd`; [test guide](../godot/tests/README.md) |
-| Build | `tools/build_web.py` (any OS); the Bash scripts remain for macOS/Linux |
+| Observatory minigame | `godot/minigames/observatory/observatory.gd`; logic in `observatory_math.gd`; prop `blends/props/observatory_platform.py` |
+| Observatory hall board | `godot/scenes/escape/observatory_board.gd` (wired in `hub_architecture.gd`) |
+| Title easter egg | `godot/scenes/title/title.gd` (`_add_star_hotspot`), `godot/ui/easter_egg_cat.gd`, `godot/shaders/story_bg.gdshader` |
+| Scene loading | `godot/autoload/scene_manager.gd`; loading overlay in `tools/build_web.py` |
+| Native screenshot tools | `godot/tools/*_shot.*`, `godot/tools/star_click_check.*` |
+| Design notes | `docs/observatory-design.md`, `docs/observatory-mechanism-design.md` |
 
 ## Plans not reached
 
-Still open from cee.wtf's list: friend-group card themes and art, more interesting
-card discoveries, the next item and hall connector (beginning with Older
-Brother's reward), recorded character speech, music and a listening pass, and the
-remaining rooms and final exit. Persistent saves, item 4 there, are done.
-
-Started or noticed this turn:
-
-1. **Committed test saves.** Save files for points in the game (Egypt solved,
-   Door 2 open, all cards found, a card match in progress), made with the save
-   editor, plus a test that loads each into the real hall and checks what a
-   player would see. They would catch save-format breaks early.
-2. **Optics layout in the save editor.** It is raw-JSON only for now.
-3. **Wins ticked in the save editor** record only that they were won, so the Egypt
-   and Roman Flow trophies (built from a real win's details) show nothing for them.
-4. **Skip the compile pass when no script changed** (saves about a second a run).
-5. **Roman Flow's puzzle** (simulation, solver, win) has no automated tests.
-6. **Sound is unreachable** from the intro and the save editor, which have no menu.
+- **Calendar (05) and Observatory's neighbours (06 is now built).** Calendar is
+  still a placeholder.
+- **Older Brother's reward** for the next hall connector; **Roman Flow**'s win
+  still leads nowhere.
+- **The final exit** and ending sequence.
+- **Observatory extras**: a Futurescope channel, a second lamp/connector,
+  multiple attractor presets per sigil, and sound for every detent.
+- **Card work**: deck editing, controller support for Journal/New match,
+  friend-group art, recorded character speech, and a human balance pass.
+- **Committed test saves** and a loader test; optics layout in the save editor.
 
 ## Known limits and useful checks
 
-- **Not checked visually:** the title screen's save list with many saves, the
-  pause menu and the save editor, especially at narrow widths. Browser tools
-  weren't available this turn, and native windows were avoided.
-- **Web tab closing** may not trigger Godot's close notification, so the last
-  half second of changes, or an open minigame's progress, could be lost. Untested.
-- `cards_transition_render_test` needs a real window and was not run on Windows.
-- `--isolated` once reported `ui_panels_test` as "Godot did not run the suite"
-  with an empty log; it passes otherwise. Unexplained, and set aside.
-- "Detect 3D" is now off for every committed texture and by default for new ones,
-  so the editor should no longer rewrite `.import` files. If one appears changed
-  anyway, revert it rather than commit it.
+- **Observatory interaction** uses an orbit camera and angle-based focus, not a
+  raycast. Controls are grouped by function and sit at varied radii; if you move
+  one, update both `_controls[].angle` and the Blender position.
+- **The secret star's click gate and its twinkle share one brightness value**
+  driven from `title.gd`, so they cannot drift apart. The shader's `show_secret`
+  keeps the star out of the intro.
+- **Aether flow, solidification and the LCD** are approximations: the plate uses
+  a layer-count shader, the trail field is a lagged ghost, and the LCD is a
+  SubViewport rendered through a screen shader with the DSEG14 font.
+- **The threaded Web build** needs COOP/COEP; use the provided serve script.
+  Without those headers the build falls back or fails to load threaded assets.
+- `cards_transition_render_test` needs a real window and is skipped headless.
+- The full suite is green: **47 passed, 1 skipped, 3045 checks** in about two
+  minutes on this machine (the skipped suite is the window-only render test).
 
-A focused playtest: New game, solve Egypt (or Shift+L), carry the prisms and open
-Door 2, leave Roman Flow midway and come back, quit to title and Continue, then try
-the save editor at `?dev=1` to jump to Older Brother with all five cards.
+A focused playtest: New game → 06 Observatory → select a sigil, align the blue
+cloud to the gold ghost, open the valves until the sight glasses glow, crank four
+clean layers, pull the inscribe lever; then check the hall blackboard and the
+Observatory's trophy/board piece. Try the two-hand reset (open both covers,
+press A, wait for amber→green, press B). On the title, click the gold star.
 
 ## Verification and working habits
 
-At handoff, `tools/run_tests.py` passes: 27 Godot suites and the Python tool
-tests, 2,278 checks, in about 30 seconds on Windows with Godot 4.7.2. The
-window-only render test is skipped. Automated checks run headless and muted;
-browser checks use a background tab with `?muted=1`. Rebuild the Web playtest
-after gameplay or presentation changes; see [`AGENTS.md`](../AGENTS.md).
+At handoff, `tools/run_tests.py` passes. Automated checks run headless and muted;
+browser checks use a background tab with `?muted=1`. Native visual checks are
+possible with Xvfb + the OpenGL renderer and the `tools/*_shot.tscn` helpers.
+Rebuild the Web playtest after gameplay or presentation changes; see
+[`AGENTS.md`](../AGENTS.md).

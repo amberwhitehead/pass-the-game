@@ -7,6 +7,7 @@ const Details := preload("res://scenes/escape/hub_details.gd")
 const Sign := preload("res://ui/world_sign.gd")
 const Door := preload("res://scenes/escape/escape_door.gd")
 const BrothersRoom := preload("res://scenes/escape/brothers_room.gd")
+const ObservatoryBoard := preload("res://scenes/escape/observatory_board.gd")
 const HEIGHT := 5.5
 const ROOM_HALF := 3.2
 const OPENING_HALF := 1.6
@@ -147,6 +148,11 @@ static func _build_room(parent: Node3D, spec: Dictionary, mats: Dictionary) -> v
 	# Thin entrance tread ribs stay flush to the floor, without adding blockers.
 	for step in 3:
 		Geometry.box(frame, Vector3(0, .018, -.28 - step * .12), Vector3(2.7, .012, .035), mats.frame)
+	# The Observatory's blackboard: the sigils forged in its minigame.
+	if spec.id == "future_north":
+		var board: Node3D = ObservatoryBoard.new()
+		board.position = Vector3(0.7, 2.5, -2.98)
+		room.add_child(board)
 
 
 static func _place_station(stations: Dictionary, spec: Dictionary) -> void:

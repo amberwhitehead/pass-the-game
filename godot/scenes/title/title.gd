@@ -10,6 +10,7 @@ const ROOM_SCENE := "res://scenes/room/room.tscn"
 const EDITOR_SCENE := "res://scenes/dev/save_editor.tscn"
 const DevMode := preload("res://autoload/dev_mode.gd")
 const CreditsScreen := preload("res://ui/credits_screen.gd")
+const EasterEggCat := preload("res://ui/easter_egg_cat.gd")
 const MONTHS := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 var continue_button: Button
@@ -29,6 +30,13 @@ var _rows: VBoxContainer
 var _back: Button
 var _confirm_delete := -1  # A slot whose Delete was pressed once.
 var _leaving := false
+var _egg: CanvasLayer
+var _bg_mat: ShaderMaterial
+var _secret_phase := 0.0
+var _secret_bright := 1.0
+const SECRET_H := 0.9997775552365056
+## 11% slower than the other stars (which twinkle at 1 + h*4).
+const SECRET_SPEED := (1.0 + SECRET_H * 4.0) * 0.89
 
 
 func _ready() -> void:
@@ -46,10 +54,14 @@ func _ready() -> void:
 	material.set_shader_parameter("bottom_color", Color(0.05, 0.15, 0.3))
 	material.set_shader_parameter("stars", 1.0)
 	bg.material = material
+	_bg_mat = material
+	material.set_shader_parameter("show_secret", 1.0)
 	add_child(bg)
+	_add_star_hotspot(Vector2(0.8833, 0.73))
 
 	var center := CenterContainer.new()
 	center.set_anchors_preset(PRESET_FULL_RECT)
+	center.mouse_filter = MOUSE_FILTER_IGNORE  # let the secret star beneath it be clicked
 	add_child(center)
 	var column := VBoxContainer.new()
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -192,6 +204,45 @@ static func _when(unix: int) -> String:
 	var bias := int(Time.get_time_zone_from_system().get("bias", 0)) * 60
 	var t := Time.get_datetime_dict_from_unix_time(unix + bias)
 	return "%s %d, %02d:%02d" % [MONTHS[t.month - 1], t.day, t.hour, t.minute]
+
+
+func _process(delta: float) -> void:
+	# The secret star twinkles 11% slower than the others; the shader and the click
+	# gate share this one brightness value.
+	_secret_phase += delta * SECRET_SPEED
+	_secret_bright = 0.5 + 0.5 * sin(_secret_phase + SECRET_H * 50.0)
+	if _bg_mat:
+		_bg_mat.set_shader_parameter("secret_bright", _secret_bright)
+
+
+## A tiny hotspot over the secret star. It only accepts a click while the star is at
+## least 50% bright.
+func _add_star_hotspot(uv: Vector2) -> void:
+	var spot := Control.new()
+	spot.name = "SecretStar"
+	spot.mouse_filter = Control.MOUSE_FILTER_STOP
+	spot.anchor_left = uv.x
+	spot.anchor_right = uv.x
+	spot.anchor_top = uv.y
+	spot.anchor_bottom = uv.y
+	# About the size of the star itself (its cell is ~14 px at 1280x720).
+	spot.offset_left = -8
+	spot.offset_right = 8
+	spot.offset_top = -8
+	spot.offset_bottom = 8
+	spot.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	spot.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			if _secret_bright >= 0.5:
+				_open_easter_egg())
+	add_child(spot)
+
+
+func _open_easter_egg() -> void:
+	if is_instance_valid(_egg):
+		return
+	_egg = EasterEggCat.new()
+	add_child(_egg)
 
 
 ## After "Relaunch game" (pause menu), the page comes back with ?resume=1: continue the
