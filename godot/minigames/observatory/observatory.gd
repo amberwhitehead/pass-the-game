@@ -87,6 +87,7 @@ var _world: Node3D
 var _env_node: WorldEnvironment
 var _void_window: MeshInstance3D
 var _telescope: Node3D
+var _model: Node3D
 
 # materials (cached)
 var _mat_brass: StandardMaterial3D
@@ -205,9 +206,7 @@ func _process(delta: float) -> void:
 func _sync_visuals_from_state() -> void:
 	if _telescope:
 		_telescope.rotation.y = -_az
-		var tube := _telescope.get_node_or_null("Tube")
-		if tube:
-			tube.rotation.x = _el
+		_telescope.rotation.x = _el
 	if _valve_a_node:
 		_valve_a_node.rotation.z = _v1 * TAU
 	if _valve_b_node:
@@ -420,110 +419,43 @@ func _build_world() -> void:
 	_world = Node3D.new()
 	_vp.add_child(_world)
 
-	# stone plinth
-	var plinth := MeshInstance3D.new()
-	var pc := CylinderMesh.new()
-	pc.top_radius = 2.9; pc.bottom_radius = 3.0; pc.height = 0.4
-	plinth.mesh = pc
-	plinth.material_override = _mat_stone
-	plinth.position = Vector3(0, -0.2, 0)
-	_world.add_child(plinth)
-
-	# table top (brass rim + wood center)
-	var table := MeshInstance3D.new()
-	var tc := CylinderMesh.new()
-	tc.top_radius = TABLE_R; tc.bottom_radius = TABLE_R; tc.height = 0.12
-	table.mesh = tc
-	table.material_override = _mat_wood
-	table.position = Vector3(0, 0, 0)
-	_world.add_child(table)
-	var rim := MeshInstance3D.new()
-	var rc := CylinderMesh.new()
-	rc.top_radius = TABLE_R + 0.08; rc.bottom_radius = TABLE_R + 0.08; rc.height = 0.16
-	rim.mesh = rc
-	rim.material_override = _mat_brass
-	rim.position = Vector3(0, 0.02, 0)
-	_world.add_child(rim)
-
-	# void window (north wall frame + glass)
-	_void_window = MeshInstance3D.new()
-	var vw := BoxMesh.new()
-	vw.size = Vector3(3.4, 2.4, 0.08)
-	_void_window.mesh = vw
-	_void_mat = _mat_glass.duplicate()
-	_void_mat.albedo_color = Color(0.05, 0.08, 0.18, 0.85)
-	_void_window.material_override = _void_mat
-	_void_window.position = Vector3(0, 1.6, VOID_Z)
-	_world.add_child(_void_window)
-	# frame
-	var frame := MeshInstance3D.new()
-	var fc := BoxMesh.new()
-	fc.size = Vector3(3.7, 2.7, 0.12)
-	frame.mesh = fc
-	frame.material_override = _mat_brass_dark
-	frame.position = Vector3(0, 1.6, VOID_Z - 0.06)
-	_world.add_child(frame)
-
-	# telescope mount (center, pointing north)
-	_telescope = Node3D.new()
-	_telescope.position = Vector3(0, 0.06, 0)
-	_world.add_child(_telescope)
-	# base
-	var tbase := MeshInstance3D.new()
-	var tbc := CylinderMesh.new()
-	tbc.top_radius = 0.35; tbc.bottom_radius = 0.4; tbc.height = 0.12
-	tbase.mesh = tbc
-	tbase.material_override = _mat_brass_dark
-	_telescope.add_child(tbase)
-	# azimuth ring
-	var aring := MeshInstance3D.new()
-	var arc := TorusMesh.new()
-	arc.inner_radius = 0.42; arc.outer_radius = 0.48
-	aring.mesh = arc
-	aring.material_override = _mat_brass
-	aring.rotation.x = PI / 2.0
-	aring.position = Vector3(0, 0.18, 0)
-	_telescope.add_child(aring)
-	# fork (elevation)
-	var fork := Node3D.new()
-	fork.name = "Fork"
-	fork.position = Vector3(0, 0.3, 0)
-	_telescope.add_child(fork)
-	var fl := MeshInstance3D.new()
-	var flm := BoxMesh.new()
-	flm.size = Vector3(0.08, 0.6, 0.08)
-	fl.mesh = flm
-	fl.material_override = _mat_brass
-	fl.position = Vector3(-0.25, 0.3, 0)
-	fork.add_child(fl)
-	var fr := MeshInstance3D.new()
-	var frm := BoxMesh.new()
-	frm.size = Vector3(0.08, 0.6, 0.08)
-	fr.mesh = frm
-	fr.material_override = _mat_brass
-	fr.position = Vector3(0.25, 0.3, 0)
-	fork.add_child(fr)
-	# tube
-	var tube := Node3D.new()
-	tube.name = "Tube"
-	tube.position = Vector3(0, 0.6, 0)
-	fork.add_child(tube)
-	var tm := MeshInstance3D.new()
-	var tmc := CylinderMesh.new()
-	tmc.top_radius = 0.12; tmc.bottom_radius = 0.12; tmc.height = 1.1
-	tm.mesh = tmc
-	tm.material_override = _mat_brass_dark
-	tm.rotation.x = PI / 2.0
-	tm.position = Vector3(0, 0, 0.55)
-	tube.add_child(tm)
-	# lens
-	var lens := MeshInstance3D.new()
-	var lm := SphereMesh.new()
-	lm.radius = 0.14; lm.height = 0.06
-	lens.mesh = lm
-	lens.material_override = _mat_glass
-	lens.position = Vector3(0, 0, 1.1)
-	tube.add_child(lens)
+	# load the Blender-built platform
+	const PLATFORM_MODEL := preload("res://assets/props/observatory_platform.glb")
+	_model = PLATFORM_MODEL.instantiate()
+	_world.add_child(_model)
+	# cache nodes by name
+	_telescope = _model.get_node_or_null("TelescopeMount")
+	_void_window = _model.get_node_or_null("VoidWindow") as MeshInstance3D
+	if _void_window:
+		_void_mat = _mat_glass.duplicate()
+		_void_mat.albedo_color = Color(0.05, 0.08, 0.18, 0.85)
+		_void_window.material_override = _void_mat
+	_plate_mesh = _model.get_node_or_null("InscriptionPlate") as MeshInstance3D
+	if _plate_mesh:
+		_plate_mat = _mat_brass.duplicate()
+		_plate_mat.albedo_color = Color(0.85, 0.7, 0.3, 0.4)
+		_plate_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_plate_mesh.material_override = _plate_mat
+	_gauge_needle = _model.get_node_or_null("FlowGauge") as MeshInstance3D
+	# map controls to nodes
+	var name_map := {
+		"sigil": "SigilSelector", "az": "AzimuthKnob", "el": "ElevationKnob",
+		"focus": "FocusRing", "v1": "ValveA", "v2": "ValveB",
+		"crank": "Crank", "inscribe": "InscribeLever", "reset": "ResetButton",
+	}
+	for c in _controls:
+		var nm: String = name_map.get(c.id, "")
+		var node := _model.get_node_or_null(nm) as Node3D
+		_control_nodes[c.id] = node
+		match c.id:
+			"sigil": _sigil_node = node
+			"az": _az_node = node
+			"el": _el_node = node
+			"focus": _focus_node = node
+			"v1": _valve_a_node = node
+			"v2": _valve_b_node = node
+			"crank": _crank_node = node
+			"inscribe": _lever_node = node
 
 	# attractor (point cloud) in front of void window
 	_attractor_mesh = MultiMeshInstance3D.new()
@@ -541,65 +473,7 @@ func _build_world() -> void:
 	_attractor_mesh.multimesh = mm
 	_world.add_child(_attractor_mesh)
 
-	# mold (south side of table)
-	var mold := MeshInstance3D.new()
-	var mb := BoxMesh.new()
-	mb.size = Vector3(1.0, 0.12, 1.0)
-	mold.mesh = mb
-	_mold_mat = _mat_stone.duplicate()
-	mold.material_override = _mold_mat
-	mold.position = Vector3(0, 0.06, 1.4)
-	_world.add_child(mold)
-	_plate_mesh = MeshInstance3D.new()
-	var pm := BoxMesh.new()
-	pm.size = Vector3(0.85, 0.06, 0.85)
-	_plate_mesh.mesh = pm
-	_plate_mat = _mat_brass.duplicate()
-	_plate_mat.albedo_color = Color(0.85, 0.7, 0.3, 0.4)
-	_plate_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_plate_mesh.material_override = _plate_mat
-	_plate_mesh.position = Vector3(0, 0.16, 1.4)
-	_world.add_child(_plate_mesh)
-
-	# controls on rim
-	for c in _controls:
-		var node := _build_control(c)
-		_control_nodes[c.id] = node
-		_world.add_child(node)
-		# cache named nodes
-		match c.id:
-			"sigil": _sigil_node = node
-			"az": _az_node = node
-			"el": _el_node = node
-			"focus": _focus_node = node
-			"v1": _valve_a_node = node
-			"v2": _valve_b_node = node
-			"crank": _crank_node = node
-			"inscribe": _lever_node = node
-
-	# pipes from valves to mold (copper cylinders)
-	_make_pipe(_valve_a_node.position, Vector3(0, 0.1, 1.4))
-	_make_pipe(_valve_b_node.position, Vector3(0, 0.1, 1.4))
-
-	# flow gauge (small dial on rim near mold)
-	var gauge := MeshInstance3D.new()
-	var gc := CylinderMesh.new()
-	gc.top_radius = 0.18; gc.bottom_radius = 0.18; gc.height = 0.06
-	gauge.mesh = gc
-	gauge.material_override = _mat_brass_dark
-	gauge.position = Vector3(0.9, 0.12, 1.6)
-	gauge.rotation.x = PI / 2.0
-	_world.add_child(gauge)
-	_gauge_needle = MeshInstance3D.new()
-	var gn := BoxMesh.new()
-	gn.size = Vector3(0.02, 0.16, 0.01)
-	_gauge_needle.mesh = gn
-	_gauge_needle.material_override = _mat_aether.duplicate()
-	_gauge_needle.material_override.albedo_color = Color(0.9, 0.3, 0.2)
-	_gauge_needle.position = Vector3(0.9, 0.12, 1.6)
-	_world.add_child(_gauge_needle)
-
-	# flow particles (GPUParticles3D along a curve)
+	# flow particles
 	_flow_particles = GPUParticles3D.new()
 	_flow_particles.amount = 60
 	_flow_particles.lifetime = 1.2
