@@ -207,7 +207,7 @@ def main():
     b.part("enamel_red", (-0.10, 0, 0.05), (0.08, 0.03, 0.02))
     b.part("bronze_dark", (0.06, 0.08, 0.06), (0.02, 0.02, 0.14))  # needle
     gauge = b.finish("FlowGauge")
-    gauge.location = P(TABLE_R, 2.05, 0.75)
+    gauge.location = (0.7, -2.0, 1.0)
     gauge.rotation_euler = (0, 0, -2.05)
 
     # separate needle (pivot at gauge centre so it can swing)
@@ -215,7 +215,7 @@ def main():
     b.part("enamel_red", (0, 0.10, 0), (0.02, 0.20, 0.02))
     b.part("brass", (0, 0, 0), (0.05, 0.05, 0.03))
     needle = b.finish("GaugeNeedle")
-    needle.location = P(TABLE_R, 2.05, 0.80)
+    needle.location = (0.7, -2.0, 1.04)
     needle.rotation_euler = (0, 0, -2.05)
 
     # =====================================================================

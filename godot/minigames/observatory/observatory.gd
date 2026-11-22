@@ -52,6 +52,9 @@ var _stamp_phase := "idle"
 var _stamp_time := 0.0
 var _shake := 0.0
 var _press_platen: Node3D
+var _flow_label: Label3D
+var _status_label: Label3D
+var _sigil_label: Label3D
 const PLATEN_TOP := 0.95
 const PLATEN_PRESS := 0.30
 const STAMP_ANTICIPATE := 0.14
@@ -85,6 +88,9 @@ var _pt_history: Array = []
 var _prev_pts: PackedVector3Array
 var _last_sigil: int = -1
 var _last_resolved: bool = false
+var _last_az := 999.0
+var _last_el := 999.0
+var _last_focusv := 999.0
 var _stamp_particles: GPUParticles3D
 var _trail_vp: SubViewport
 var _trail_cam: Camera3D
@@ -221,6 +227,7 @@ func _process(delta: float) -> void:
 		if c.id == "crank":
 			var oldv: float = float(c.value)
 			c.value = wrapf(v, 0.0, 1.0)
+			_crank_accum = float(c.value) * TAU
 			if oldv > 0.85 and c.value < 0.15 and turn > 0.0:
 				_advance_layer()
 		elif c.id == "sigil":
@@ -783,6 +790,35 @@ func _build_world() -> void:
 	nameplate.rotation.y = PI
 	_world.add_child(nameplate)
 
+	# big in-world readouts on the console fascia
+	_flow_label = Label3D.new()
+	_flow_label.font_size = 40
+	_flow_label.pixel_size = 0.003
+	_flow_label.position = Vector3(0, 0.55, 2.28)
+	_flow_label.rotation.y = PI
+	_flow_label.modulate = Color(0.5, 1.0, 0.6)
+	_flow_label.text = "FLOW: —"
+	_world.add_child(_flow_label)
+
+	_status_label = Label3D.new()
+	_status_label.font_size = 32
+	_status_label.pixel_size = 0.003
+	_status_label.position = Vector3(0, 0.35, 2.28)
+	_status_label.rotation.y = PI
+	_status_label.modulate = Color(0.8, 0.9, 1.0)
+	_status_label.text = "—"
+	_world.add_child(_status_label)
+
+	# label above the sigil selector
+	_sigil_label = Label3D.new()
+	_sigil_label.font_size = 28
+	_sigil_label.pixel_size = 0.003
+	_sigil_label.position = Vector3(1.86, 1.05, -1.52)
+	_sigil_label.rotation.y = PI
+	_sigil_label.modulate = Color(0.9, 0.75, 1.0)
+	_sigil_label.text = "SIGIL I"
+	_world.add_child(_sigil_label)
+
 	# camera
 	_camera = Camera3D.new()
 	_camera.fov = 50
@@ -1037,17 +1073,37 @@ func _update_flow_dots(delta: float) -> void:
 
 func _refresh_visuals() -> void:
 	var s = Math.sigil(_sigil_target)
-	var res := Math.resolved(_az, _el, _focusv, s)
-	# attractor
+	# continuous alignment + focus → sharpness (0 = scattered noise, 1 = sharp sigil)
+	var align_az := 1.0 - clampf(absf(_angle_diff(_az, s.az)) / 0.5, 0.0, 1.0)
+	var align_el := 1.0 - clampf(absf(_el - float(s.el)) / 0.5, 0.0, 1.0)
+	var align := align_az * align_el
+	var focus_f := clampf((_focusv - 0.2) / 0.7, 0.0, 1.0)
+	var sharpness := align * focus_f
+	var res := sharpness > 0.62
+	# attractor tint/brightness follows sharpness continuously
 	if _attractor_mat:
-		_attractor_mat.albedo_color = Color(0.6, 0.85, 1.0, 0.9) if res else Color(0.25, 0.35, 0.5, 0.3)
-		_attractor_mat.emission_energy_multiplier = 2.0 if res else 0.4
-	# rebuild attractor points only when sigil or resolution state changes
-	var dirty := (_sigil_target != _last_sigil) or (res != _last_resolved)
+		_attractor_mat.albedo_color = Color(0.25, 0.35, 0.5, 0.3).lerp(Color(0.65, 0.9, 1.0, 0.95), sharpness)
+		_attractor_mat.emission_energy_multiplier = lerpf(0.3, 2.6, sharpness)
+	# rebuild attractor points when any telescope parameter changes
+	var dirty := (_sigil_target != _last_sigil) \
+		or absf(_az - _last_az) > 0.004 \
+		or absf(_el - _last_el) > 0.004 \
+		or absf(_focusv - _last_focusv) > 0.004
 	if dirty and _attractor_mesh and _attractor_mesh.multimesh:
 		_last_sigil = _sigil_target
 		_last_resolved = res
-		var pts := Math.attractor_points(s.shape)
+		_last_az = _az
+		_last_el = _el
+		_last_focusv = _focusv
+		var base := Math.attractor_points(s.shape)
+		var basis := Basis(Vector3.UP, _az) * Basis(Vector3.RIGHT, _el)
+		var scatter := (1.0 - sharpness) * 0.9
+		var pts := PackedVector3Array()
+		pts.resize(base.size())
+		for i in base.size():
+			var p: Vector3 = basis * (base[i] * 0.9)
+			p += Vector3(randf() - 0.5, randf() - 0.5, randf() - 0.5) * scatter
+			pts[i] = p + Vector3(0, 1.6, 0.0)
 		_pt_history.push_front(pts)
 		if _pt_history.size() > 4:
 			_pt_history.pop_back()
@@ -1063,23 +1119,19 @@ func _refresh_visuals() -> void:
 			if tmesh.multimesh.instance_count != hpts.size():
 				tmesh.multimesh.instance_count = hpts.size()
 			for i in hpts.size():
-				var tp: Vector3 = hpts[i] * 0.9 + Vector3(0, 1.6, 0.0)
-				tmesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, tp))
+				tmesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, hpts[i]))
 		_prev_pts = pts
-		# sync deposit points
+		# sync deposit points (centered, no offset)
 		if _deposit_points and _deposit_points.multimesh:
-			var dpts := Math.attractor_points(s.shape)
-			if _deposit_points.multimesh.instance_count != dpts.size():
-				_deposit_points.multimesh.instance_count = dpts.size()
-			for i in dpts.size():
-				_deposit_points.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, dpts[i] * 0.6))
+			if _deposit_points.multimesh.instance_count != pts.size():
+				_deposit_points.multimesh.instance_count = pts.size()
+			for i in pts.size():
+				var dp := pts[i] - Vector3(0, 1.6, 0.0)
+				_deposit_points.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, dp * 0.6))
 		if _attractor_mesh.multimesh.instance_count != pts.size():
 			_attractor_mesh.multimesh.instance_count = pts.size()
 		for i in pts.size():
-			var p: Vector3 = pts[i] * 0.9 + Vector3(0, 1.6, 0.0)
-			if not res:
-				p += Vector3(randf() - 0.5, randf() - 0.5, randf() - 0.5) * 0.15
-			_attractor_mesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, p))
+			_attractor_mesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i]))
 	# plate shader
 	if _plate_mat:
 		_plate_mat.set_shader_parameter("layer_count", float(_layer))
@@ -1102,6 +1154,19 @@ func _refresh_visuals() -> void:
 			(_lever_node as MeshInstance3D).material_override = _grey_mat
 		else:
 			(_lever_node as MeshInstance3D).material_override = null
+
+	# in-world console readouts
+	if _flow_label:
+		var flow_ok := Math.layer_clean(_v1, _v2, s)
+		_flow_label.text = "FLOW: CLEAN" if flow_ok else "FLOW: TURBULENT"
+		_flow_label.modulate = Color(0.5, 1.0, 0.6) if flow_ok else Color(1.0, 0.45, 0.35)
+	if _status_label:
+		var res_txt := "RESOLVED" if res else "TUNING"
+		_status_label.text = "%s  ·  %s" % [res_txt, String(s.name)]
+		_status_label.modulate = Color(0.6, 0.95, 1.0) if res else Color(0.8, 0.8, 0.85)
+	if _sigil_label:
+		_sigil_label.text = "SIGIL %s" % ["I", "II", "III", "IV", "V"][_sigil_target]
+		_sigil_label.modulate = Color(0.6, 1.0, 0.75) if _collected[_sigil_target] else Color(0.9, 0.75, 1.0)
 
 	# hud
 	if _hud_text:
