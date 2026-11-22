@@ -75,13 +75,15 @@ var _controls := [
 	{"id": "v2", "label": "Valve B", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 2.35, "radius": 1.8, "type": "knob"},
 	{"id": "crank", "label": "Crank", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 1.15, "radius": 2.1, "type": "knob", "wrap": true},
 	{"id": "inscribe", "label": "Inscribe", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 0.65, "radius": 2.1, "type": "button"},
-	{"id": "reset_a", "label": "Reset A", "angle": 2.0, "radius": 2.0, "type": "button"},
-	{"id": "reset_b", "label": "Reset B", "angle": 2.2, "radius": 2.0, "type": "button"},
+	{"id": "reset_a", "label": "Reset A", "angle": 1.9, "radius": 2.1, "type": "button"},
+	{"id": "reset_b", "label": "Reset B", "angle": 2.15, "radius": 2.1, "type": "button"},
 ]
 
 var _control_nodes := {}
 var _attractor_mesh: MultiMeshInstance3D
 var _attractor_mat: StandardMaterial3D
+var _ghost_mesh: MultiMeshInstance3D
+var _ghost_mat: StandardMaterial3D
 var _trail_mesh: MultiMeshInstance3D
 var _trail_mat: StandardMaterial3D
 var _trail_mesh2: MultiMeshInstance3D
@@ -106,6 +108,7 @@ var _plate_mat: ShaderMaterial
 var _lever_node: Node3D
 var _lever_mat: StandardMaterial3D
 var _crank_node: Node3D
+var _crank_lock: Node3D
 var _az_node: Node3D
 var _el_node: Node3D
 var _focus_node: Node3D
@@ -241,14 +244,18 @@ func _process(delta: float) -> void:
 			span = 1.0
 		var v: float = float(c.get("value", 0.0)) + turn * speed * span / ADJUST_TIME * delta
 		if c.id == "crank":
-			var oldv: float = float(c.value)
-			c.value = wrapf(v, 0.0, 1.0)
-			_crank_accum = float(c.value) * TAU
-			if oldv > 0.85 and c.value < 0.15 and turn > 0.0:
-				if _crank_ready():
-					_advance_layer()
-				else:
+			if not _crank_ready():
+				# the lock bar holds the crank: it will not turn
+				_valve_sound_t -= delta
+				if turn != 0.0 and _valve_sound_t <= 0.0:
+					_valve_sound_t = 0.6
 					Sound.play("unavailable", self)
+			else:
+				var oldv: float = float(c.value)
+				c.value = wrapf(v, 0.0, 1.0)
+				_crank_accum = float(c.value) * TAU
+				if oldv > 0.85 and c.value < 0.15 and turn > 0.0:
+					_advance_layer()
 		elif c.id == "sigil":
 			c.value = clampf(v, float(c.min), float(c.max))
 			c.value = roundf(c.value)
@@ -283,6 +290,9 @@ func _sync_visuals_from_state() -> void:
 		_valve_b_node.rotation.y = _v2 * TAU
 	if _crank_node:
 		_crank_node.rotation.y = _crank_accum
+	if _crank_lock:
+		var lock_target := (-PI / 2.0) if _crank_ready() else 0.0
+		_crank_lock.rotation.x = lerpf(_crank_lock.rotation.x, lock_target, 0.2)
 
 	if _gauge_needle:
 		var s = Math.sigil(_sigil_target)
@@ -689,6 +699,7 @@ func _build_world() -> void:
 			"v2": _valve_b_node = node
 			"crank": _crank_node = node
 			"inscribe": _lever_node = node
+	_crank_lock = _model.get_node_or_null("CrankLock") as Node3D
 	_reset_button_a = _model.get_node_or_null("ResetButtonA") as MeshInstance3D
 	_reset_button_b = _model.get_node_or_null("ResetButtonB") as MeshInstance3D
 	_reset_cover_a = _model.get_node_or_null("ResetCoverA") as Node3D
@@ -716,6 +727,26 @@ func _build_world() -> void:
 		mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, 0.0)))
 	_attractor_mesh.multimesh = mm
 	_world.add_child(_attractor_mesh)
+
+	# ghost: the target sigil shape the player must align the live cloud to
+	_ghost_mesh = MultiMeshInstance3D.new()
+	var gmm := MultiMesh.new()
+	gmm.transform_format = MultiMesh.TRANSFORM_3D
+	gmm.mesh = SphereMesh.new()
+	(gmm.mesh as SphereMesh).radius = 0.028
+	(gmm.mesh as SphereMesh).height = 0.056
+	(gmm.mesh as SphereMesh).radial_segments = 6
+	(gmm.mesh as SphereMesh).rings = 3
+	_ghost_mat = StandardMaterial3D.new()
+	_ghost_mat.albedo_color = Color(1.0, 0.85, 0.4, 0.28)
+	_ghost_mat.emission_enabled = true
+	_ghost_mat.emission = Color(1.0, 0.75, 0.3)
+	_ghost_mat.emission_energy_multiplier = 0.8
+	_ghost_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	gmm.mesh.surface_set_material(0, _ghost_mat)
+	gmm.instance_count = pts.size()
+	_ghost_mesh.multimesh = gmm
+	_world.add_child(_ghost_mesh)
 
 	# trail ghost (lagging copy)
 	_trail_mesh = MultiMeshInstance3D.new()
@@ -1202,6 +1233,10 @@ func _refresh_visuals() -> void:
 	if _attractor_mat:
 		_attractor_mat.albedo_color = Color(0.22, 0.32, 0.48, 0.6).lerp(Color(0.7, 0.92, 1.0, 0.98), tune)
 		_attractor_mat.emission_energy_multiplier = lerpf(0.5, 2.8, tune)
+	# the ghost fades out as the live cloud matches it
+	if _ghost_mat:
+		_ghost_mat.albedo_color.a = 0.30 * (1.0 - tune)
+		_ghost_mat.emission_energy_multiplier = 0.8 * (1.0 - tune)
 	# rebuild attractor points when any telescope parameter changes
 	var dirty := (_sigil_target != _last_sigil) \
 		or absf(_az - _last_az) > 0.004 \
@@ -1254,6 +1289,15 @@ func _refresh_visuals() -> void:
 			_attractor_mesh.multimesh.instance_count = pts.size()
 		for i in pts.size():
 			_attractor_mesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i]))
+		# ghost target at the ideal orientation
+		if _ghost_mesh and _ghost_mesh.multimesh:
+			var tgt_basis := Basis(Vector3.UP, float(s.az)) * Basis(Vector3.RIGHT, float(s.el))
+			var gcount := base.size()
+			if _ghost_mesh.multimesh.instance_count != gcount:
+				_ghost_mesh.multimesh.instance_count = gcount
+			for i in gcount:
+				var gp: Vector3 = tgt_basis * (base[i] * 0.9 * 1.05) + Vector3(0, 1.6, 0.0)
+				_ghost_mesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, gp))
 	# plate shader
 	if _plate_mat:
 		_plate_mat.set_shader_parameter("layer_count", float(_layer))

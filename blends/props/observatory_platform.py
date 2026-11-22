@@ -298,6 +298,13 @@ def main():
     crank.location = P(2.1, 1.15, 0.7)
     crank.rotation_euler = (0, 0, -1.0)
 
+    # crank lock bar: drops across the wheel when not ready, lifts when ready
+    b = bl.Builder()
+    b.part("brass", (0, 0, 0.10), (0.7, 0.10, 0.08), bevel=0.02)
+    b.part("enamel_red", (0.28, 0, 0.10), (0.08, 0.08, 0.08), bevel=0.01)
+    lock = b.finish("CrankLock")
+    lock.location = P(2.1, 1.15, 0.45)
+
     # =====================================================================
     # 8. INSCRIBE LEVER (front-left)
     # =====================================================================
@@ -312,19 +319,19 @@ def main():
     # =====================================================================
     # 9. TWO-HAND RESET (two guarded plungers + hinged transparent covers)
     # =====================================================================
-    for name, angle in (("A", 2.0), ("B", 2.2)):
+    for name, angle in (("A", 1.9), ("B", 2.15)):
         b = bl.Builder()
-        cylinder(b, "bronze_dark", 0.16, -0.02, 0.02, n=16)   # guard ring
-        cylinder(b, "brass", 0.10, 0.02, 0.08, n=12)          # plunger
-        b.part("enamel_red", (0, 0, 0.10), (0.14, 0.14, 0.04), bevel=0.01)  # red cap
+        cylinder(b, "bronze_dark", 0.18, -0.02, 0.02, n=16)   # guard ring
+        cylinder(b, "brass", 0.11, 0.02, 0.09, n=12)          # plunger
+        b.part("enamel_red", (0, 0, 0.11), (0.16, 0.16, 0.05), bevel=0.01)  # red cap
         btn = b.finish("ResetButton" + name)
-        btn.location = P(2.0, angle, 0.12)
-        # transparent hinged cover (pivot at its origin; game rotates it open)
+        btn.location = P(2.1, angle, 0.12)
+        # transparent hinged cover, centred over the button
         b = bl.Builder()
-        b.part("enamel_cream", (0, 0.0, 0.24), (0.34, 0.34, 0.03), bevel=0.01)  # glass lid
-        b.part("brass", (0, -0.17, 0.24), (0.36, 0.04, 0.05), bevel=0.01)       # hinge bar
+        b.part("enamel_cream", (0, 0.0, 0.17), (0.40, 0.40, 0.03), bevel=0.01)  # glass lid
+        b.part("brass", (0, -0.20, 0.17), (0.42, 0.04, 0.05), bevel=0.01)       # hinge bar
         cov = b.finish("ResetCover" + name)
-        cov.location = P(2.0, angle, 0.12)
+        cov.location = P(2.1, angle, 0.12)
 
     # =====================================================================
     # 9b. LAYER DRUM + LAMPS + COUNTERS
