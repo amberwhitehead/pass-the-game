@@ -191,7 +191,7 @@ def main():
         b.part("bronze_dark", (0.15 * math.cos(a), 0.15 * math.sin(a), 0), (0.03, 0.02, 0.03))
     b.part("enamel_cream", (0, 0, 0.07), (0.06, 0.03, 0.02))  # diopter dot
     focus = b.finish("FocusRing")
-    focus.location = P(1.7, 3.75, 0.75)
+    focus.location = P(1.7, 3.1, 0.75)
     focus.rotation_euler = (0, 0, -3.2)
 
     # Sigil selector dial (enamel with detents)
@@ -320,20 +320,20 @@ def main():
     # =====================================================================
     # 9. TWO-HAND RESET (two guarded plungers + hinged transparent covers)
     # =====================================================================
-    for name, angle in (("A", 3.0), ("B", 3.25)):
+    for name, angle in (("A", 3.5), ("B", 3.75)):
         b = bl.Builder()
         cylinder(b, "bronze_dark", 0.18, -0.02, 0.02, n=16)   # guard ring
         cylinder(b, "brass", 0.11, 0.02, 0.09, n=12)          # plunger
         b.part("enamel_red", (0, 0, 0.11), (0.16, 0.16, 0.05), bevel=0.01)  # red cap
         btn = b.finish("ResetButton" + name)
-        btn.location = P(2.2, angle, 0.12)
+        btn.location = P(2.4, angle, 0.12)
         btn.rotation_euler = (0, 0, -angle)
         # transparent hinged cover, centred over the button and oriented like it
         b = bl.Builder()
         b.part("enamel_cream", (0, 0.0, 0.17), (0.40, 0.40, 0.03), bevel=0.01)  # glass lid
         b.part("brass", (0, -0.20, 0.17), (0.42, 0.04, 0.05), bevel=0.01)       # hinge bar
         cov = b.finish("ResetCover" + name)
-        cov.location = P(2.2, angle, 0.12)
+        cov.location = P(2.4, angle, 0.12)
         cov.rotation_euler = (0, 0, -angle)
 
     # =====================================================================

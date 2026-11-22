@@ -70,13 +70,13 @@ var _controls := [
 	{"id": "sigil", "label": "Sigil", "min": 0.0, "max": float(SIGIL_COUNT - 1), "def": 0.0, "angle": 4.95, "radius": 2.0, "type": "knob", "step": 1.0},
 	{"id": "az", "label": "Azimuth", "min": -PI, "max": PI, "def": 0.0, "angle": 4.55, "radius": 1.9, "type": "knob", "wrap": true},
 	{"id": "el", "label": "Elevation", "min": -1.2, "max": 1.2, "def": 0.0, "angle": 4.15, "radius": 1.9, "type": "knob"},
-	{"id": "focus", "label": "Focus", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 3.75, "radius": 1.7, "type": "knob"},
+	{"id": "focus", "label": "Focus", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 3.1, "radius": 1.7, "type": "knob"},
 	{"id": "v1", "label": "Valve A", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 2.75, "radius": 1.8, "type": "knob"},
 	{"id": "v2", "label": "Valve B", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 2.35, "radius": 1.8, "type": "knob"},
 	{"id": "crank", "label": "Crank", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 1.15, "radius": 2.1, "type": "knob", "wrap": true},
 	{"id": "inscribe", "label": "Inscribe", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 0.65, "radius": 2.1, "type": "button"},
-	{"id": "reset_a", "label": "Reset A", "angle": 3.0, "radius": 2.2, "type": "button"},
-	{"id": "reset_b", "label": "Reset B", "angle": 3.25, "radius": 2.2, "type": "button"},
+	{"id": "reset_a", "label": "Reset A", "angle": 3.5, "radius": 2.4, "type": "button"},
+	{"id": "reset_b", "label": "Reset B", "angle": 3.75, "radius": 2.4, "type": "button"},
 ]
 
 var _control_nodes := {}
@@ -109,6 +109,7 @@ var _lever_node: Node3D
 var _lever_mat: StandardMaterial3D
 var _crank_node: Node3D
 var _crank_lock: Node3D
+var _lock_was_ready := false
 var _az_node: Node3D
 var _el_node: Node3D
 var _focus_node: Node3D
@@ -130,7 +131,9 @@ var _reset_button_b: MeshInstance3D
 var _reset_cover_open := {"a": false, "b": false}
 var _reset_armed := {"a": false, "b": false}
 var _reset_timer := 0.0
-var _reset_glow := ""  # which button glows as the ready-to-press partner
+var _reset_glow := ""  # which button glows as the partner
+var _reset_phase := ""  # "wait" (amber, too soon) → "ready" (green, press now) → ""
+var _reset_ready_mat: StandardMaterial3D
 var _aether_lamp: MeshInstance3D
 var _ready_lamp: MeshInstance3D
 var _warning_lamp: MeshInstance3D
@@ -291,7 +294,11 @@ func _sync_visuals_from_state() -> void:
 	if _crank_node:
 		_crank_node.rotation.y = _crank_accum
 	if _crank_lock:
-		var lock_target := (-PI / 2.0) if _crank_ready() else 0.0
+		var ready := _crank_ready()
+		if ready != _lock_was_ready:
+			_lock_was_ready = ready
+			Sound.play("dial_snap" if ready else "place", self)
+		var lock_target := (-PI / 2.0) if ready else 0.0
 		_crank_lock.rotation.x = lerpf(_crank_lock.rotation.x, lock_target, 0.2)
 
 	if _gauge_needle:
@@ -528,23 +535,24 @@ func _press_reset(which: String) -> void:
 	if bool(_reset_armed[which]):
 		Sound.play("unavailable", self)  # already armed this one
 		return
-	if _reset_glow != "" and _reset_timer > 0.0:
-		# a first press is waiting: too soon to press the partner
-		Sound.play("unavailable", self)
+	if _reset_phase == "wait":
+		Sound.play("unavailable", self)  # four-second wait not over
 		return
-	if _reset_armed["a"] or _reset_armed["b"]:
-		# this is the second press, and the four-second wait has elapsed
+	if _reset_phase == "ready" and (_reset_armed["a"] or _reset_armed["b"]):
+		# second press, in the ready window
 		_reset_state()
 		_reset_armed = {"a": false, "b": false}
 		_reset_glow = ""
+		_reset_phase = ""
 		_reset_timer = 0.0
 		open["a"] = false
 		open["b"] = false
 		Sound.play("confirm", self)
 		return
-	# first press: arm this button and make the other glow
+	# first press: arm this button, the partner glows amber for the wait
 	_reset_armed[which] = true
 	_reset_glow = "b" if which == "a" else "a"
+	_reset_phase = "wait"
 	_reset_timer = 4.0
 	Sound.play("place", self)
 
@@ -587,6 +595,11 @@ func _make_materials() -> void:
 	_reset_glow_mat.emission_enabled = true
 	_reset_glow_mat.emission = Color(1.0, 0.7, 0.2)
 	_reset_glow_mat.emission_energy_multiplier = 2.5
+	_reset_ready_mat = StandardMaterial3D.new()
+	_reset_ready_mat.albedo_color = Color(0.4, 1.0, 0.5)
+	_reset_ready_mat.emission_enabled = true
+	_reset_ready_mat.emission = Color(0.35, 1.0, 0.45)
+	_reset_ready_mat.emission_energy_multiplier = 3.0
 
 
 func _std(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
@@ -1142,10 +1155,17 @@ func _update_stamp(delta: float) -> void:
 
 
 func _update_reset(delta: float) -> void:
-	if _reset_timer > 0.0:
+	if _reset_phase != "":
 		_reset_timer = maxf(0.0, _reset_timer - delta)
 		if _reset_timer == 0.0:
-			_reset_glow = ""  # the partner stops glowing; the first press stays armed
+			if _reset_phase == "wait":
+				_reset_phase = "ready"   # four seconds apart: press the partner now
+				_reset_timer = 4.0
+			else:
+				# the ready window expired: disarm, so a late press does nothing
+				_reset_phase = ""
+				_reset_glow = ""
+				_reset_armed = {"a": false, "b": false}
 	if _reset_cover_a:
 		var ta := (-PI / 2.0) if bool(_reset_cover_open["a"]) else 0.0
 		_reset_cover_a.rotation.x = lerpf(_reset_cover_a.rotation.x, ta, 0.22)
@@ -1155,8 +1175,10 @@ func _update_reset(delta: float) -> void:
 	for which in ["a", "b"]:
 		var btn: MeshInstance3D = _reset_button_a if which == "a" else _reset_button_b
 		if btn:
-			if _reset_glow == which and _reset_timer > 0.0:
-				btn.material_override = _reset_glow_mat
+			if _reset_glow == which and _reset_phase == "wait":
+				btn.material_override = _reset_glow_mat   # amber: wait
+			elif _reset_glow == which and _reset_phase == "ready":
+				btn.material_override = _reset_ready_mat  # green: press now
 			else:
 				btn.material_override = null
 

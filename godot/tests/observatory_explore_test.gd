@@ -152,14 +152,23 @@ func _run() -> void:
 	_expect(bool(_puzzle._reset_cover_open["a"]), "the first press opens the cover")
 	_puzzle._press_reset("a")
 	_expect(bool(_puzzle._reset_armed["a"]) and _puzzle._reset_glow == "b", "pressing again arms A and makes B glow")
-	_expect(absf(_puzzle._reset_timer - 4.0) < 0.01, "the partner glows for four seconds")
+	_expect(_puzzle._reset_phase == "wait", "the partner glows amber during the four-second wait")
 	_puzzle._press_reset("b")
 	_expect(_puzzle._layer == 2, "pressing the partner too soon does nothing")
 	_puzzle._update_reset(4.1)
-	_expect(_puzzle._reset_glow == "", "the glow ends after four seconds")
+	_expect(_puzzle._reset_phase == "ready" and _puzzle._reset_glow == "b", "after four seconds the partner glows green")
 	_puzzle._press_reset("b")
-	_expect(_puzzle._layer == 0, "the second press after the wait resets the plate")
+	_expect(_puzzle._layer == 0, "the second press in the ready window resets the plate")
 	_expect(not bool(_puzzle._reset_cover_open["a"]) and not bool(_puzzle._reset_cover_open["b"]), "the covers close after a reset")
+	# an expired arm does not reset later
+	_puzzle._layer = 2
+	_puzzle._press_reset("a")  # open A
+	_puzzle._press_reset("a")  # arm A
+	_puzzle._press_reset("b")  # open B
+	_puzzle._update_reset(4.1) # wait over
+	_puzzle._update_reset(4.1) # ready window expires
+	_puzzle._press_reset("b")  # late: starts a new arm, does not reset
+	_expect(_puzzle._layer == 2, "a late press after the ready window does not reset")
 	_close()
 
 	# --- 5. save/resume round-trip mid-forge ---
