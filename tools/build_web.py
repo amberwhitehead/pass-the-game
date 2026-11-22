@@ -78,27 +78,27 @@ def _inject_loading_overlay(index_html: Path) -> None:
     The overlay is hidden by default and shown/hidden by the game via JavaScriptBridge.
     Cycling happens in JS so it works even when the main thread is busy loading.'''
     overlay = '''
-<div id="loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#fff;font-family:sans-serif;font-size:24px;justify-content:center;align-items:center;z-index:9999;flex-direction:column;">
-  <div id="loading-msg">Loading…</div>
+<style>
+#loading-overlay .loading-msg { position:absolute; opacity:0; animation: showmsg 10s infinite; }
+#loading-overlay .loading-msg:nth-child(1) { animation-delay: 0s; }
+#loading-overlay .loading-msg:nth-child(2) { animation-delay: 2s; }
+#loading-overlay .loading-msg:nth-child(3) { animation-delay: 4s; }
+#loading-overlay .loading-msg:nth-child(4) { animation-delay: 6s; }
+#loading-overlay .loading-msg:nth-child(5) { animation-delay: 8s; }
+@keyframes showmsg {
+  0% { opacity: 1; }
+  19.99% { opacity: 1; }
+  20% { opacity: 0; }
+  100% { opacity: 0; }
+}
+</style>
+<div id="loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;color:#fff;font-family:sans-serif;font-size:24px;justify-content:center;align-items:center;z-index:9999;">
+  <div class="loading-msg">Loading…</div>
+  <div class="loading-msg">Compiling shaders…</div>
+  <div class="loading-msg">Counting vertices…</div>
+  <div class="loading-msg">Reticulating splines…</div>
+  <div class="loading-msg">Stitching meshes…</div>
 </div>
-<script>
-(function(){
-  var msgs = ["Loading…","Compiling shaders…","Counting vertices…","Reticulating splines…","Stitching meshes…"];
-  var i = 0;
-  setInterval(function(){
-    var el = document.getElementById('loading-overlay');
-    if (el && el.style.display !== 'none') {
-      i = (i + 1) % msgs.length;
-      var m = document.getElementById('loading-msg');
-      if (m) m.textContent = msgs[i];
-    } else {
-      i = 0;
-      var m = document.getElementById('loading-msg');
-      if (m) m.textContent = msgs[0];
-    }
-  }, 2000);
-})();
-</script>
 '''
     text = index_html.read_text(encoding="utf-8")
     if "loading-overlay" in text:
