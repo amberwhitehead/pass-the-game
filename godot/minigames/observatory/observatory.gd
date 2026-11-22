@@ -303,16 +303,18 @@ func _advance_layer() -> void:
 	_plate[_layer] = clean
 	_layer += 1
 	_crank_accum = 0.0
-	# haptic-ish: bump handled by sound elsewhere
+	Sound.play("place" if clean else "unavailable", self)
 
 
 func _try_inscribe() -> void:
 	if _layer < LAYERS:
+		Sound.play("unavailable", self)
 		return
 	if not Math.all_clean(_plate):
 		for i in LAYERS:
 			_plate[i] = false
 		_layer = 0
+		Sound.play("unavailable", self)
 		return
 	if _collected[_sigil_target]:
 		for i in LAYERS:
@@ -410,6 +412,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _grabbed >= 0:
 		_grabbed = -1
 		_grab_hold = 0.0
+		Sound.play("dial_grab", self)
 		return
 	if _focus >= 0:
 		var c = _controls[_focus]
@@ -418,6 +421,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			_grabbed = _focus
 			_grab_hold = 0.0
+			Sound.play("dial_grab", self)
 
 
 func _press_button(c: Dictionary) -> void:
@@ -717,6 +721,16 @@ func _build_world() -> void:
 		_flow_dots.append(d)
 		_flow_dot_progress.append(randf())
 
+	# engraved nameplate
+	var nameplate := Label3D.new()
+	nameplate.text = "THE AETHERIC SIGIL PRESS"
+	nameplate.font_size = 28
+	nameplate.pixel_size = 0.003
+	nameplate.modulate = Color(0.15, 0.12, 0.08)
+	nameplate.position = Vector3(0, 0.72, 2.2)
+	nameplate.rotation.y = PI
+	_world.add_child(nameplate)
+
 	# camera
 	_camera = Camera3D.new()
 	_camera.fov = 50
@@ -935,7 +949,16 @@ func _refresh_visuals() -> void:
 		var focus_name := ""
 		if _focus >= 0:
 			focus_name = _controls[_focus].label
-		var grab_hint := "GRABBED — A/D (or drag) to turn, E or click to release" if _grabbed >= 0 else "A/D or arrows: orbit   |   E or click: grab focused control   |   focus: %s" % (focus_name if focus_name != "" else "—")
+		var grab_hint := ""
+		if _grabbed >= 0:
+			var gc = _controls[_grabbed]
+			grab_hint = "GRABBED: %s — A/D to turn, E/click to release" % gc.label
+		elif _focus >= 0:
+			var fc = _controls[_focus]
+			var action := "press" if fc.type == "button" else "grab"
+			grab_hint = "E/click: %s  %s   |   A/D: orbit" % [action, focus_name]
+		else:
+			grab_hint = "A/D: orbit   |   face a control and E/click to grab"
 		_hud_text.text = "%s\n%s\n%s | %s\nsigil: %s\n%s" % [status, plate_str, res_str, flow_str, s.name, grab_hint]
 
 
