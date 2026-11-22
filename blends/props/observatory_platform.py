@@ -59,55 +59,81 @@ def main():
     # 1. PLATFORM: stone plinth, mahogany deck, brass gantry, press frame
     # =====================================================================
     b = bl.Builder()
-    # stone plinth
-    b.part("stone_deep", (0, 0, -0.30), (6.4, 6.4, 0.50))
-    b.part("stone_mid", (0, 0, -0.04), (5.4, 5.4, 0.08))
-    # mahogany deck
-    b.part("wood", (0, 0, 0.04), (4.9, 4.9, 0.10))
-    b.part("wood_dark", (0, 0, 0.09), (4.7, 4.7, 0.02))
-    # brass edge trim
+    # stone plinth: stepped, chamfered, with a carved cornice
+    b.part("stone_deep", (0, 0, -0.32), (6.2, 6.2, 0.44), bevel=0.04)
+    b.part("stone_mid", (0, 0, -0.08), (5.6, 5.6, 0.10), bevel=0.03)
+    b.part("stone_warm", (0, 0, -0.02), (5.2, 5.2, 0.06), bevel=0.02)
+    # mahogany deck with a darker inlay and a brass border
+    b.part("wood", (0, 0, 0.04), (4.9, 4.9, 0.10), bevel=0.03)
+    b.part("wood_dark", (0, 0, 0.09), (4.6, 4.6, 0.02), bevel=0.02)
+    b.part("wood_light", (0, 0, 0.10), (4.2, 4.2, 0.01), bevel=0.01)
     for sx in (1, -1):
-        b.part("brass", (sx * 2.42, 0, 0.08), (0.10, 4.9, 0.14))
+        b.part("brass", (sx * 2.42, 0, 0.08), (0.10, 4.9, 0.14), bevel=0.02)
     for sy in (1, -1):
-        b.part("brass", (0, sy * 2.42, 0.08), (4.9, 0.10, 0.14))
+        b.part("brass", (0, sy * 2.42, 0.08), (4.9, 0.10, 0.14), bevel=0.02)
+    # corner rivets
+    for sx in (1, -1):
+        for sy in (1, -1):
+            prism(b, "brass", Matrix.Translation((sx * 2.3, sy * 2.3, 0)), 10, 0.06, 0.06, 0.10, 0.14)
+    # cornice moulding under the deck
+    b.part("brass", (0, 2.5, 0.02), (5.0, 0.08, 0.08), bevel=0.02)
+    b.part("brass", (0, -2.5, 0.02), (5.0, 0.08, 0.08), bevel=0.02)
 
-    # rear pillar (observation aperture)
-    b.part("brass", (0, 1.5, 0.45), (0.34, 0.34, 1.2))
-    b.part("bronze_dark", (0, 1.5, 1.02), (0.5, 0.5, 0.10))
-    # gantry: two posts + a beam spanning to the press side
-    b.part("brass", (-1.9, 0.2, 1.55), (0.18, 0.18, 3.0))
-    b.part("brass", (1.9, 0.2, 1.55), (0.18, 0.18, 3.0))
-    b.part("brass", (0, 0.2, 3.0), (4.0, 0.22, 0.22))
-    # gantry cross braces
-    b.part("bronze_dark", (-1.9, 0.2, 2.7), (1.6, 0.10, 0.10))
-    b.part("bronze_dark", (1.9, 0.2, 2.7), (1.6, 0.10, 0.10))
+    # rear pillar (observation aperture): fluted cylinder with collars
+    prism(b, "brass", Matrix.Translation((0, 1.5, 0)), 16, 0.22, 0.22, 0.10, 1.15)
+    b.part("bronze_dark", (0, 1.5, 0.12), (0.56, 0.56, 0.10), bevel=0.03)
+    b.part("brass", (0, 1.5, 1.05), (0.52, 0.52, 0.12), bevel=0.03)
+    # fluting ridges
+    for k in range(8):
+        a = k * TAU / 8
+        b.part("bronze_dark", (0.21 * math.cos(a), 1.5 + 0.21 * math.sin(a), 0.6), (0.04, 0.04, 0.8))
 
-    # press frame (right side)
-    b.part("brass", (1.3, -1.0, 0.7), (0.10, 0.10, 1.4))
-    b.part("brass", (1.3, -0.2, 0.7), (0.10, 0.10, 1.4))
-    b.part("brass", (1.3, -0.6, 1.4), (0.10, 0.9, 0.10))
-    b.part("brass", (1.3, -0.6, 1.45), (0.5, 0.5, 0.12))  # press head
+    # gantry: turned posts + arched beam + braces
+    for sx in (-2.5, 2.5):
+        prism(b, "brass", Matrix.Translation((sx, 0.2, 0)), 14, 0.08, 0.08, 0.10, 2.8)
+        b.part("bronze_dark", (sx, 0.2, 0.14), (0.28, 0.28, 0.10), bevel=0.03)
+        b.part("bronze_dark", (sx, 0.2, 2.9), (0.26, 0.26, 0.10), bevel=0.03)
+    b.part("brass", (0, 0.2, 2.8), (5.2, 0.20, 0.18), bevel=0.04)
+    b.part("enamel_cream", (0, 0.2, 2.9), (4.9, 0.08, 0.04))  # gantry inlay
+    b.part("bronze_dark", (-2.5, 0.2, 2.45), (1.2, 0.08, 0.08), bevel=0.02)
+    b.part("bronze_dark", (2.5, 0.2, 2.45), (1.2, 0.08, 0.08), bevel=0.02)
 
-    # console fascia (front)
-    b.part("wood_dark", (0, -2.3, 0.55), (3.6, 0.10, 0.9))
-    b.part("brass", (0, -2.25, 0.95), (3.6, 0.06, 0.08))
+    # press frame: turned columns + arched head
+    for sy in (-1.0, -0.2):
+        prism(b, "brass", Matrix.Translation((1.3, sy, 0)), 12, 0.07, 0.07, 0.10, 1.45)
+        b.part("bronze_dark", (1.3, sy, 0.12), (0.18, 0.18, 0.08), bevel=0.02)
+    b.part("brass", (1.3, -0.6, 1.42), (0.12, 0.95, 0.12), bevel=0.03)
+    b.part("bronze_dark", (1.3, -0.6, 1.50), (0.55, 0.55, 0.10), bevel=0.04)  # press head
+
+    # console fascia: panelled, with a brass rail and carved brackets
+    b.part("wood_dark", (0, -2.3, 0.55), (3.6, 0.12, 0.9), bevel=0.04)
+    b.part("wood", (0, -2.24, 0.55), (3.3, 0.04, 0.7), bevel=0.03)
+    b.part("brass", (0, -2.25, 0.95), (3.6, 0.08, 0.10), bevel=0.02)
+    for sx in (-1.6, 1.6):
+        b.part("brass", (sx, -2.3, 0.55), (0.10, 0.14, 0.9), bevel=0.03)
     # nameplate
-    b.part("enamel_cream", (0, -2.2, 0.72), (1.4, 0.04, 0.18))
+    b.part("enamel_cream", (0, -2.2, 0.72), (1.4, 0.05, 0.18), bevel=0.02)
 
     platform = b.finish("Platform")
+
+    # console LCD panel (dark glass screen for the sigil name / counters)
+    b = bl.Builder()
+    b.part("brass", (0, -2.24, 1.15), (1.5, 0.06, 0.5))
+    b.part("enamel_charcoal", (0, -2.26, 1.15), (1.35, 0.04, 0.38))
+    lcd = b.finish("LcdPanel")
 
     # =====================================================================
     # 2. VOID WINDOW (north): brass frame + glass pane
     # =====================================================================
     b = bl.Builder()
-    # vertical frame at the north wall (Blender y = 4.0 -> Godot z = -4.0)
-    b.part("brass", (0, 4.0, 1.6), (3.9, 0.16, 2.9))
-    b.part("bronze_dark", (0, 3.94, 1.6), (3.5, 0.10, 2.5))
-    b.part("enamel_cream", (0, 3.90, 1.6), (3.4, 0.06, 2.4))
+    # raised frame above the controls so it never blocks them (Godot y = 2.2, z = -4.2)
+    b.part("brass", (0, 4.2, 2.2), (3.2, 0.16, 1.9))
+    b.part("bronze_dark", (0, 4.14, 2.2), (2.9, 0.10, 1.6))
+    b.part("enamel_cream", (0, 4.10, 2.2), (2.8, 0.06, 1.5))
     # frame bolts
     for sx in (1, -1):
         for sz in (1, -1):
-            b.part("brass", (sx * 1.7, 3.98, 1.6 + 0.9 * sz), (0.12, 0.12, 0.12))
+            b.part("brass", (sx * 1.4, 4.18, 2.2 + 0.65 * sz), (0.12, 0.12, 0.12))
     voidw = b.finish("VoidWindow")
 
     # =====================================================================
@@ -122,9 +148,9 @@ def main():
     # fork arms
     b.part("brass", (-0.28, 1.5, 1.25), (0.08, 0.08, 0.5))
     b.part("brass", (0.28, 1.5, 1.25), (0.08, 0.08, 0.5))
-    # tube: a cylinder along Blender y (north), from y=1.4 toward the window
-    b.part("bronze_dark", (0, 1.0, 1.45), (0.22, 1.4, 0.22))
-    b.part("brass", (0, 0.35, 1.45), (0.26, 0.10, 0.26))  # objective ring
+    # tube: a turned cylinder along Blender y (north) toward the window
+    rod(b, "bronze_dark", Matrix.Identity(4), Vector((0, 1.5, 1.45)), Vector((0, 0.4, 1.45)), 0.22, 0.22)
+    b.part("brass", (0, 0.35, 1.45), (0.28, 0.10, 0.28), bevel=0.02)  # objective ring
     # lens at the north end
     b.part("enamel_cream", (0, 0.28, 1.45), (0.24, 0.06, 0.24))
     # counterweight at the south end
@@ -170,7 +196,7 @@ def main():
 
     # Sigil selector dial (enamel with detents)
     b = bl.Builder()
-    b.part("enamel_teal", (0, 0, 0), (0.40, 0.40, 0.10))
+    b.part("enamel_teal", (0, 0, 0), (0.40, 0.40, 0.10), bevel=0.03)
     for k in range(5):
         a = k * TAU / 5
         b.part("brass", (0.28 * math.cos(a), 0.28 * math.sin(a), 0.06), (0.05, 0.05, 0.05))
@@ -191,7 +217,7 @@ def main():
         cylinder(b, "brass", 0.22, -0.02, 0.02, n=20)
         for k in range(6):
             a = k * PI / 3
-            b.part("brass", (0.13 * math.cos(a), 0.13 * math.sin(a), 0), (0.18, 0.025, 0.03))
+            b.part("brass", (0.13 * math.cos(a), 0.13 * math.sin(a), 0), (0.18, 0.025, 0.03), bevel=0.005)
         # tell-tale disc (red/green)
         b.part("enamel_red", (0, 0, 0.10), (0.10, 0.10, 0.02))
         # travel indicator
@@ -265,9 +291,9 @@ def main():
         a = k * PI / 3
         b.part("brass", (0.16 * math.cos(a), 0.16 * math.sin(a), 0), (0.22, 0.03, 0.03))
     # wooden ball handle
-    b.part("wood", (0.36, 0, 0.04), (0.10, 0.10, 0.10))
+    b.part("wood", (0.36, 0, 0.04), (0.10, 0.10, 0.10), bevel=0.02)
     # direction arrow
-    b.part("enamel_yellow", (0.10, 0.26, 0.06), (0.04, 0.04, 0.02))
+    b.part("enamel_yellow", (0.10, 0.26, 0.06), (0.04, 0.04, 0.02), bevel=0.005)
     crank = b.finish("Crank")
     crank.location = P(2.1, 1.15, 0.7)
     crank.rotation_euler = (0, 0, -1.0)
@@ -276,9 +302,9 @@ def main():
     # 8. INSCRIBE LEVER (front-left)
     # =====================================================================
     b = bl.Builder()
-    b.part("brass", (0, 0, 0.35), (0.08, 0.08, 0.7))       # arm
-    b.part("wood", (0, 0, 0.70), (0.12, 0.12, 0.14))        # grip
-    b.part("bronze_dark", (0, 0, 0.0), (0.22, 0.22, 0.10))   # pivot base
+    b.part("brass", (0, 0, 0.35), (0.08, 0.08, 0.7), bevel=0.01)       # arm
+    b.part("wood", (0, 0, 0.70), (0.12, 0.12, 0.14), bevel=0.02)        # grip
+    b.part("bronze_dark", (0, 0, 0.0), (0.22, 0.22, 0.10), bevel=0.02)   # pivot base
     lever = b.finish("InscribeLever")
     lever.location = P(2.1, 0.65, 0.30)
     lever.rotation_euler = (0, 0, -0.35)

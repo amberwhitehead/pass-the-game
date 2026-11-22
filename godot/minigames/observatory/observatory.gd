@@ -26,7 +26,7 @@ const ADJUST_TIME := 2.6
 const RAMP_TIME := 1.0
 const VOID_Z := -4.0
 
-var _theta := 0.0
+var _theta := PI / 2.0  # start facing the machine from the south
 var _grabbed := -1
 var _focus := -1
 var _camera: Camera3D
@@ -796,12 +796,12 @@ func _build_world() -> void:
 	cr.material = tmat
 	_trail_vp.add_child(cr)
 
-	# show trail field on the void window
+	# void window: a dark, faintly glowing pane (the attractor is the star)
 	if _void_window and _void_mat:
-		_void_mat.albedo_texture = _trail_vp.get_texture()
+		_void_mat.albedo_color = Color(0.03, 0.05, 0.12, 0.9)
 		_void_mat.emission_enabled = true
-		_void_mat.emission_texture = _trail_vp.get_texture()
-		_void_mat.emission_energy_multiplier = 1.5
+		_void_mat.emission = Color(0.05, 0.1, 0.25)
+		_void_mat.emission_energy_multiplier = 0.6
 
 	# flow dots along pipes (animated in _process)
 	for i in 12:
@@ -828,44 +828,39 @@ func _build_world() -> void:
 	nameplate.rotation.y = PI
 	_world.add_child(nameplate)
 
-	# big in-world readouts on the console fascia
+	# LCD readouts on the console panel (flush, not floating)
+	var lcd_y := 1.15
 	_flow_label = Label3D.new()
-	_flow_label.font_size = 40
-	_flow_label.pixel_size = 0.003
-	_flow_label.position = Vector3(0, 0.55, 2.28)
-	_flow_label.rotation.y = PI
-	_flow_label.modulate = Color(0.5, 1.0, 0.6)
+	_flow_label.font_size = 48
+	_flow_label.pixel_size = 0.0018
+	_flow_label.no_depth_test = true
+	_flow_label.position = Vector3(0, lcd_y + 0.12, 2.27)
+	_flow_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_flow_label.modulate = Color(0.45, 1.0, 0.55)
 	_flow_label.text = "FLOW: —"
 	_world.add_child(_flow_label)
 
-	_status_label = Label3D.new()
-	_status_label.font_size = 32
-	_status_label.pixel_size = 0.003
-	_status_label.position = Vector3(0, 0.35, 2.28)
-	_status_label.rotation.y = PI
-	_status_label.modulate = Color(0.8, 0.9, 1.0)
-	_status_label.text = "—"
-	_world.add_child(_status_label)
-
-	# label above the sigil selector
 	_sigil_label = Label3D.new()
-	_sigil_label.font_size = 28
-	_sigil_label.pixel_size = 0.003
-	_sigil_label.position = Vector3(1.86, 1.05, -1.52)
-	_sigil_label.rotation.y = PI
-	_sigil_label.modulate = Color(0.9, 0.75, 1.0)
-	_sigil_label.text = "SIGIL I"
+	_sigil_label.font_size = 48
+	_sigil_label.pixel_size = 0.0018
+	_sigil_label.no_depth_test = true
+	_sigil_label.position = Vector3(0, lcd_y + 0.02, 2.27)
+	_sigil_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_sigil_label.modulate = Color(0.55, 0.95, 1.0)
+	_sigil_label.text = "SIGIL: THE LANTERN"
 	_world.add_child(_sigil_label)
 
-	# in-world counter dial
 	_counter_label = Label3D.new()
-	_counter_label.font_size = 24
-	_counter_label.pixel_size = 0.003
-	_counter_label.position = Vector3(0, 0.95, 2.28)
-	_counter_label.rotation.y = PI
-	_counter_label.modulate = Color(0.95, 0.85, 0.5)
-	_counter_label.text = "LAYER 0/4  ·  SIGILS 0/5"
+	_counter_label.font_size = 40
+	_counter_label.pixel_size = 0.0018
+	_counter_label.no_depth_test = true
+	_counter_label.position = Vector3(0, lcd_y - 0.08, 2.27)
+	_counter_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_counter_label.modulate = Color(0.85, 0.9, 0.55)
+	_counter_label.text = "LAYER 0/4 · SIGILS 0/5"
 	_world.add_child(_counter_label)
+
+	_status_label = null  # merged into the LCD lines above
 
 	# camera
 	_camera = Camera3D.new()
@@ -1121,17 +1116,16 @@ func _update_flow_dots(delta: float) -> void:
 
 func _refresh_visuals() -> void:
 	var s = Math.sigil(_sigil_target)
-	# continuous alignment + focus → sharpness (0 = scattered noise, 1 = sharp sigil)
-	var align_az := 1.0 - clampf(absf(_angle_diff(_az, s.az)) / 0.5, 0.0, 1.0)
-	var align_el := 1.0 - clampf(absf(_el - float(s.el)) / 0.5, 0.0, 1.0)
+	# continuity: the shape is always visible; tuning rotates, tightens and brightens it
+	var align_az := 1.0 - clampf(absf(_angle_diff(_az, s.az)) / 0.9, 0.0, 1.0)
+	var align_el := 1.0 - clampf(absf(_el - float(s.el)) / 0.9, 0.0, 1.0)
 	var align := align_az * align_el
-	var focus_f := clampf((_focusv - 0.2) / 0.7, 0.0, 1.0)
-	var sharpness := align * focus_f
-	var res := sharpness > 0.62
-	# attractor tint/brightness follows sharpness continuously
+	var focus_f := clampf((_focusv - 0.1) / 0.85, 0.0, 1.0)
+	var tune := clampf(0.55 * align + 0.45 * focus_f, 0.0, 1.0)
+	var res := align > 0.75 and focus_f > 0.75
 	if _attractor_mat:
-		_attractor_mat.albedo_color = Color(0.25, 0.35, 0.5, 0.3).lerp(Color(0.65, 0.9, 1.0, 0.95), sharpness)
-		_attractor_mat.emission_energy_multiplier = lerpf(0.3, 2.6, sharpness)
+		_attractor_mat.albedo_color = Color(0.22, 0.32, 0.48, 0.6).lerp(Color(0.7, 0.92, 1.0, 0.98), tune)
+		_attractor_mat.emission_energy_multiplier = lerpf(0.5, 2.8, tune)
 	# rebuild attractor points when any telescope parameter changes
 	var dirty := (_sigil_target != _last_sigil) \
 		or absf(_az - _last_az) > 0.004 \
@@ -1145,12 +1139,16 @@ func _refresh_visuals() -> void:
 		_last_focusv = _focusv
 		var base := Math.attractor_points(s.shape)
 		var basis := Basis(Vector3.UP, _az) * Basis(Vector3.RIGHT, _el)
-		var scatter := (1.0 - sharpness) * 0.9
+		# loose but recognizable: small deterministic wobble that tightens with tune
+		var wobble := (1.0 - tune) * 0.09
+		var spread := lerpf(0.80, 1.10, tune)
 		var pts := PackedVector3Array()
 		pts.resize(base.size())
 		for i in base.size():
-			var p: Vector3 = basis * (base[i] * 0.9)
-			p += Vector3(randf() - 0.5, randf() - 0.5, randf() - 0.5) * scatter
+			var p: Vector3 = basis * (base[i] * 0.9 * spread)
+			# deterministic per-point jitter (same point moves consistently)
+			var j := Vector3(sin(float(i) * 1.7), cos(float(i) * 2.3), sin(float(i) * 3.1))
+			p += j * wobble
 			pts[i] = p + Vector3(0, 1.6, 0.0)
 		_pt_history.push_front(pts)
 		if _pt_history.size() > 4:
@@ -1213,10 +1211,10 @@ func _refresh_visuals() -> void:
 		_status_label.text = "%s  ·  %s" % [res_txt, String(s.name)]
 		_status_label.modulate = Color(0.6, 0.95, 1.0) if res else Color(0.8, 0.8, 0.85)
 	if _sigil_label:
-		_sigil_label.text = "SIGIL %s" % ["I", "II", "III", "IV", "V"][_sigil_target]
-		_sigil_label.modulate = Color(0.6, 1.0, 0.75) if _collected[_sigil_target] else Color(0.9, 0.75, 1.0)
+		_sigil_label.text = "SIGIL: %s" % String(s.name).to_upper()
+		_sigil_label.modulate = Color(0.5, 1.0, 0.6) if _collected[_sigil_target] else Color(0.55, 0.95, 1.0)
 	if _counter_label:
-		_counter_label.text = "LAYER %d/%d  ·  SIGILS %d/%d" % [_layer, LAYERS, _count_collected(), SIGIL_COUNT]
+		_counter_label.text = "LAYER %d/%d · SIGILS %d/%d" % [_layer, LAYERS, _count_collected(), SIGIL_COUNT]
 
 	# hud
 	if _hud_text:

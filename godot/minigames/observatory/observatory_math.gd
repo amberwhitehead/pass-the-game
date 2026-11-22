@@ -7,15 +7,15 @@ const LAYERS := 4
 
 # Each sigil: id, card id, target params (az, el, focus, valve1, valve2), and a point-cloud shape.
 const SIGILS := [
-	{"id": "focus", "card": "sigil_focus", "name": "Sigil of Focus",
+	{"id": "focus", "card": "sigil_focus", "name": "The Lantern",
 		"az": 0.6, "el": 0.3, "focus": 0.9, "v1": 0.6, "v2": 0.4, "shape": 0},
-	{"id": "flow", "card": "sigil_flow", "name": "Sigil of Flow",
+	{"id": "flow", "card": "sigil_flow", "name": "The Coil",
 		"az": -0.9, "el": 0.5, "focus": 0.85, "v1": 0.3, "v2": 0.7, "shape": 1},
-	{"id": "aether", "card": "sigil_aether", "name": "Sigil of Aether",
+	{"id": "aether", "card": "sigil_aether", "name": "The Weave",
 		"az": 1.4, "el": -0.4, "focus": 0.9, "v1": 0.8, "v2": 0.2, "shape": 2},
-	{"id": "resonance", "card": "sigil_resonance", "name": "Sigil of Resonance",
+	{"id": "resonance", "card": "sigil_resonance", "name": "The Bell",
 		"az": -1.6, "el": -0.2, "focus": 0.85, "v1": 0.5, "v2": 0.5, "shape": 3},
-	{"id": "void", "card": "sigil_void", "name": "Sigil of the Void",
+	{"id": "void", "card": "sigil_void", "name": "The Hollow",
 		"az": 0.0, "el": 0.8, "focus": 0.95, "v1": 0.2, "v2": 0.9, "shape": 4},
 ]
 
@@ -25,16 +25,16 @@ static func sigil(i: int) -> Dictionary:
 
 
 # Generate a point cloud (Array of Vector3) for a sigil shape. Centered at origin, radius ~1.
-static func attractor_points(shape: int, count: int = 900) -> PackedVector3Array:
+static func attractor_points(shape: int, count: int = 600) -> PackedVector3Array:
 	var pts := PackedVector3Array()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 12345 + shape * 997
 	match shape:
-		0: # spiral
+		0: # spiral (open enough to read as a shape)
 			for n in count:
-				var t := float(n) / float(count) * TAU * 6.0
-				var r := 0.1 + (float(n) / float(count)) * 0.9
-				pts.append(Vector3(cos(t) * r, sin(t * 0.5) * 0.3, sin(t) * r))
+				var t := float(n) / float(count) * TAU * 3.0
+				var r := 0.15 + (float(n) / float(count)) * 0.85
+				pts.append(Vector3(cos(t) * r, sin(t * 0.5) * 0.25, sin(t) * r))
 		1: # rosette
 			for n in count:
 				var t := float(n) / float(count) * TAU * 5.0
