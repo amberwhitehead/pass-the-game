@@ -228,22 +228,26 @@ func _sync_visuals_from_state() -> void:
 		_telescope.rotation.y = -_az
 		_telescope.rotation.x = _el
 	if _valve_a_node:
-		_valve_a_node.rotation.z = _v1 * TAU
+		_valve_a_node.rotation.y = _v1 * TAU
 	if _valve_b_node:
-		_valve_b_node.rotation.z = _v2 * TAU
+		_valve_b_node.rotation.y = _v2 * TAU
 	if _crank_node:
-		_crank_node.rotation.x = _crank_accum
+		_crank_node.rotation.y = _crank_accum
 	if _lever_node:
 		_lever_node.rotation.x = _lever_t * (PI / 2.0)
 	if _gauge_needle:
 		var s = Math.sigil(_sigil_target)
 		var clean := Math.layer_clean(_v1, _v2, s)
 		var target_angle := 0.0 if clean else -1.2
-		_gauge_needle.rotation.z = lerpf(_gauge_needle.rotation.z, target_angle, 0.1)
+		_gauge_needle.rotation.y = lerpf(_gauge_needle.rotation.y, target_angle, 0.1)
 	if _focus_node:
-		_focus_node.rotation.z = _focusv * TAU
+		_focus_node.rotation.y = _focusv * TAU
 	if _sigil_node:
-		_sigil_node.rotation.y = _sigil_target * 0.3
+		_sigil_node.rotation.y = _sigil_target * (TAU / 5.0)
+	if _az_node:
+		_az_node.rotation.y = _az
+	if _el_node:
+		_el_node.rotation.y = _el
 
 
 func _sync_state_from_controls() -> void:
