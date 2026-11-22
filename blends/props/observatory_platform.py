@@ -210,6 +210,14 @@ def main():
     gauge.location = P(TABLE_R, 2.05, 0.75)
     gauge.rotation_euler = (0, 0, -2.05)
 
+    # separate needle (pivot at gauge centre so it can swing)
+    b = bl.Builder()
+    b.part("enamel_red", (0, 0.10, 0), (0.02, 0.20, 0.02))
+    b.part("brass", (0, 0, 0), (0.05, 0.05, 0.03))
+    needle = b.finish("GaugeNeedle")
+    needle.location = P(TABLE_R, 2.05, 0.80)
+    needle.rotation_euler = (0, 0, -2.05)
+
     # =====================================================================
     # 6. MOLD / PRESS BED + PLATE
     # =====================================================================
@@ -269,6 +277,40 @@ def main():
     resetb = b.finish("ResetButton")
     resetb.location = P(TABLE_R, 0.0, 0.12)
     resetb.rotation_euler = (0, 0, 0)
+
+    # =====================================================================
+    # 9b. LAYER DRUM + LAMPS + COUNTERS
+    # =====================================================================
+    # indexing layer drum (4 engraved segments)
+    b = bl.Builder()
+    cylinder(b, "brass", 0.14, -0.06, 0.06, n=24)
+    cylinder(b, "bronze_dark", 0.16, -0.07, 0.07, n=24)
+    for k in range(4):
+        a = k * TAU / 4
+        b.part("enamel_cream", (0.12 * math.cos(a), 0.12 * math.sin(a), 0.08), (0.04, 0.04, 0.02))
+    b.part("glow_amber", (0.17, 0, 0.06), (0.03, 0.03, 0.03))  # active segment marker
+    drum = b.finish("LayerDrum")
+    drum.location = (1.75, -0.6, 0.35)
+
+    # aether lamp (glass globe on console)
+    b = bl.Builder()
+    cylinder(b, "brass", 0.10, -0.02, 0.02, n=16)
+    b.part("enamel_cream", (0, 0, 0.10), (0.16, 0.16, 0.16))
+    lamp = b.finish("AetherLamp")
+    lamp.location = (0, -2.2, 1.05)
+
+    # ready / warning lamps
+    b = bl.Builder()
+    b.part("bronze_dark", (0, 0, 0), (0.10, 0.10, 0.06))
+    b.part("enamel_teal", (0, 0, 0.05), (0.06, 0.06, 0.04))
+    ready = b.finish("ReadyLamp")
+    ready.location = (1.2, -1.0, 1.55)
+
+    b = bl.Builder()
+    b.part("bronze_dark", (0, 0, 0), (0.10, 0.10, 0.06))
+    b.part("enamel_red", (0, 0, 0.05), (0.06, 0.06, 0.04))
+    warn = b.finish("WarningLamp")
+    warn.location = (-1.7, -0.2, 0.95)
 
     # =====================================================================
     # 10. AETHER DUCT + SIGHT GLASSES (continuous path)

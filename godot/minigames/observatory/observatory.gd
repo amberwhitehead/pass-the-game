@@ -94,6 +94,10 @@ var _valve_a_node: Node3D
 var _valve_b_node: Node3D
 var _sigil_node: Node3D
 var _gauge_needle: Node3D
+var _layer_drum: Node3D
+var _aether_lamp: MeshInstance3D
+var _ready_lamp: MeshInstance3D
+var _warning_lamp: MeshInstance3D
 var _mold_mat: StandardMaterial3D
 var _void_mat: StandardMaterial3D
 var _flow_particles: GPUParticles3D
@@ -248,6 +252,33 @@ func _sync_visuals_from_state() -> void:
 		_az_node.rotation.y = _az
 	if _el_node:
 		_el_node.rotation.y = _el
+	if _layer_drum:
+		_layer_drum.rotation.y = float(_layer) * (TAU / 4.0)
+	# gauge needle points to flow quality
+	if _gauge_needle:
+		var s = Math.sigil(_sigil_target)
+		var clean := Math.layer_clean(_v1, _v2, s)
+		var target := 0.0 if clean else -1.0
+		_gauge_needle.rotation.y = lerpf(_gauge_needle.rotation.y, target, 0.15)
+	# lamps
+	if _aether_lamp:
+		var mat := _aether_lamp.material_override as StandardMaterial3D
+		if mat:
+			var s2 = Math.sigil(_sigil_target)
+			var res := Math.resolved(_az, _el, _focusv, s2)
+			mat.emission_energy_multiplier = 2.0 if res else 0.3
+	if _ready_lamp:
+		var mat2 := _ready_lamp.material_override as StandardMaterial3D
+		if mat2:
+			var s3 = Math.sigil(_sigil_target)
+			var complete := (_layer >= LAYERS and Math.all_clean(_plate))
+			mat2.emission_energy_multiplier = 2.0 if complete else 0.1
+	if _warning_lamp:
+		var mat3 := _warning_lamp.material_override as StandardMaterial3D
+		if mat3:
+			var s4 = Math.sigil(_sigil_target)
+			var bad := not Math.layer_clean(_v1, _v2, s4)
+			mat3.emission_energy_multiplier = 2.0 if bad else 0.1
 
 
 func _sync_state_from_controls() -> void:
@@ -470,7 +501,25 @@ func _build_world() -> void:
 		_plate_mat = ShaderMaterial.new()
 		_plate_mat.shader = preload("res://shaders/observatory_plate.gdshader")
 		_plate_mesh.material_override = _plate_mat
-	_gauge_needle = _model.get_node_or_null("FlowGauge") as MeshInstance3D
+	_gauge_needle = _model.get_node_or_null("GaugeNeedle") as Node3D
+	_layer_drum = _model.get_node_or_null("LayerDrum") as Node3D
+	_aether_lamp = _model.get_node_or_null("AetherLamp") as MeshInstance3D
+	_ready_lamp = _model.get_node_or_null("ReadyLamp") as MeshInstance3D
+	_warning_lamp = _model.get_node_or_null("WarningLamp") as MeshInstance3D
+	# give lamps emissive overrides so state can drive them
+	for lamp in [_aether_lamp, _ready_lamp, _warning_lamp]:
+		if lamp:
+			var lm := StandardMaterial3D.new()
+			var col := Color(0.6, 0.9, 1.0)
+			if lamp == _ready_lamp:
+				col = Color(0.4, 1.0, 0.6)
+			elif lamp == _warning_lamp:
+				col = Color(1.0, 0.35, 0.25)
+			lm.albedo_color = col
+			lm.emission_enabled = true
+			lm.emission = col
+			lm.emission_energy_multiplier = 0.3
+			lamp.material_override = lm
 	# map controls to nodes
 	var name_map := {
 		"sigil": "SigilSelector", "az": "AzimuthKnob", "el": "ElevationKnob",
