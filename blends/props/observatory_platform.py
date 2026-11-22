@@ -238,6 +238,15 @@ def main():
     plate = b.finish("InscriptionPlate")
     plate.location = (1.2, -0.6, 0.22)
 
+    # moving press platen (descends to stamp, then retracts)
+    b = bl.Builder()
+    b.part("brass", (0, 0, 0), (0.75, 0.75, 0.12))
+    b.part("bronze_dark", (0, 0, 0.08), (0.70, 0.70, 0.04))
+    b.part("glow_amber", (0, 0, 0.11), (0.40, 0.40, 0.02))  # sigil die
+    b.part("brass", (0, 0, 0.30), (0.10, 0.10, 0.40))        # impression screw
+    platen = b.finish("PressPlaten")
+    platen.location = (1.2, -0.6, 0.95)
+
     # =====================================================================
     # 7. FLYWHEEL CRANK (front-right)
     # =====================================================================

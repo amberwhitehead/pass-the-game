@@ -48,7 +48,16 @@ var _collected: Array = []
 var _solved := false
 var _crank_accum := 0.0
 var _lever_t := 0.0  # 0..1 pull animation
-var _stamp_t := -1.0
+var _stamp_phase := "idle"
+var _stamp_time := 0.0
+var _shake := 0.0
+var _press_platen: Node3D
+const PLATEN_TOP := 0.95
+const PLATEN_PRESS := 0.30
+const STAMP_ANTICIPATE := 0.14
+const STAMP_DESCEND := 0.16
+const STAMP_IMPACT := 0.30
+const STAMP_RETRACT := 0.55
 
 # controls
 var _controls := [
@@ -191,13 +200,7 @@ func _process(delta: float) -> void:
 	if Sound.settings_open:
 		return
 	_time += delta
-	# lever pull animation
-	if _lever_t > 0.0 and _lever_t < 1.0:
-		_lever_t = clampf(_lever_t + delta * 2.0, 0.0, 1.0)
-	if _stamp_t >= 0.0:
-		_stamp_t += delta
-		if _stamp_t > 0.6:
-			_stamp_t = -1.0
+	_update_stamp(delta)
 	var steer := 0.0
 	if _grabbed >= 0:
 		steer = clampf(Input.get_axis("move_left", "move_right") + Input.get_axis("strafe_left", "strafe_right"), -1.0, 1.0)
@@ -245,8 +248,7 @@ func _sync_visuals_from_state() -> void:
 		_valve_b_node.rotation.y = _v2 * TAU
 	if _crank_node:
 		_crank_node.rotation.y = _crank_accum
-	if _lever_node:
-		_lever_node.rotation.x = _lever_t * (PI / 2.0)
+
 	if _gauge_needle:
 		var s = Math.sigil(_sigil_target)
 		var clean := Math.layer_clean(_v1, _v2, s)
@@ -352,11 +354,7 @@ func _try_inscribe() -> void:
 	for i in LAYERS:
 		_plate[i] = false
 	_layer = 0
-	_stamp_t = 0.0
-	_lever_t = 0.0
-	if _stamp_particles:
-		_stamp_particles.restart()
-		_stamp_particles.emitting = true
+	_start_stamp()
 	Sound.play("confirm", self)
 	_advance_target()
 
@@ -404,6 +402,8 @@ func _update_camera(delta: float) -> void:
 			_focus = i
 	if _camera:
 		_camera.position = Vector3(cos(_theta) * CAM_R, CAM_H, sin(_theta) * CAM_R)
+		if _shake > 0.0005:
+			_camera.position += Vector3(randf() - 0.5, randf() - 0.5, randf() - 0.5) * _shake
 		_camera.look_at(Vector3(0, 1.0, 0), Vector3.UP)
 
 
@@ -539,6 +539,7 @@ func _build_world() -> void:
 		_plate_mat.shader = preload("res://shaders/observatory_plate.gdshader")
 		_plate_mesh.material_override = _plate_mat
 	_gauge_needle = _model.get_node_or_null("GaugeNeedle") as Node3D
+	_press_platen = _model.get_node_or_null("PressPlaten") as Node3D
 	_layer_drum = _model.get_node_or_null("LayerDrum") as Node3D
 	_aether_reservoir = _model.get_node_or_null("AetherReservoir") as Node3D
 	_aether_liquid = _model.get_node_or_null("AetherLiquid") as Node3D
@@ -905,6 +906,63 @@ func _path_point(t: float) -> Vector3:
 	var i := clampi(int(seg), 0, DUCT_PATH.size() - 2)
 	var f := seg - float(i)
 	return DUCT_PATH[i].lerp(DUCT_PATH[i + 1], f)
+
+
+func _start_stamp() -> void:
+	_stamp_phase = "anticipate"
+	_stamp_time = 0.0
+	if _stamp_particles:
+		_stamp_particles.restart()
+		_stamp_particles.emitting = true
+
+
+func _ease_out(t: float) -> float:
+	var u := clampf(t, 0.0, 1.0)
+	return 1.0 - (1.0 - u) * (1.0 - u)
+
+
+func _update_stamp(delta: float) -> void:
+	if _press_platen == null or _lever_node == null:
+		return
+	if _stamp_phase == "idle":
+		_lever_node.rotation.x = lerpf(_lever_node.rotation.x, 0.0, 0.18)
+		_press_platen.position.y = lerpf(_press_platen.position.y, PLATEN_TOP, 0.12)
+		return
+	_stamp_time += delta
+	match _stamp_phase:
+		"anticipate":
+			var t := _stamp_time / STAMP_ANTICIPATE
+			var e := _ease_out(t)
+			_press_platen.position.y = lerpf(PLATEN_TOP, PLATEN_TOP + 0.05, e)
+			_lever_node.rotation.x = lerpf(0.0, -0.14, e)
+			if t >= 1.0:
+				_stamp_phase = "descend"
+				_stamp_time = 0.0
+		"descend":
+			var t := _stamp_time / STAMP_DESCEND
+			var e := t * t  # accelerate into the plate
+			_press_platen.position.y = lerpf(PLATEN_TOP + 0.05, PLATEN_PRESS, e)
+			_lever_node.rotation.x = lerpf(-0.14, PI / 2.0, e)
+			if t >= 1.0:
+				_stamp_phase = "impact"
+				_stamp_time = 0.0
+				_shake = 0.10
+				Sound.play("place", self)
+		"impact":
+			_press_platen.position.y = PLATEN_PRESS
+			_lever_node.rotation.x = PI / 2.0
+			_shake = lerpf(_shake, 0.0, 0.22)
+			if _stamp_time >= STAMP_IMPACT:
+				_stamp_phase = "retract"
+				_stamp_time = 0.0
+		"retract":
+			var t := _stamp_time / STAMP_RETRACT
+			var e := _ease_out(t)
+			_press_platen.position.y = lerpf(PLATEN_PRESS, PLATEN_TOP, e)
+			_lever_node.rotation.x = lerpf(PI / 2.0, 0.0, e)
+			if t >= 1.0:
+				_stamp_phase = "idle"
+				_stamp_time = 0.0
 
 
 func _update_highlights() -> void:

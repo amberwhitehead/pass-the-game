@@ -50,6 +50,12 @@ func _run() -> void:
 	_puzzle._try_inscribe()
 	_expect(_puzzle._collected[0], "First sigil collected")
 	_expect(_game.collected_cards.has(s.card), "Sigil grants its bonus card")
+	_expect(_puzzle._stamp_phase != "idle", "Inscribing starts the press stamp")
+	var platen_start: float = _puzzle._press_platen.position.y if _puzzle._press_platen else 0.0
+	for i in 12:
+		_puzzle._process(0.05)
+	var platen_now: float = _puzzle._press_platen.position.y if _puzzle._press_platen else 0.0
+	_expect(absf(platen_now - platen_start) > 0.01, "The platen moves during the stamp")
 
 	# Collect remaining sigils.
 	for i in range(1, OMath.SIGIL_COUNT):
