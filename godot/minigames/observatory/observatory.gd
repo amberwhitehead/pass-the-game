@@ -135,6 +135,7 @@ var _mat_enamel: StandardMaterial3D
 var _mat_aether: StandardMaterial3D
 var _grey_mat: StandardMaterial3D
 var _gold_overlay: StandardMaterial3D
+var _focus_overlay: StandardMaterial3D
 var _highlighted_node: Node3D = null
 var _highlight_is_grab := false
 
@@ -202,20 +203,25 @@ func _process(delta: float) -> void:
 	_time += delta
 	_update_stamp(delta)
 	var steer := 0.0
+	# view orbits with A/D (and left/right arrows) at any time
+	var orbit := clampf(Input.get_axis("move_left", "move_right") + Input.get_axis("strafe_left", "strafe_right"), -1.0, 1.0)
+	if orbit != 0.0:
+		_theta -= orbit * ORBIT_SPEED * delta
 	if _grabbed >= 0:
-		steer = clampf(Input.get_axis("move_left", "move_right") + Input.get_axis("strafe_left", "strafe_right"), -1.0, 1.0)
+		# turn the grabbed control with W/S (and up/down)
+		var turn := clampf(Input.get_axis("move_up", "move_down"), -1.0, 1.0)
 		var c: Dictionary = _controls[_grabbed]
-		_moving = steer != 0.0
+		_moving = turn != 0.0
 		_grab_hold = _grab_hold + delta if _moving else 0.0
 		var speed := lerpf(0.12, 1.0, clampf(_grab_hold / RAMP_TIME, 0.0, 1.0))
 		var span: float = float(c.max) - float(c.min)
 		if span <= 0.0:
 			span = 1.0
-		var v: float = float(c.get("value", 0.0)) + steer * speed * span / ADJUST_TIME * delta
+		var v: float = float(c.get("value", 0.0)) + turn * speed * span / ADJUST_TIME * delta
 		if c.id == "crank":
 			var oldv: float = float(c.value)
 			c.value = wrapf(v, 0.0, 1.0)
-			if oldv > 0.85 and c.value < 0.15 and steer > 0.0:
+			if oldv > 0.85 and c.value < 0.15 and turn > 0.0:
 				_advance_layer()
 		elif c.id == "sigil":
 			c.value = clampf(v, float(c.min), float(c.max))
@@ -225,9 +231,7 @@ func _process(delta: float) -> void:
 			c.value = clampf(v, float(c.min), float(c.max))
 			_sync_state_from_controls()
 	else:
-		steer = clampf(Input.get_axis("move_left", "move_right") + Input.get_axis("strafe_left", "strafe_right"), -1.0, 1.0)
-		if steer != 0.0:
-			_theta -= steer * ORBIT_SPEED * delta
+		_moving = false
 	_update_camera(delta)
 	_sync_visuals_from_state()
 	_update_highlights()
@@ -483,7 +487,13 @@ func _make_materials() -> void:
 	_gold_overlay.emission = Color(1.0, 0.75, 0.2)
 	_gold_overlay.emission_energy_multiplier = 0.8
 	_gold_overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_gold_overlay.albedo_color.a = 0.35
+	_gold_overlay.albedo_color.a = 0.45
+	_focus_overlay = StandardMaterial3D.new()
+	_focus_overlay.albedo_color = Color(0.55, 0.9, 1.0, 0.30)
+	_focus_overlay.emission_enabled = true
+	_focus_overlay.emission = Color(0.4, 0.85, 1.0)
+	_focus_overlay.emission_energy_multiplier = 0.7
+	_focus_overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 
 
 func _std(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
@@ -983,16 +993,25 @@ func _update_highlights() -> void:
 		_apply_control_overlay(target_node, is_grab)
 
 
-func _apply_control_overlay(node: Node3D, grabbed: bool) -> void:
-	var overlay: Material = _gold_overlay if grabbed else Interactable.focus_outline_material()
+func _control_meshes(node: Node) -> Array:
+	var arr: Array = []
+	if node is MeshInstance3D:
+		arr.append(node)
 	for m in node.find_children("*", "MeshInstance3D", true, false):
+		arr.append(m)
+	return arr
+
+
+func _apply_control_overlay(node: Node3D, grabbed: bool) -> void:
+	var overlay: Material = _gold_overlay if grabbed else _focus_overlay
+	for m in _control_meshes(node):
 		(m as MeshInstance3D).material_overlay = overlay
 
 
 func _clear_control_overlay(node: Node3D) -> void:
 	if node == null or not is_instance_valid(node):
 		return
-	for m in node.find_children("*", "MeshInstance3D", true, false):
+	for m in _control_meshes(node):
 		(m as MeshInstance3D).material_overlay = null
 
 
@@ -1096,7 +1115,7 @@ func _refresh_visuals() -> void:
 		var grab_hint := ""
 		if _grabbed >= 0:
 			var gc = _controls[_grabbed]
-			grab_hint = "GRABBED: %s — A/D to turn, E/click to release" % gc.label
+			grab_hint = "GRABBED: %s — W/S to turn, A/D to orbit, E/click to release" % gc.label
 		elif _focus >= 0:
 			var fc = _controls[_focus]
 			var action := "press" if fc.type == "button" else "grab"
