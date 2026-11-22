@@ -97,6 +97,8 @@ var _gauge_needle: Node3D
 var _layer_drum: Node3D
 var _aether_reservoir: Node3D
 var _aether_liquid: Node3D
+var _sight_glass_a: MeshInstance3D
+var _sight_glass_b: MeshInstance3D
 var _aether_lamp: MeshInstance3D
 var _ready_lamp: MeshInstance3D
 var _warning_lamp: MeshInstance3D
@@ -123,6 +125,9 @@ var _mat_glass: StandardMaterial3D
 var _mat_enamel: StandardMaterial3D
 var _mat_aether: StandardMaterial3D
 var _grey_mat: StandardMaterial3D
+var _gold_overlay: StandardMaterial3D
+var _highlighted_node: Node3D = null
+var _highlight_is_grab := false
 
 
 func _ready() -> void:
@@ -222,6 +227,7 @@ func _process(delta: float) -> void:
 			_theta -= steer * ORBIT_SPEED * delta
 	_update_camera(delta)
 	_sync_visuals_from_state()
+	_update_highlights()
 	_update_flow_dots(delta)
 	_refresh_visuals()
 	if not _solved and _all_collected():
@@ -256,6 +262,15 @@ func _sync_visuals_from_state() -> void:
 		_el_node.rotation.y = _el
 	if _layer_drum:
 		_layer_drum.rotation.y = float(_layer) * (TAU / 4.0)
+	# sight glasses glow with flow quality
+	for sg in [_sight_glass_a, _sight_glass_b]:
+		if sg:
+			var gm := sg.material_override as StandardMaterial3D
+			if gm:
+				var ss = Math.sigil(_sigil_target)
+				var ok := Math.layer_clean(_v1, _v2, ss)
+				gm.emission_energy_multiplier = 2.5 if ok else 0.6
+				gm.albedo_color = Color(0.4, 0.8, 1.0, 0.85) if ok else Color(0.9, 0.4, 0.3, 0.7)
 	# aether reservoir level: rises with focus/flow quality
 	if _aether_liquid:
 		var sr = Math.sigil(_sigil_target)
@@ -462,6 +477,13 @@ func _make_materials() -> void:
 	_grey_mat.albedo_color = Color(0.4, 0.4, 0.45)
 	_grey_mat.metallic = 0.2
 	_grey_mat.roughness = 0.7
+	_gold_overlay = StandardMaterial3D.new()
+	_gold_overlay.albedo_color = Color(1.0, 0.82, 0.35, 1.0)
+	_gold_overlay.emission_enabled = true
+	_gold_overlay.emission = Color(1.0, 0.75, 0.2)
+	_gold_overlay.emission_energy_multiplier = 0.8
+	_gold_overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_gold_overlay.albedo_color.a = 0.35
 
 
 func _std(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
@@ -520,6 +542,12 @@ func _build_world() -> void:
 	_layer_drum = _model.get_node_or_null("LayerDrum") as Node3D
 	_aether_reservoir = _model.get_node_or_null("AetherReservoir") as Node3D
 	_aether_liquid = _model.get_node_or_null("AetherLiquid") as Node3D
+	_sight_glass_a = _model.get_node_or_null("SightGlassA") as MeshInstance3D
+	_sight_glass_b = _model.get_node_or_null("SightGlassB") as MeshInstance3D
+	for sg in [_sight_glass_a, _sight_glass_b]:
+		if sg:
+			var gm := _mat_aether.duplicate()
+			sg.material_override = gm
 	_aether_lamp = _model.get_node_or_null("AetherLamp") as MeshInstance3D
 	_ready_lamp = _model.get_node_or_null("ReadyLamp") as MeshInstance3D
 	_warning_lamp = _model.get_node_or_null("WarningLamp") as MeshInstance3D
@@ -877,6 +905,37 @@ func _path_point(t: float) -> Vector3:
 	var i := clampi(int(seg), 0, DUCT_PATH.size() - 2)
 	var f := seg - float(i)
 	return DUCT_PATH[i].lerp(DUCT_PATH[i + 1], f)
+
+
+func _update_highlights() -> void:
+	var target_node: Node3D = null
+	var is_grab := false
+	if _grabbed >= 0:
+		target_node = _control_nodes.get(_controls[_grabbed].id, null)
+		is_grab = true
+	elif _focus >= 0:
+		target_node = _control_nodes.get(_controls[_focus].id, null)
+	# only change when the highlighted node or its mode differs
+	if target_node == _highlighted_node and is_grab == _highlight_is_grab:
+		return
+	_clear_control_overlay(_highlighted_node)
+	_highlighted_node = target_node
+	_highlight_is_grab = is_grab
+	if target_node:
+		_apply_control_overlay(target_node, is_grab)
+
+
+func _apply_control_overlay(node: Node3D, grabbed: bool) -> void:
+	var overlay: Material = _gold_overlay if grabbed else Interactable.focus_outline_material()
+	for m in node.find_children("*", "MeshInstance3D", true, false):
+		(m as MeshInstance3D).material_overlay = overlay
+
+
+func _clear_control_overlay(node: Node3D) -> void:
+	if node == null or not is_instance_valid(node):
+		return
+	for m in node.find_children("*", "MeshInstance3D", true, false):
+		(m as MeshInstance3D).material_overlay = null
 
 
 func _update_flow_dots(delta: float) -> void:

@@ -343,6 +343,13 @@ def main():
         b.part("brass", (p.x, p.y, p.z), (0.18, 0.08, 0.08))
     duct = b.finish("Pipes")
 
+    # glowing aether sight-glasses (driven by flow state)
+    for i, p in enumerate((path[1], path[3])):
+        b = bl.Builder()
+        b.part("glow_cyan", (0, 0, 0), (0.22, 0.10, 0.10))
+        core = b.finish("SightGlass" + ("A" if i == 0 else "B"))
+        core.location = p
+
     # =====================================================================
     # Export
     # =====================================================================
