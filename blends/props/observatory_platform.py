@@ -198,6 +198,12 @@ def main():
         v = b.finish(name)
         v.location = P(TABLE_R, angle, 0.55)
         v.rotation_euler = (0, 0, -angle)
+        # tell-tale lamp above the valve
+        b = bl.Builder()
+        b.part("bronze_dark", (0, 0, 0), (0.10, 0.10, 0.05))
+        b.part("enamel_red", (0, 0, 0.04), (0.06, 0.06, 0.03))
+        tt = b.finish("TellTale" + ("A" if angle == 2.4 else "B"))
+        tt.location = P(TABLE_R, angle, 0.82)
 
     # Flow gauge (pressure gauge)
     b = bl.Builder()

@@ -12,6 +12,7 @@ extends MiniGame
 ## on press.
 
 const Math := preload("res://minigames/observatory/observatory_math.gd")
+const PadLabels := preload("res://autoload/pad_labels.gd")
 const LAYERS := Math.LAYERS
 const SIGIL_COUNT := Math.SIGIL_COUNT
 
@@ -51,10 +52,12 @@ var _lever_t := 0.0  # 0..1 pull animation
 var _stamp_phase := "idle"
 var _stamp_time := 0.0
 var _shake := 0.0
+var _valve_sound_t := 0.0
 var _press_platen: Node3D
 var _flow_label: Label3D
 var _status_label: Label3D
 var _sigil_label: Label3D
+var _counter_label: Label3D
 const PLATEN_TOP := 0.95
 const PLATEN_PRESS := 0.30
 const STAMP_ANTICIPATE := 0.14
@@ -114,6 +117,8 @@ var _aether_reservoir: Node3D
 var _aether_liquid: Node3D
 var _sight_glass_a: MeshInstance3D
 var _sight_glass_b: MeshInstance3D
+var _tell_tale_a: MeshInstance3D
+var _tell_tale_b: MeshInstance3D
 var _aether_lamp: MeshInstance3D
 var _ready_lamp: MeshInstance3D
 var _warning_lamp: MeshInstance3D
@@ -229,7 +234,11 @@ func _process(delta: float) -> void:
 			c.value = wrapf(v, 0.0, 1.0)
 			_crank_accum = float(c.value) * TAU
 			if oldv > 0.85 and c.value < 0.15 and turn > 0.0:
-				_advance_layer()
+				if _crank_ready():
+					_advance_layer()
+				else:
+					Sound.play("unavailable", self)
+					_shake = 0.04
 		elif c.id == "sigil":
 			c.value = clampf(v, float(c.min), float(c.max))
 			c.value = roundf(c.value)
@@ -237,6 +246,11 @@ func _process(delta: float) -> void:
 		else:
 			c.value = clampf(v, float(c.min), float(c.max))
 			_sync_state_from_controls()
+		if (c.id == "v1" or c.id == "v2") and turn != 0.0:
+			_valve_sound_t -= delta
+			if _valve_sound_t <= 0.0:
+				_valve_sound_t = 0.35
+				Sound.play("dial_turn", self)
 	else:
 		_moving = false
 	_update_camera(delta)
@@ -275,6 +289,15 @@ func _sync_visuals_from_state() -> void:
 		_el_node.rotation.y = _el
 	if _layer_drum:
 		_layer_drum.rotation.y = float(_layer) * (TAU / 4.0)
+	# valve tell-tales: green when flow is clean, red when turbulent
+	for tt in [_tell_tale_a, _tell_tale_b]:
+		if tt:
+			var tm := tt.material_override as StandardMaterial3D
+			if tm:
+				var clean_tt := Math.layer_clean(_v1, _v2, Math.sigil(_sigil_target))
+				var c := Color(0.35, 0.9, 0.45) if clean_tt else Color(0.9, 0.3, 0.25)
+				tm.albedo_color = c
+				tm.emission = c
 	# sight glasses glow with flow quality
 	for sg in [_sight_glass_a, _sight_glass_b]:
 		if sg:
@@ -315,8 +338,7 @@ func _sync_visuals_from_state() -> void:
 	if _warning_lamp:
 		var mat3 := _warning_lamp.material_override as StandardMaterial3D
 		if mat3:
-			var s4 = Math.sigil(_sigil_target)
-			var bad := not Math.layer_clean(_v1, _v2, s4)
+			var bad := not _crank_ready()
 			mat3.emission_energy_multiplier = 2.0 if bad else 0.1
 
 
@@ -332,6 +354,11 @@ func _sync_state_from_controls() -> void:
 
 
 
+
+
+func _crank_ready() -> bool:
+	var s = Math.sigil(_sigil_target)
+	return Math.resolved(_az, _el, _focusv, s) and Math.layer_clean(_v1, _v2, s) and _layer < LAYERS
 
 
 func _advance_layer() -> void:
@@ -367,6 +394,7 @@ func _try_inscribe() -> void:
 	_layer = 0
 	_start_stamp()
 	Sound.play("confirm", self)
+	Sound.play("reward_rise", self)
 	_advance_target()
 
 
@@ -566,6 +594,16 @@ func _build_world() -> void:
 		if sg:
 			var gm := _mat_aether.duplicate()
 			sg.material_override = gm
+	_tell_tale_a = _model.get_node_or_null("TellTaleA") as MeshInstance3D
+	_tell_tale_b = _model.get_node_or_null("TellTaleB") as MeshInstance3D
+	for tt in [_tell_tale_a, _tell_tale_b]:
+		if tt:
+			var tm := StandardMaterial3D.new()
+			tm.albedo_color = Color(0.9, 0.3, 0.25)
+			tm.emission_enabled = true
+			tm.emission = Color(0.9, 0.3, 0.25)
+			tm.emission_energy_multiplier = 1.5
+			tt.material_override = tm
 	_aether_lamp = _model.get_node_or_null("AetherLamp") as MeshInstance3D
 	_ready_lamp = _model.get_node_or_null("ReadyLamp") as MeshInstance3D
 	_warning_lamp = _model.get_node_or_null("WarningLamp") as MeshInstance3D
@@ -818,6 +856,16 @@ func _build_world() -> void:
 	_sigil_label.modulate = Color(0.9, 0.75, 1.0)
 	_sigil_label.text = "SIGIL I"
 	_world.add_child(_sigil_label)
+
+	# in-world counter dial
+	_counter_label = Label3D.new()
+	_counter_label.font_size = 24
+	_counter_label.pixel_size = 0.003
+	_counter_label.position = Vector3(0, 0.95, 2.28)
+	_counter_label.rotation.y = PI
+	_counter_label.modulate = Color(0.95, 0.85, 0.5)
+	_counter_label.text = "LAYER 0/4  ·  SIGILS 0/5"
+	_world.add_child(_counter_label)
 
 	# camera
 	_camera = Camera3D.new()
@@ -1145,7 +1193,7 @@ func _refresh_visuals() -> void:
 	var plate_complete := (_layer >= LAYERS and Math.all_clean(_plate))
 	var can_inscribe: bool = plate_complete and not _collected[_sigil_target]
 	if _crank_node and _crank_node is MeshInstance3D:
-		if _layer >= LAYERS:
+		if not _crank_ready():
 			(_crank_node as MeshInstance3D).material_override = _grey_mat
 		else:
 			(_crank_node as MeshInstance3D).material_override = null
@@ -1167,6 +1215,8 @@ func _refresh_visuals() -> void:
 	if _sigil_label:
 		_sigil_label.text = "SIGIL %s" % ["I", "II", "III", "IV", "V"][_sigil_target]
 		_sigil_label.modulate = Color(0.6, 1.0, 0.75) if _collected[_sigil_target] else Color(0.9, 0.75, 1.0)
+	if _counter_label:
+		_counter_label.text = "LAYER %d/%d  ·  SIGILS %d/%d" % [_layer, LAYERS, _count_collected(), SIGIL_COUNT]
 
 	# hud
 	if _hud_text:
@@ -1178,16 +1228,35 @@ func _refresh_visuals() -> void:
 		if _focus >= 0:
 			focus_name = _controls[_focus].label
 		var grab_hint := ""
+		var act_key := _interact_key()
+		var turn_key := _turn_key()
+		var orbit_key := _orbit_key()
 		if _grabbed >= 0:
 			var gc = _controls[_grabbed]
-			grab_hint = "GRABBED: %s — W/S to turn, A/D to orbit, E/click to release" % gc.label
+			grab_hint = "GRABBED: %s — %s turn  ·  %s orbit  ·  %s release" % [gc.label, turn_key, orbit_key, act_key]
 		elif _focus >= 0:
 			var fc = _controls[_focus]
 			var action := "press" if fc.type == "button" else "grab"
-			grab_hint = "E/click: %s  %s   |   A/D: orbit" % [action, focus_name]
+			grab_hint = "%s %s: %s   |   %s orbit" % [act_key, action, focus_name, orbit_key]
 		else:
-			grab_hint = "A/D: orbit   |   face a control and E/click to grab"
+			grab_hint = "%s orbit   |   face a control and %s grab" % [orbit_key, act_key]
 		_hud_text.text = "%s\n%s\n%s | %s\nsigil: %s\n%s" % [status, plate_str, res_str, flow_str, s.name, grab_hint]
+
+
+func _has_pad() -> bool:
+	return not Input.get_connected_joypads().is_empty()
+
+
+func _interact_key() -> String:
+	return PadLabels.face(JOY_BUTTON_A) if _has_pad() else "Click"
+
+
+func _turn_key() -> String:
+	return "Stick" if _has_pad() else "W/S"
+
+
+func _orbit_key() -> String:
+	return "Stick" if _has_pad() else "A/D"
 
 
 func _count_collected() -> int:
