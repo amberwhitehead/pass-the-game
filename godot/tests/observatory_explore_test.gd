@@ -81,6 +81,26 @@ func _run() -> void:
 	_expect(_puzzle._grabbed < 0, "E releases the grabbed control")
 	_close()
 
+	# --- 1b. the sigil dial steps one detent per short hold ---
+	_open()
+	await physics_frame
+	_puzzle._theta = 4.95
+	_puzzle._update_camera(0.0)
+	var si := -1
+	for i in _puzzle._controls.size():
+		if _puzzle._controls[i].id == "sigil":
+			si = i
+	_expect(_puzzle._focus == si, "the sigil dial can be focused")
+	_puzzle._grabbed = si
+	_puzzle._controls[si]["value"] = 0.0
+	_puzzle._sigil_target = 0
+	Input.action_press("move_down")
+	for i in 12:
+		_puzzle._process(0.05)
+	Input.action_release("move_down")
+	_expect(_puzzle._sigil_target > 0, "holding S steps the sigil dial to another sigil")
+	_close()
+
 	# --- 2. clamp: a valve cannot exceed its range ---
 	_open()
 	await physics_frame

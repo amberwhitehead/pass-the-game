@@ -53,6 +53,7 @@ var _stamp_phase := "idle"
 var _stamp_time := 0.0
 var _shake := 0.0
 var _valve_sound_t := 0.0
+var _sigil_cooldown := 0.0
 var _press_platen: Node3D
 var _lcd_vp: SubViewport
 var _lcd_label: Label
@@ -228,6 +229,7 @@ func _process(delta: float) -> void:
 	if Sound.settings_open:
 		return
 	_time += delta
+	_sigil_cooldown = maxf(0.0, _sigil_cooldown - delta)
 	_update_stamp(delta)
 	_update_reset(delta)
 	var steer := 0.0
@@ -260,9 +262,13 @@ func _process(delta: float) -> void:
 				if oldv > 0.85 and c.value < 0.15 and turn > 0.0:
 					_advance_layer()
 		elif c.id == "sigil":
-			c.value = clampf(v, float(c.min), float(c.max))
-			c.value = roundf(c.value)
-			_sync_state_from_controls()
+			# detent dial: one crisp step per short hold
+			if absf(turn) > 0.5 and _sigil_cooldown <= 0.0:
+				_sigil_cooldown = 0.18
+				var step := 1.0 if turn > 0.0 else -1.0
+				c.value = clampf(roundf(float(c.value)) + step, float(c.min), float(c.max))
+				_sync_state_from_controls()
+				Sound.play("dial_snap", self)
 		else:
 			c.value = clampf(v, float(c.min), float(c.max))
 			_sync_state_from_controls()
@@ -1362,11 +1368,10 @@ func _refresh_visuals() -> void:
 			focus_name = _controls[_focus].label
 		var grab_hint := ""
 		var act_key := _interact_key()
-		var turn_key := _turn_key()
 		var orbit_key := _orbit_key()
 		if _grabbed >= 0:
 			var gc = _controls[_grabbed]
-			grab_hint = "GRABBED: %s — %s turn  ·  %s orbit  ·  %s release" % [gc.label, turn_key, orbit_key, act_key]
+			grab_hint = "GRABBED: %s — %s turn  ·  %s orbit  ·  %s release" % [gc.label, _turn_key(gc.id), orbit_key, act_key]
 		elif _focus >= 0:
 			var fc = _controls[_focus]
 			var action := "press" if fc.type == "button" else "grab"
@@ -1384,8 +1389,10 @@ func _interact_key() -> String:
 	return PadLabels.face(JOY_BUTTON_A) if _has_pad() else "Click"
 
 
-func _turn_key() -> String:
-	return "Stick" if _has_pad() else "W/S"
+func _turn_key(id: String) -> String:
+	if _has_pad():
+		return "Stick ↓" if id == "crank" else "Stick"
+	return "S" if id == "crank" else "W/S"
 
 
 func _orbit_key() -> String:
