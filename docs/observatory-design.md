@@ -216,6 +216,80 @@ TABLE_R, APRON_R, control angles, knob radii. Keep in sync with the script.
 - **Scope**: Phase 1–3 are the core; Phase 4 (trail field) is the wow factor
   and may slip. Ship Phase 1–3 + basic flow particles first if time runs short.
 
+## 11.5 Ergonomic affordances (real-life inspired)
+
+Every control must read as its function at a glance and make its manipulation
+obvious. Follow these affordances, drawn from real instrument/valve/crank design:
+
+### Knobs (Azimuth, Elevation, Focus)
+- **Round, knurled cylinder** with a raised pointer mark (enamel) so the current
+  value is readable from any angle.
+- **Turn direction**: clockwise increases; a faint arrow groove on the rim
+  indicates direction. The HUD shows the value and "turn to adjust".
+- **Size ∝ precision**: azimuth (large range) is the biggest knob; focus
+  (fine) is smaller with a finer knurl.
+- **Limits**: hard stops at min/max; the knob won't turn past them; a soft
+  "clunk" sound at the stop.
+- **Highlight**: the focused knob gets the white silhouette outline and a subtle
+  scale pulse.
+
+### Valve wheels (Valve A, Valve B)
+- **Wheel with spokes** (classic valve wheel) — instantly reads as "turn to
+  open/close flow".
+- **Open/closed indicator**: a red/green dot or arrow on the hub showing flow
+  direction; fully closed shows a "closed" notch.
+- **Turn direction**: clockwise closes, counter-clockwise opens (or vice
+  versa, but consistent and labelled).
+- **Resistance feel**: visual "heaviness" via material (brass/copper), and a
+  hiss sound scaled by openness.
+
+### Crank (layer solidification)
+- **Handle on an arm** with a ball grip — reads as "turn to advance".
+- **One full turn = one layer**: a ratchet click per layer; a progress ring
+  around the axle fills as you turn.
+- **Direction arrow** on the base plate; only clockwise advances.
+- **Disabled state**: when all layers done or no clean flow, the crank is
+  visually locked (greyed) and shrugs on interact.
+
+### Inscribe lever
+- **Lever arm with grip**, pulled down to act — reads as "pull to trigger".
+- **Spring feel**: the lever returns to rest after the pull (animated).
+- **Enabled only when plate complete & clean**: otherwise greyed + shrug.
+- **Stamp feedback**: flash + particle burst + chime on success.
+
+### Sigil selector dial
+- **Dial with 5 detents** (notches) and a pointer; each detent snaps with a
+  click.
+- **Current selection** highlighted (enamel accent); uncollected sigils dimmed.
+- **Collected sigils** get a small check mark or glow.
+
+### Focus ring
+- **Collar with grip ridges**; turning it sharpens the view.
+- **Visual feedback**: the attractor sharpens as you turn; a "focus" icon
+  appears when resolved.
+
+### Flow gauge
+- **Bezel + white face + needle** like a real pressure gauge.
+- **Green zone** (laminar) vs **red zone** (turbulent) on the face.
+- Needle position shows current flow; instant feedback.
+
+### General principles
+- **No floating labels**: text on the object or in the prompt under the
+  crosshair.
+- **Colour coding**: brass = structural, copper = flow, enamel colours = accents,
+  glow = active/emissive, red = danger/closed, green = ok/open.
+- **Scale hierarchy**: larger controls for coarse adjustments, smaller for fine.
+- **Grouping**: related controls clustered (telescope aim together, valves
+  together, forge group together).
+- **Feedback loop**: every press does something visible + audible; no-ops shrug.
+
+### Implementation
+- Blender prop: knurling (box segments), pointer marks, detent notches, grip
+  ridges, colour-coded accents, arrow grooves.
+- Godot: white silhouette outline on focus, prompt caption with action + value,
+  sound cues (ratchet, hiss, clunk, chime), disabled-state greying, shrug
+  on no-op.
+
 ## 12. Success criteria
 
 - Every control is a physical, grabbable, readable object (no floating UI).

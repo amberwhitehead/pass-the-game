@@ -143,6 +143,7 @@ def main():
             b.part("brass", (0, 0, 0), (0.1, 0.1, 0.4))             # axle
             b.part("brass", (0.22, 0, 0.18), (0.06, 0.06, 0.28))   # arm
             b.part("wood", (0.38, 0, 0.18), (0.1, 0.1, 0.1))        # ball handle
+            b.part("enamel_yellow", (0.12, 0, 0.32), (0.04, 0.04, 0.04))  # direction arrow
         elif kind == "lever":
             b.part("brass", (0, 0, 0), (0.06, 0.4, 0.06))           # arm
             b.part("wood", (0, 0.22, 0), (0.08, 0.08, 0.08))        # grip
@@ -159,7 +160,12 @@ def main():
             b.part("brass", (0.26, 0, 0.06), (0.04, 0.04, 0.06))    # pointer
         else:  # knob
             cylinder(b, "brass", 0.18, -0.1, 0.1, n=12)
+            # knurling (grip ridges)
+            for k in range(8):
+                a = k * TAU / 8.0
+                b.part("brass", (0.19 * math.cos(a), 0.19 * math.sin(a), 0), (0.02, 0.02, 0.18))
             b.part("brass", (0, 0, 0.12), (0.04, 0.16, 0.04))        # pointer mark
+            b.part("enamel_cream", (0.18, 0, 0.1), (0.02, 0.02, 0.04))  # direction arrow
         ob = finish_builder(b, name)
         ob.location = P(TABLE_R, angle, 0.12)
         ob.rotation_euler = (0, 0, -angle)
