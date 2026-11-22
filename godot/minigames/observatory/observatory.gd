@@ -54,10 +54,10 @@ var _stamp_time := 0.0
 var _shake := 0.0
 var _valve_sound_t := 0.0
 var _press_platen: Node3D
-var _flow_label: Label3D
+var _lcd_vp: SubViewport
+var _lcd_label: Label
+var _lcd_screen_mat: ShaderMaterial
 var _status_label: Label3D
-var _sigil_label: Label3D
-var _counter_label: Label3D
 const PLATEN_TOP := 0.95
 const PLATEN_PRESS := 0.30
 const STAMP_ANTICIPATE := 0.14
@@ -828,39 +828,36 @@ func _build_world() -> void:
 	nameplate.rotation.y = PI
 	_world.add_child(nameplate)
 
-	# LCD readouts on the console panel (flush, not floating)
-	var lcd_y := 1.15
-	_flow_label = Label3D.new()
-	_flow_label.font_size = 48
-	_flow_label.pixel_size = 0.0018
-	_flow_label.no_depth_test = true
-	_flow_label.position = Vector3(0, lcd_y + 0.12, 2.27)
-	_flow_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_flow_label.modulate = Color(0.45, 1.0, 0.55)
-	_flow_label.text = "FLOW: —"
-	_world.add_child(_flow_label)
-
-	_sigil_label = Label3D.new()
-	_sigil_label.font_size = 48
-	_sigil_label.pixel_size = 0.0018
-	_sigil_label.no_depth_test = true
-	_sigil_label.position = Vector3(0, lcd_y + 0.02, 2.27)
-	_sigil_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_sigil_label.modulate = Color(0.55, 0.95, 1.0)
-	_sigil_label.text = "SIGIL: THE LANTERN"
-	_world.add_child(_sigil_label)
-
-	_counter_label = Label3D.new()
-	_counter_label.font_size = 40
-	_counter_label.pixel_size = 0.0018
-	_counter_label.no_depth_test = true
-	_counter_label.position = Vector3(0, lcd_y - 0.08, 2.27)
-	_counter_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_counter_label.modulate = Color(0.85, 0.9, 0.55)
-	_counter_label.text = "LAYER 0/4 · SIGILS 0/5"
-	_world.add_child(_counter_label)
-
-	_status_label = null  # merged into the LCD lines above
+	# true LCD: a SubViewport renders the text, a dot-matrix shader draws it on the panel
+	_lcd_vp = SubViewport.new()
+	_lcd_vp.size = Vector2i(256, 96)
+	_lcd_vp.transparent_bg = false
+	_lcd_vp.disable_3d = true
+	_lcd_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(_lcd_vp)
+	var lcd_bg := ColorRect.new()
+	lcd_bg.color = Color(0.01, 0.03, 0.02)
+	lcd_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_lcd_vp.add_child(lcd_bg)
+	_lcd_label = Label.new()
+	_lcd_label.position = Vector2(8, 6)
+	_lcd_label.size = Vector2(240, 84)
+	_lcd_label.add_theme_font_size_override("font_size", 24)
+	_lcd_label.add_theme_color_override("font_color", Color(0.5, 1.0, 0.6))
+	_lcd_label.text = "SIGIL: THE LANTERN\nLAYER 0/4   SIGILS 0/5\nFLOW: —   TUNING"
+	_lcd_vp.add_child(_lcd_label)
+	# screen quad flush on the console panel
+	var lcd_screen := MeshInstance3D.new()
+	var qm := QuadMesh.new()
+	qm.size = Vector2(1.24, 0.36)
+	lcd_screen.mesh = qm
+	_lcd_screen_mat = ShaderMaterial.new()
+	_lcd_screen_mat.shader = preload("res://shaders/lcd_display.gdshader")
+	_lcd_screen_mat.set_shader_parameter("text_tex", _lcd_vp.get_texture())
+	lcd_screen.material_override = _lcd_screen_mat
+	lcd_screen.position = Vector3(0, 1.15, 2.30)
+	_world.add_child(lcd_screen)
+	_status_label = null
 
 	# camera
 	_camera = Camera3D.new()
@@ -1201,20 +1198,13 @@ func _refresh_visuals() -> void:
 		else:
 			(_lever_node as MeshInstance3D).material_override = null
 
-	# in-world console readouts
-	if _flow_label:
+	# LCD text (rendered into the panel, not floating)
+	if _lcd_label:
 		var flow_ok := Math.layer_clean(_v1, _v2, s)
-		_flow_label.text = "FLOW: CLEAN" if flow_ok else "FLOW: TURBULENT"
-		_flow_label.modulate = Color(0.5, 1.0, 0.6) if flow_ok else Color(1.0, 0.45, 0.35)
-	if _status_label:
 		var res_txt := "RESOLVED" if res else "TUNING"
-		_status_label.text = "%s  ·  %s" % [res_txt, String(s.name)]
-		_status_label.modulate = Color(0.6, 0.95, 1.0) if res else Color(0.8, 0.8, 0.85)
-	if _sigil_label:
-		_sigil_label.text = "SIGIL: %s" % String(s.name).to_upper()
-		_sigil_label.modulate = Color(0.5, 1.0, 0.6) if _collected[_sigil_target] else Color(0.55, 0.95, 1.0)
-	if _counter_label:
-		_counter_label.text = "LAYER %d/%d · SIGILS %d/%d" % [_layer, LAYERS, _count_collected(), SIGIL_COUNT]
+		var flow_txt := "CLEAN" if flow_ok else "TURBULENT"
+		_lcd_label.text = "SIGIL: %s\nLAYER %d/%d   SIGILS %d/%d\n%s   FLOW: %s" % [
+			String(s.name).to_upper(), _layer, LAYERS, _count_collected(), SIGIL_COUNT, res_txt, flow_txt]
 
 	# hud
 	if _hud_text:
