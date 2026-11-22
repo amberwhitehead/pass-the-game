@@ -26,7 +26,7 @@ import os
 import sys
 
 import bpy
-from mathutils import Vector, Euler
+from mathutils import Vector, Euler, Matrix
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -171,6 +171,36 @@ def main():
         ob = b.finish(name)
         ob.location = P(TABLE_R, angle, 0.12)
         ob.rotation_euler = (0, 0, -angle)
+
+    # ---- Pipes from valves to mold (copper) ----
+    b = bl.Builder()
+    import math as _m
+    valve_angles = [2.4, 1.7]
+    mold_loc = (0.0, 1.4, 0.06)
+    for va in valve_angles:
+        vx = TABLE_R * _m.cos(va)
+        vy = -TABLE_R * _m.sin(va)
+        vz = 0.12
+        # approximate pipe as a series of boxes along the path
+        steps = 8
+        for i in range(steps):
+            t0 = i / steps
+            t1 = (i + 1) / steps
+            x0 = vx * (1 - t0) + mold_loc[0] * t0
+            y0 = vy * (1 - t0) + (-mold_loc[1]) * t0  # blender y = -game y
+            z0 = vz * (1 - t0) + mold_loc[2] * t0
+            x1 = vx * (1 - t1) + mold_loc[0] * t1
+            y1 = vy * (1 - t1) + (-mold_loc[1]) * t1
+            z1 = vz * (1 - t1) + mold_loc[2] * t1
+            rod(b, "enamel_teal", Matrix.Identity(4),
+                Vector((x0, y0, z0)), Vector((x1, y1, z1)), 0.06, 0.06)
+    # finish properly
+    mesh = bpy.data.meshes.new("Pipes")
+    b.bm.to_mesh(mesh)
+    pipes = bpy.data.objects.new("Pipes", mesh)
+    bpy.context.scene.collection.objects.link(pipes)
+    pipes.data.materials.append(bl.make_material())
+    b.bm.free()
 
     # ---- Reset button ----
     b = bl.Builder()

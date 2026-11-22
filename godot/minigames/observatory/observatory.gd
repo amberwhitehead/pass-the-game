@@ -493,7 +493,7 @@ func _build_world() -> void:
 	var pts := Math.attractor_points(Math.sigil(0).shape)
 	mm.instance_count = pts.size()
 	for i in pts.size():
-		mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)))
+		mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, 0.0)))
 	_attractor_mesh.multimesh = mm
 	_world.add_child(_attractor_mesh)
 
@@ -512,7 +512,7 @@ func _build_world() -> void:
 	tmm.mesh.surface_set_material(0, _trail_mat)
 	tmm.instance_count = pts.size()
 	for i in pts.size():
-		tmm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)))
+		tmm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, 0.0)))
 	_trail_mesh.multimesh = tmm
 	_world.add_child(_trail_mesh)
 
@@ -529,7 +529,7 @@ func _build_world() -> void:
 	tmm2.mesh.surface_set_material(0, _trail_mat2)
 	tmm2.instance_count = pts.size()
 	for i in pts.size():
-		tmm2.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)))
+		tmm2.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, 0.0)))
 	_trail_mesh2.multimesh = tmm2
 	_world.add_child(_trail_mesh2)
 
@@ -546,7 +546,7 @@ func _build_world() -> void:
 	tmm3.mesh.surface_set_material(0, _trail_mat3)
 	tmm3.instance_count = pts.size()
 	for i in pts.size():
-		tmm3.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)))
+		tmm3.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, 0.0)))
 	_trail_mesh3.multimesh = tmm3
 	_world.add_child(_trail_mesh3)
 
@@ -825,7 +825,7 @@ func _refresh_visuals() -> void:
 			if tmesh.multimesh.instance_count != hpts.size():
 				tmesh.multimesh.instance_count = hpts.size()
 			for i in hpts.size():
-				var tp: Vector3 = hpts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)
+				var tp: Vector3 = hpts[i] * 0.9 + Vector3(0, 1.6, 0.0)
 				tmesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, tp))
 		_prev_pts = pts
 		# sync deposit points
@@ -838,7 +838,7 @@ func _refresh_visuals() -> void:
 		if _attractor_mesh.multimesh.instance_count != pts.size():
 			_attractor_mesh.multimesh.instance_count = pts.size()
 		for i in pts.size():
-			var p: Vector3 = pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)
+			var p: Vector3 = pts[i] * 0.9 + Vector3(0, 1.6, 0.0)
 			if not res:
 				p += Vector3(randf() - 0.5, randf() - 0.5, randf() - 0.5) * 0.15
 			_attractor_mesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, p))
