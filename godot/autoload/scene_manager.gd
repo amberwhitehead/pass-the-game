@@ -4,6 +4,7 @@ extends CanvasLayer
 var _fade: ColorRect
 var _busy := false
 var _loading_label: Label
+const LOADING_MESSAGES := ["Loading…", "Compiling shaders…", "Counting vertices…", "Reticulating splines…", "Stitching meshes…"]
 
 
 func _ready() -> void:
@@ -44,10 +45,18 @@ func change_scene(path: String, fade_time := 0.4) -> void:
 	tw.tween_property(_loading_label, "modulate:a", 1.0, 0.15)
 	await tw.finished
 
-	# threaded load
+	# threaded load with cycling messages
 	ResourceLoader.load_threaded_request(path)
 	var packed: PackedScene = null
+	var msg_index := 0
+	var msg_timer := 0.0
+	_loading_label.text = LOADING_MESSAGES[0]
 	while true:
+		msg_timer += get_process_delta_time()
+		if msg_timer >= 2.0:
+			msg_timer = 0.0
+			msg_index = (msg_index + 1) % LOADING_MESSAGES.size()
+			_loading_label.text = LOADING_MESSAGES[msg_index]
 		var status := ResourceLoader.load_threaded_get_status(path)
 		if status == ResourceLoader.THREAD_LOAD_LOADED:
 			packed = ResourceLoader.load_threaded_get(path) as PackedScene
