@@ -142,7 +142,7 @@ def main():
         b.part("brass", (0.15 * math.cos(a), 0.15 * math.sin(a), 0), (0.06, 0.02, 0.02))
     b.part("enamel_cream", (0, 0.17, 0.05), (0.02, 0.06, 0.02))  # index pointer
     az = b.finish("AzimuthKnob")
-    az.location = P(TABLE_R, 4.6, 0.55)
+    az.location = P(1.9, 4.55, 0.55)
     az.rotation_euler = (0, 0, -4.6)
 
     # Elevation wheel
@@ -153,7 +153,7 @@ def main():
         a = k * TAU / 10
         b.part("brass", (0.13 * math.cos(a), 0.13 * math.sin(a), 0), (0.05, 0.02, 0.02))
     el = b.finish("ElevationKnob")
-    el.location = P(TABLE_R, 3.9, 0.7)
+    el.location = P(1.9, 4.15, 0.7)
     el.rotation_euler = (0, 0, -3.9)
 
     # Focus drum
@@ -164,7 +164,7 @@ def main():
         b.part("bronze_dark", (0.15 * math.cos(a), 0.15 * math.sin(a), 0), (0.03, 0.02, 0.03))
     b.part("enamel_cream", (0, 0, 0.07), (0.06, 0.03, 0.02))  # diopter dot
     focus = b.finish("FocusRing")
-    focus.location = P(TABLE_R, 3.2, 0.75)
+    focus.location = P(1.7, 3.75, 0.75)
     focus.rotation_euler = (0, 0, -3.2)
 
     # Sigil selector dial (enamel with detents)
@@ -175,13 +175,13 @@ def main():
         b.part("brass", (0.28 * math.cos(a), 0.28 * math.sin(a), 0.06), (0.05, 0.05, 0.05))
     b.part("brass", (0.24, 0, 0.07), (0.04, 0.04, 0.06))  # pointer
     sig = b.finish("SigilSelector")
-    sig.location = P(TABLE_R, 5.6, 0.55)
+    sig.location = P(2.0, 4.95, 0.55)
     sig.rotation_euler = (0, 0, -5.6)
 
     # =====================================================================
     # 5. VALVES + GAUGE (left manifold)
     # =====================================================================
-    for name, angle in (("ValveA", 2.4), ("ValveB", 1.7)):
+    for name, angle in (("ValveA", 2.75), ("ValveB", 2.35)):
         b = bl.Builder()
         # hub + threaded stem
         cylinder(b, "brass", 0.09, -0.08, 0.08, n=12)
@@ -202,7 +202,7 @@ def main():
         b = bl.Builder()
         b.part("bronze_dark", (0, 0, 0), (0.10, 0.10, 0.05))
         b.part("enamel_red", (0, 0, 0.04), (0.06, 0.06, 0.03))
-        tt = b.finish("TellTale" + ("A" if angle == 2.4 else "B"))
+        tt = b.finish("TellTale" + ("A" if angle == 2.75 else "B"))
         tt.location = P(TABLE_R, angle, 0.82)
 
     # Flow gauge (pressure gauge)
@@ -268,7 +268,7 @@ def main():
     # direction arrow
     b.part("enamel_yellow", (0.10, 0.26, 0.06), (0.04, 0.04, 0.02))
     crank = b.finish("Crank")
-    crank.location = P(TABLE_R, 1.0, 0.7)
+    crank.location = P(2.1, 1.15, 0.7)
     crank.rotation_euler = (0, 0, -1.0)
 
     # =====================================================================
@@ -279,7 +279,7 @@ def main():
     b.part("wood", (0, 0, 0.70), (0.12, 0.12, 0.14))        # grip
     b.part("bronze_dark", (0, 0, 0.0), (0.22, 0.22, 0.10))   # pivot base
     lever = b.finish("InscribeLever")
-    lever.location = P(TABLE_R, 0.35, 0.30)
+    lever.location = P(2.1, 0.65, 0.30)
     lever.rotation_euler = (0, 0, -0.35)
 
     # =====================================================================
@@ -290,7 +290,7 @@ def main():
     cylinder(b, "brass", 0.10, 0.02, 0.08, n=12)            # plunger
     b.part("enamel_red", (0, 0, 0.10), (0.14, 0.14, 0.04))  # red cap
     resetb = b.finish("ResetButton")
-    resetb.location = P(TABLE_R, 0.0, 0.12)
+    resetb.location = P(2.1, 0.15, 0.12)
     resetb.rotation_euler = (0, 0, 0)
 
     # =====================================================================

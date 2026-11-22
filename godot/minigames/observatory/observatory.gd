@@ -67,15 +67,15 @@ const STAMP_RETRACT := 0.55
 
 # controls
 var _controls := [
-	{"id": "sigil", "label": "Sigil", "min": 0.0, "max": float(SIGIL_COUNT - 1), "def": 0.0, "angle": 5.6, "type": "knob", "step": 1.0},
-	{"id": "az", "label": "Azimuth", "min": -PI, "max": PI, "def": 0.0, "angle": 4.6, "type": "knob", "wrap": true},
-	{"id": "el", "label": "Elevation", "min": -1.2, "max": 1.2, "def": 0.0, "angle": 3.9, "type": "knob"},
-	{"id": "focus", "label": "Focus", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 3.2, "type": "knob"},
-	{"id": "v1", "label": "Valve A", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 2.4, "type": "knob"},
-	{"id": "v2", "label": "Valve B", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 1.7, "type": "knob"},
-	{"id": "crank", "label": "Crank", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 1.0, "type": "knob", "wrap": true},
-	{"id": "inscribe", "label": "Inscribe", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 0.3, "type": "button"},
-	{"id": "reset", "label": "Reset", "angle": 0.0, "type": "button"},
+	{"id": "sigil", "label": "Sigil", "min": 0.0, "max": float(SIGIL_COUNT - 1), "def": 0.0, "angle": 4.95, "radius": 2.0, "type": "knob", "step": 1.0},
+	{"id": "az", "label": "Azimuth", "min": -PI, "max": PI, "def": 0.0, "angle": 4.55, "radius": 1.9, "type": "knob", "wrap": true},
+	{"id": "el", "label": "Elevation", "min": -1.2, "max": 1.2, "def": 0.0, "angle": 4.15, "radius": 1.9, "type": "knob"},
+	{"id": "focus", "label": "Focus", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 3.75, "radius": 1.7, "type": "knob"},
+	{"id": "v1", "label": "Valve A", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 2.75, "radius": 1.8, "type": "knob"},
+	{"id": "v2", "label": "Valve B", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 2.35, "radius": 1.8, "type": "knob"},
+	{"id": "crank", "label": "Crank", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 1.15, "radius": 2.1, "type": "knob", "wrap": true},
+	{"id": "inscribe", "label": "Inscribe", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 0.65, "radius": 2.1, "type": "button"},
+	{"id": "reset", "label": "Reset", "angle": 0.15, "radius": 2.1, "type": "button"},
 ]
 
 var _control_nodes := {}
