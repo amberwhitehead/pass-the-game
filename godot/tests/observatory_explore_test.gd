@@ -144,6 +144,24 @@ func _run() -> void:
 	_expect(_puzzle._collected[0], "a clean plate inscribes")
 	_close()
 
+	# --- 4b. two-hand reset: covers, arming, four-second wait ---
+	_open()
+	await physics_frame
+	_puzzle._layer = 2
+	_puzzle._press_reset("a")
+	_expect(bool(_puzzle._reset_cover_open["a"]), "the first press opens the cover")
+	_puzzle._press_reset("a")
+	_expect(bool(_puzzle._reset_armed["a"]) and _puzzle._reset_glow == "b", "pressing again arms A and makes B glow")
+	_expect(absf(_puzzle._reset_timer - 4.0) < 0.01, "the partner glows for four seconds")
+	_puzzle._press_reset("b")
+	_expect(_puzzle._layer == 2, "pressing the partner too soon does nothing")
+	_puzzle._update_reset(4.1)
+	_expect(_puzzle._reset_glow == "", "the glow ends after four seconds")
+	_puzzle._press_reset("b")
+	_expect(_puzzle._layer == 0, "the second press after the wait resets the plate")
+	_expect(not bool(_puzzle._reset_cover_open["a"]) and not bool(_puzzle._reset_cover_open["b"]), "the covers close after a reset")
+	_close()
+
 	# --- 5. save/resume round-trip mid-forge ---
 	_open()
 	await physics_frame

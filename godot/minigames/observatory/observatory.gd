@@ -75,7 +75,8 @@ var _controls := [
 	{"id": "v2", "label": "Valve B", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 2.35, "radius": 1.8, "type": "knob"},
 	{"id": "crank", "label": "Crank", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 1.15, "radius": 2.1, "type": "knob", "wrap": true},
 	{"id": "inscribe", "label": "Inscribe", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 0.65, "radius": 2.1, "type": "button"},
-	{"id": "reset", "label": "Reset", "angle": 0.15, "radius": 2.1, "type": "button"},
+	{"id": "reset_a", "label": "Reset A", "angle": 2.0, "radius": 2.0, "type": "button"},
+	{"id": "reset_b", "label": "Reset B", "angle": 2.2, "radius": 2.0, "type": "button"},
 ]
 
 var _control_nodes := {}
@@ -119,6 +120,14 @@ var _sight_glass_a: MeshInstance3D
 var _sight_glass_b: MeshInstance3D
 var _tell_tale_a: MeshInstance3D
 var _tell_tale_b: MeshInstance3D
+var _reset_cover_a: Node3D
+var _reset_cover_b: Node3D
+var _reset_button_a: MeshInstance3D
+var _reset_button_b: MeshInstance3D
+var _reset_cover_open := {"a": false, "b": false}
+var _reset_armed := {"a": false, "b": false}
+var _reset_timer := 0.0
+var _reset_glow := ""  # which button glows as the ready-to-press partner
 var _aether_lamp: MeshInstance3D
 var _ready_lamp: MeshInstance3D
 var _warning_lamp: MeshInstance3D
@@ -147,6 +156,7 @@ var _mat_aether: StandardMaterial3D
 var _grey_mat: StandardMaterial3D
 var _gold_overlay: StandardMaterial3D
 var _focus_overlay: StandardMaterial3D
+var _reset_glow_mat: StandardMaterial3D
 var _highlighted_node: Node3D = null
 var _highlight_is_grab := false
 
@@ -213,6 +223,7 @@ func _process(delta: float) -> void:
 		return
 	_time += delta
 	_update_stamp(delta)
+	_update_reset(delta)
 	var steer := 0.0
 	# view orbits with A/D (and left/right arrows) at any time
 	var orbit := clampf(Input.get_axis("move_left", "move_right") + Input.get_axis("strafe_left", "strafe_right"), -1.0, 1.0)
@@ -238,7 +249,6 @@ func _process(delta: float) -> void:
 					_advance_layer()
 				else:
 					Sound.play("unavailable", self)
-					_shake = 0.04
 		elif c.id == "sigil":
 			c.value = clampf(v, float(c.min), float(c.max))
 			c.value = roundf(c.value)
@@ -492,8 +502,41 @@ func _unhandled_input(event: InputEvent) -> void:
 func _press_button(c: Dictionary) -> void:
 	if c.id == "inscribe":
 		_try_inscribe()
-	elif c.id == "reset":
+	elif c.id == "reset_a" or c.id == "reset_b":
+		_press_reset(c.id.right(1))  # "a" or "b"
+
+
+## Two-hand reset: open the cover, then press one button; its partner glows for
+## four seconds and only then can the second button fire.
+func _press_reset(which: String) -> void:
+	var open: Dictionary = _reset_cover_open
+	if not bool(open[which]):
+		open[which] = true
+		Sound.play("dial_grab", self)
+		return
+	# cover is open: try to press
+	if bool(_reset_armed[which]):
+		Sound.play("unavailable", self)  # already armed this one
+		return
+	if _reset_glow != "" and _reset_timer > 0.0:
+		# a first press is waiting: too soon to press the partner
+		Sound.play("unavailable", self)
+		return
+	if _reset_armed["a"] or _reset_armed["b"]:
+		# this is the second press, and the four-second wait has elapsed
 		_reset_state()
+		_reset_armed = {"a": false, "b": false}
+		_reset_glow = ""
+		_reset_timer = 0.0
+		open["a"] = false
+		open["b"] = false
+		Sound.play("confirm", self)
+		return
+	# first press: arm this button and make the other glow
+	_reset_armed[which] = true
+	_reset_glow = "b" if which == "a" else "a"
+	_reset_timer = 4.0
+	Sound.play("place", self)
 
 
 # ---------- visuals ----------
@@ -529,6 +572,11 @@ func _make_materials() -> void:
 	_focus_overlay.emission = Color(0.4, 0.85, 1.0)
 	_focus_overlay.emission_energy_multiplier = 0.7
 	_focus_overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_reset_glow_mat = StandardMaterial3D.new()
+	_reset_glow_mat.albedo_color = Color(1.0, 0.75, 0.25)
+	_reset_glow_mat.emission_enabled = true
+	_reset_glow_mat.emission = Color(1.0, 0.7, 0.2)
+	_reset_glow_mat.emission_energy_multiplier = 2.5
 
 
 func _std(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
@@ -625,7 +673,8 @@ func _build_world() -> void:
 	var name_map := {
 		"sigil": "SigilSelector", "az": "AzimuthKnob", "el": "ElevationKnob",
 		"focus": "FocusRing", "v1": "ValveA", "v2": "ValveB",
-		"crank": "Crank", "inscribe": "InscribeLever", "reset": "ResetButton",
+		"crank": "Crank", "inscribe": "InscribeLever",
+		"reset_a": "ResetButtonA", "reset_b": "ResetButtonB",
 	}
 	for c in _controls:
 		var nm: String = name_map.get(c.id, "")
@@ -640,6 +689,15 @@ func _build_world() -> void:
 			"v2": _valve_b_node = node
 			"crank": _crank_node = node
 			"inscribe": _lever_node = node
+	_reset_button_a = _model.get_node_or_null("ResetButtonA") as MeshInstance3D
+	_reset_button_b = _model.get_node_or_null("ResetButtonB") as MeshInstance3D
+	_reset_cover_a = _model.get_node_or_null("ResetCoverA") as Node3D
+	_reset_cover_b = _model.get_node_or_null("ResetCoverB") as Node3D
+	for cov in [_reset_cover_a, _reset_cover_b]:
+		if cov is MeshInstance3D:
+			var gm := _mat_glass.duplicate()
+			gm.albedo_color = Color(0.7, 0.85, 0.95, 0.35)
+			(cov as MeshInstance3D).material_override = gm
 
 	# attractor (point cloud) in front of void window
 	_attractor_mesh = MultiMeshInstance3D.new()
@@ -1050,6 +1108,26 @@ func _update_stamp(delta: float) -> void:
 			if t >= 1.0:
 				_stamp_phase = "idle"
 				_stamp_time = 0.0
+
+
+func _update_reset(delta: float) -> void:
+	if _reset_timer > 0.0:
+		_reset_timer = maxf(0.0, _reset_timer - delta)
+		if _reset_timer == 0.0:
+			_reset_glow = ""  # the partner stops glowing; the first press stays armed
+	if _reset_cover_a:
+		var ta := (-PI / 2.0) if bool(_reset_cover_open["a"]) else 0.0
+		_reset_cover_a.rotation.x = lerpf(_reset_cover_a.rotation.x, ta, 0.22)
+	if _reset_cover_b:
+		var tb := (-PI / 2.0) if bool(_reset_cover_open["b"]) else 0.0
+		_reset_cover_b.rotation.x = lerpf(_reset_cover_b.rotation.x, tb, 0.22)
+	for which in ["a", "b"]:
+		var btn: MeshInstance3D = _reset_button_a if which == "a" else _reset_button_b
+		if btn:
+			if _reset_glow == which and _reset_timer > 0.0:
+				btn.material_override = _reset_glow_mat
+			else:
+				btn.material_override = null
 
 
 func _update_highlights() -> void:

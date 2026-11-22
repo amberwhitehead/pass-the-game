@@ -126,14 +126,14 @@ def main():
     # 2. VOID WINDOW (north): brass frame + glass pane
     # =====================================================================
     b = bl.Builder()
-    # raised frame above the controls so it never blocks them (Godot y = 2.2, z = -4.2)
-    b.part("brass", (0, 4.2, 2.2), (3.2, 0.16, 1.9))
-    b.part("bronze_dark", (0, 4.14, 2.2), (2.9, 0.10, 1.6))
-    b.part("enamel_cream", (0, 4.10, 2.2), (2.8, 0.06, 1.5))
+    # frame lowered by half its height so it sits lower behind the machine
+    b.part("brass", (0, 4.2, 1.25), (3.2, 0.16, 1.9))
+    b.part("bronze_dark", (0, 4.14, 1.25), (2.9, 0.10, 1.6))
+    b.part("enamel_cream", (0, 4.10, 1.25), (2.8, 0.06, 1.5))
     # frame bolts
     for sx in (1, -1):
         for sz in (1, -1):
-            b.part("brass", (sx * 1.4, 4.18, 2.2 + 0.65 * sz), (0.12, 0.12, 0.12))
+            b.part("brass", (sx * 1.4, 4.18, 1.25 + 0.65 * sz), (0.12, 0.12, 0.12))
     voidw = b.finish("VoidWindow")
 
     # =====================================================================
@@ -310,15 +310,21 @@ def main():
     lever.rotation_euler = (0, 0, -0.35)
 
     # =====================================================================
-    # 9. RESET PLUNGER (guarded)
+    # 9. TWO-HAND RESET (two guarded plungers + hinged transparent covers)
     # =====================================================================
-    b = bl.Builder()
-    cylinder(b, "bronze_dark", 0.16, -0.02, 0.02, n=16)      # guard ring
-    cylinder(b, "brass", 0.10, 0.02, 0.08, n=12)            # plunger
-    b.part("enamel_red", (0, 0, 0.10), (0.14, 0.14, 0.04))  # red cap
-    resetb = b.finish("ResetButton")
-    resetb.location = P(2.1, 0.15, 0.12)
-    resetb.rotation_euler = (0, 0, 0)
+    for name, angle in (("A", 2.0), ("B", 2.2)):
+        b = bl.Builder()
+        cylinder(b, "bronze_dark", 0.16, -0.02, 0.02, n=16)   # guard ring
+        cylinder(b, "brass", 0.10, 0.02, 0.08, n=12)          # plunger
+        b.part("enamel_red", (0, 0, 0.10), (0.14, 0.14, 0.04), bevel=0.01)  # red cap
+        btn = b.finish("ResetButton" + name)
+        btn.location = P(2.0, angle, 0.12)
+        # transparent hinged cover (pivot at its origin; game rotates it open)
+        b = bl.Builder()
+        b.part("enamel_cream", (0, 0.0, 0.24), (0.34, 0.34, 0.03), bevel=0.01)  # glass lid
+        b.part("brass", (0, -0.17, 0.24), (0.36, 0.04, 0.05), bevel=0.01)       # hinge bar
+        cov = b.finish("ResetCover" + name)
+        cov.location = P(2.0, angle, 0.12)
 
     # =====================================================================
     # 9b. LAYER DRUM + LAMPS + COUNTERS
