@@ -840,9 +840,10 @@ func _build_world() -> void:
 	lcd_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_lcd_vp.add_child(lcd_bg)
 	_lcd_label = Label.new()
-	_lcd_label.position = Vector2(8, 6)
-	_lcd_label.size = Vector2(240, 84)
-	_lcd_label.add_theme_font_size_override("font_size", 24)
+	_lcd_label.position = Vector2(6, 2)
+	_lcd_label.size = Vector2(244, 92)
+	_lcd_label.add_theme_font_override("font", load("res://assets/fonts/DSEG14Classic-Regular.ttf"))
+	_lcd_label.add_theme_font_size_override("font_size", 18)
 	_lcd_label.add_theme_color_override("font_color", Color(0.5, 1.0, 0.6))
 	_lcd_label.text = "SIGIL: THE LANTERN\nLAYER 0/4   SIGILS 0/5\nFLOW: —   TUNING"
 	_lcd_vp.add_child(_lcd_label)
@@ -855,7 +856,7 @@ func _build_world() -> void:
 	_lcd_screen_mat.shader = preload("res://shaders/lcd_display.gdshader")
 	_lcd_screen_mat.set_shader_parameter("text_tex", _lcd_vp.get_texture())
 	lcd_screen.material_override = _lcd_screen_mat
-	lcd_screen.position = Vector3(0, 1.15, 2.30)
+	lcd_screen.position = Vector3(0, 1.20, 2.30)
 	_world.add_child(lcd_screen)
 	_status_label = null
 

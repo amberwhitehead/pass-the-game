@@ -50,6 +50,8 @@ const ACKNOWLEDGMENTS := [
 		"work": "Casino Audio, Interface Sounds, Impact Sounds, RPG Audio and Sci-fi Sounds, released under CC0 1.0. Notices: assets/audio/cc0/licenses/."},
 	{"name": "Libre Baskerville",
 		"work": "Copyright 2012 The Libre Baskerville Project Authors, under the SIL Open Font License 1.1. Notice: assets/fonts/LibreBaskerville-LICENSE.txt."},
+	{"name": "DSEG 14-segment font",
+		"work": "The Observatory's LCD uses DSEG (14-segment classic) by keshikan, under the SIL Open Font License 1.1. Notice: assets/fonts/DSEG-LICENSE.txt."},
 	{"name": "DejaVu Sans",
 		"work": "The DejaVu fonts project (Stepan Roh and contributors), derived from Bitstream Vera. Notice: assets/fonts/DejaVu-LICENSE.txt."},
 	{"name": "Godot Engine",
