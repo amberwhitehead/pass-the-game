@@ -77,6 +77,11 @@ var _prev_pts: PackedVector3Array
 var _last_sigil: int = -1
 var _last_resolved: bool = false
 var _stamp_particles: GPUParticles3D
+var _trail_vp: SubViewport
+var _trail_cam: Camera3D
+var _deposit_vp: SubViewport
+var _deposit_cam: Camera3D
+var _deposit_points: MultiMeshInstance3D
 var _plate_mesh: MeshInstance3D
 var _plate_mat: ShaderMaterial
 var _lever_node: Node3D
@@ -571,6 +576,71 @@ func _build_world() -> void:
 	_stamp_particles.emitting = false
 	_world.add_child(_stamp_particles)
 
+	# ---- trail field (deposit viewport + decay trail viewport) ----
+	_deposit_vp = SubViewport.new()
+	_deposit_vp.size = Vector2i(256, 256)
+	_deposit_vp.own_world_3d = true
+	_deposit_vp.transparent_bg = false
+	_deposit_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(_deposit_vp)
+	var de = WorldEnvironment.new()
+	var de_env := Environment.new()
+	de_env.background_mode = Environment.BG_COLOR
+	de_env.background_color = Color(0, 0, 0)
+	de.environment = de_env
+	_deposit_vp.add_child(de)
+	_deposit_cam = Camera3D.new()
+	_deposit_cam.position = Vector3(0, 0, 2.5)
+	_deposit_cam.fov = 60
+	_deposit_vp.add_child(_deposit_cam)
+	_deposit_cam.look_at(Vector3.ZERO)
+	_deposit_points = MultiMeshInstance3D.new()
+	var dmm := MultiMesh.new()
+	dmm.transform_format = MultiMesh.TRANSFORM_3D
+	dmm.mesh = SphereMesh.new()
+	(dmm.mesh as SphereMesh).radius = 0.04
+	(dmm.mesh as SphereMesh).height = 0.08
+	(dmm.mesh as SphereMesh).radial_segments = 4
+	(dmm.mesh as SphereMesh).rings = 2
+	var dmat := _mat_aether.duplicate()
+	dmat.albedo_color = Color(0.6, 0.85, 1.0, 1.0)
+	dmat.emission_enabled = true
+	dmat.emission = Color(0.4, 0.7, 1.0)
+	dmat.emission_energy_multiplier = 2.0
+	dmm.mesh.surface_set_material(0, dmat)
+	var dpts := Math.attractor_points(Math.sigil(0).shape)
+	dmm.instance_count = dpts.size()
+	for i in dpts.size():
+		dmm.set_instance_transform(i, Transform3D(Basis.IDENTITY, dpts[i] * 0.6))
+	_deposit_points.multimesh = dmm
+	_deposit_vp.add_child(_deposit_points)
+
+	_trail_vp = SubViewport.new()
+	_trail_vp.size = Vector2i(256, 256)
+	_trail_vp.own_world_3d = false
+	_trail_vp.transparent_bg = false
+	_trail_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(_trail_vp)
+	# BackBufferCopy captures previous frame
+	var bbc := BackBufferCopy.new()
+	bbc.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	_trail_vp.add_child(bbc)
+	# ColorRect with decay shader reading deposit_vp texture
+	var cr := ColorRect.new()
+	cr.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var tmat := ShaderMaterial.new()
+	tmat.shader = preload("res://shaders/trail_field.gdshader")
+	tmat.set_shader_parameter("deposit_tex", _deposit_vp.get_texture())
+	cr.material = tmat
+	_trail_vp.add_child(cr)
+
+	# show trail field on the void window
+	if _void_window and _void_mat:
+		_void_mat.albedo_texture = _trail_vp.get_texture()
+		_void_mat.emission_enabled = true
+		_void_mat.emission_texture = _trail_vp.get_texture()
+		_void_mat.emission_energy_multiplier = 1.5
+
 	# flow dots along pipes (animated in _process)
 	for i in 12:
 		var d := MeshInstance3D.new()
@@ -758,6 +828,13 @@ func _refresh_visuals() -> void:
 				var tp: Vector3 = hpts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)
 				tmesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, tp))
 		_prev_pts = pts
+		# sync deposit points
+		if _deposit_points and _deposit_points.multimesh:
+			var dpts := Math.attractor_points(s.shape)
+			if _deposit_points.multimesh.instance_count != dpts.size():
+				_deposit_points.multimesh.instance_count = dpts.size()
+			for i in dpts.size():
+				_deposit_points.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, dpts[i] * 0.6))
 		if _attractor_mesh.multimesh.instance_count != pts.size():
 			_attractor_mesh.multimesh.instance_count = pts.size()
 		for i in pts.size():
