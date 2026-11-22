@@ -22,7 +22,7 @@ const STAGES := [
 	# not award the piece for merely entering or leaving the stage.
 	{"stage": "Workshop", "piece": "mainframe", "wins": ["workshop"]},
 	{"stage": "Calendar", "piece": "maya_temple", "wins": []},  # Unwired: no Calendar stage yet.
-	{"stage": "Observatory", "piece": "metric", "wins": []},  # Unwired: no Observatory stage yet.
+	{"stage": "Observatory", "piece": "metric", "wins": ["observatory"]},
 ]
 const TOP := .8  # Table height; the board sits on it.
 

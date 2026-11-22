@@ -40,6 +40,8 @@ const CONTRIBUTORS := [
 	# Name agreed with the contributor.
 	{"name": "Daniel Pennypacker", "role": "November 20, 2026",
 		"work": "Controller support across the hall and every minigame, with button icons drawn to match a PlayStation or Xbox pad. A cleaner interface: a small prompt under the crosshair, a white outline on what you target, first-person hands that reach, wave and shrug, an objective console with a laser pointer and a How to play placard. Continue and Relaunch return you to where you were. Written UI rules for future contributors and AI agents. Built with Claude Opus 5.5 in Claude Code."},
+	{"name": "eternaldensity", "role": "November 22, 2026",
+		"work": "06 Observatory: The Observatory's Aetheric Foundry, a brass telescope/valve/press instrument that forges five distinct sigil plates from a drifting strange-attractor field. Each sigil grants a bonus card that joins Older Brother's deck; collecting all five wins the game, places the Observatory piece on the travellers' board and leaves a sigil-plate trophy. Built with Claude (Beam) in OpenCode."},
 ]
 
 ## Third-party work used in the game. Their license notices stay beside the assets.

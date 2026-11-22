@@ -183,9 +183,10 @@ label_height = 2.25
 
 [node name="Challenge6" parent="." instance=ExtResource("4")]
 transform = Transform3D(1.0, 0, 0, 0, 1, 0, 0.0, 0, 1.0, 3.6, 0.0, -3.6)
-prompt = "Examine"
-label_text = "Observatory · coming soon"
-color = Color(1, 0.45, 0.7, 1)
+prompt = "Play"
+minigame_id = "observatory"
+label_text = "Observatory"
+color = Color(0.77, 0.48, 0.9, 1)
 
 [node name="Mayan" parent="." instance=ExtResource("3")]
 transform = Transform3D(-0.94386, 0, 0.33035, 0, 1, 0, -0.33035, 0, -0.94386, -1.0, 0.0, 3.6)

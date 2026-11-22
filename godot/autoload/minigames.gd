@@ -20,6 +20,8 @@ const REGISTRY := {
 	"turing": {"title": "Roman Flow", "scene": "res://minigames/turing/turing.tscn",
 		"trophy": "res://minigames/turing/aqueduct.gd"},
 	"workshop": {"title": "The Engineer's Workshop", "scene": "res://minigames/workshop/workshop.tscn"},
+	"observatory": {"title": "The Observatory's Aetheric Foundry", "scene": "res://minigames/observatory/observatory.tscn",
+		"trophy": "res://minigames/observatory/observatory_trophy.gd"},
 	# The secret room's arcade cabinet: never won, so it adds no progress.
 	"arcade": {"title": "CHRONO RAIDER", "scene": "res://minigames/arcade/arcade.tscn"},
 }

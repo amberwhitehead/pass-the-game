@@ -589,3 +589,19 @@ before UI work, and a project skill (`.claude/skills/ui-patterns`) carries the s
 New suites: `workshop_pad_test`, `cards_pad_test`, `pad_back_test`, `objective_console_test`,
 `fp_hands_test`, `hall_perf_test`; `minigame_resume_test` covers an interrupted visit. The
 test runner's per-suite limit went from 20 s to 40 s (`workshop_story_test` takes ~19 s).
+
+## eternaldensity — November 22, 2026
+
+### `observatory` — The Observatory's Aetheric Foundry
+
+Room 06 (Observatory) is now a playable minigame. A brass telescope mount, aether
+valves and a layer crank forge sigil plates from a drifting strange-attractor particle
+field. Five distinct sigils (Focus, Flow, Aether, Resonance, Void) are tuned, forged
+and inscribed; each grants a bonus card (Sigil of Focus/Flow/Aether/Resonance/Void)
+that joins Older Brother's deck. Collecting all five wins the game, places the
+Observatory's piece on the travellers' board, and leaves a sigil-plate trophy on the
+platform. Save/resume keeps knob angles, valve positions, layer progress and the
+collected set. `observatory_test` (11 checks) covers the full forge loop.
+
+Built with the real-testing skill's approach: a scene-level smoke test drives the
+forge loop through the real minigame instance.
