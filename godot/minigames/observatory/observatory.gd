@@ -68,7 +68,13 @@ var _attractor_mesh: MultiMeshInstance3D
 var _attractor_mat: StandardMaterial3D
 var _trail_mesh: MultiMeshInstance3D
 var _trail_mat: StandardMaterial3D
+var _trail_mesh2: MultiMeshInstance3D
+var _trail_mat2: StandardMaterial3D
+var _trail_mesh3: MultiMeshInstance3D
+var _trail_mat3: StandardMaterial3D
+var _pt_history: Array = []
 var _prev_pts: PackedVector3Array
+var _stamp_particles: GPUParticles3D
 var _plate_mesh: MeshInstance3D
 var _plate_mat: ShaderMaterial
 var _lever_node: Node3D
@@ -277,6 +283,10 @@ func _try_inscribe() -> void:
 	_layer = 0
 	_stamp_t = 0.0
 	_lever_t = 0.0
+	if _stamp_particles:
+		_stamp_particles.restart()
+		_stamp_particles.emitting = true
+	Sound.play("confirm", self)
 	_advance_target()
 
 
@@ -494,7 +504,66 @@ func _build_world() -> void:
 		tmm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)))
 	_trail_mesh.multimesh = tmm
 	_world.add_child(_trail_mesh)
+
+	# trail ghost 2 (older)
+	_trail_mesh2 = MultiMeshInstance3D.new()
+	var tmm2 := MultiMesh.new()
+	tmm2.transform_format = MultiMesh.TRANSFORM_3D
+	tmm2.mesh = SphereMesh.new()
+	(tmm2.mesh as SphereMesh).radius = 0.02
+	(tmm2.mesh as SphereMesh).height = 0.04
+	_trail_mat2 = _mat_aether.duplicate()
+	_trail_mat2.albedo_color = Color(0.3, 0.6, 1.0, 0.15)
+	_trail_mat2.emission_energy_multiplier = 0.4
+	tmm2.mesh.surface_set_material(0, _trail_mat2)
+	tmm2.instance_count = pts.size()
+	for i in pts.size():
+		tmm2.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)))
+	_trail_mesh2.multimesh = tmm2
+	_world.add_child(_trail_mesh2)
+
+	# trail ghost 3 (oldest)
+	_trail_mesh3 = MultiMeshInstance3D.new()
+	var tmm3 := MultiMesh.new()
+	tmm3.transform_format = MultiMesh.TRANSFORM_3D
+	tmm3.mesh = SphereMesh.new()
+	(tmm3.mesh as SphereMesh).radius = 0.015
+	(tmm3.mesh as SphereMesh).height = 0.03
+	_trail_mat3 = _mat_aether.duplicate()
+	_trail_mat3.albedo_color = Color(0.3, 0.6, 1.0, 0.08)
+	_trail_mat3.emission_energy_multiplier = 0.2
+	tmm3.mesh.surface_set_material(0, _trail_mat3)
+	tmm3.instance_count = pts.size()
+	for i in pts.size():
+		tmm3.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)))
+	_trail_mesh3.multimesh = tmm3
+	_world.add_child(_trail_mesh3)
+
 	_prev_pts = pts
+	_pt_history = [pts]
+
+	# stamp burst particles
+	_stamp_particles = GPUParticles3D.new()
+	_stamp_particles.amount = 80
+	_stamp_particles.lifetime = 0.8
+	_stamp_particles.one_shot = true
+	_stamp_particles.explosiveness = 1.0
+	var spm := ParticleProcessMaterial.new()
+	spm.direction = Vector3(0, 1, 0)
+	spm.spread = 180.0
+	spm.initial_velocity_min = 1.5
+	spm.initial_velocity_max = 3.0
+	spm.gravity = Vector3(0, -2, 0)
+	spm.scale_min = 0.5
+	spm.scale_max = 1.2
+	spm.color = Color(1.0, 0.9, 0.5, 1.0)
+	_stamp_particles.process_material = spm
+	var spmesh := SphereMesh.new()
+	spmesh.radius = 0.04; spmesh.height = 0.08
+	_stamp_particles.draw_pass_1 = spmesh
+	_stamp_particles.position = Vector3(0, 0.2, 1.4)
+	_stamp_particles.emitting = false
+	_world.add_child(_stamp_particles)
 
 	# flow dots along pipes (animated in _process)
 	for i in 12:
@@ -661,13 +730,25 @@ func _refresh_visuals() -> void:
 	# rebuild attractor points for current sigil
 	if _attractor_mesh and _attractor_mesh.multimesh:
 		var pts := Math.attractor_points(s.shape)
-		# trail lags one frame
-		if _trail_mesh and _trail_mesh.multimesh and _prev_pts.size() > 0:
-			if _trail_mesh.multimesh.instance_count != _prev_pts.size():
-				_trail_mesh.multimesh.instance_count = _prev_pts.size()
-			for i in _prev_pts.size():
-				var tp: Vector3 = _prev_pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)
-				_trail_mesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, tp))
+		# trail history
+		_pt_history.push_front(pts)
+		if _pt_history.size() > 4:
+			_pt_history.pop_back()
+		# update trail meshes with older history
+		var trails := [_trail_mesh, _trail_mesh2, _trail_mesh3]
+		for ti in trails.size():
+			var tmesh: MultiMeshInstance3D = trails[ti]
+			if tmesh == null or tmesh.multimesh == null:
+				continue
+			var idx := ti + 1
+			if idx >= _pt_history.size():
+				continue
+			var hpts: PackedVector3Array = _pt_history[idx]
+			if tmesh.multimesh.instance_count != hpts.size():
+				tmesh.multimesh.instance_count = hpts.size()
+			for i in hpts.size():
+				var tp: Vector3 = hpts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)
+				tmesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, tp))
 		_prev_pts = pts
 		if _attractor_mesh.multimesh.instance_count != pts.size():
 			_attractor_mesh.multimesh.instance_count = pts.size()
