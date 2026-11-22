@@ -74,6 +74,8 @@ var _trail_mesh3: MultiMeshInstance3D
 var _trail_mat3: StandardMaterial3D
 var _pt_history: Array = []
 var _prev_pts: PackedVector3Array
+var _last_sigil: int = -1
+var _last_resolved: bool = false
 var _stamp_particles: GPUParticles3D
 var _plate_mesh: MeshInstance3D
 var _plate_mat: ShaderMaterial
@@ -479,6 +481,8 @@ func _build_world() -> void:
 	mm.mesh = SphereMesh.new()
 	(mm.mesh as SphereMesh).radius = 0.03
 	(mm.mesh as SphereMesh).height = 0.06
+	(mm.mesh as SphereMesh).radial_segments = 6
+	(mm.mesh as SphereMesh).rings = 3
 	_attractor_mat = _mat_aether.duplicate()
 	mm.mesh.surface_set_material(0, _attractor_mat)
 	var pts := Math.attractor_points(Math.sigil(0).shape)
@@ -495,6 +499,8 @@ func _build_world() -> void:
 	tmm.mesh = SphereMesh.new()
 	(tmm.mesh as SphereMesh).radius = 0.025
 	(tmm.mesh as SphereMesh).height = 0.05
+	(tmm.mesh as SphereMesh).radial_segments = 6
+	(tmm.mesh as SphereMesh).rings = 3
 	_trail_mat = _mat_aether.duplicate()
 	_trail_mat.albedo_color = Color(0.3, 0.6, 1.0, 0.25)
 	_trail_mat.emission_energy_multiplier = 0.6
@@ -570,6 +576,7 @@ func _build_world() -> void:
 		var d := MeshInstance3D.new()
 		var sm := SphereMesh.new()
 		sm.radius = 0.03; sm.height = 0.06
+		sm.radial_segments = 6; sm.rings = 3
 		d.mesh = sm
 		var m := _mat_aether.duplicate()
 		m.albedo_color = Color(0.3, 0.6, 1.0, 0.85)
@@ -727,14 +734,15 @@ func _refresh_visuals() -> void:
 	if _attractor_mat:
 		_attractor_mat.albedo_color = Color(0.6, 0.85, 1.0, 0.9) if res else Color(0.25, 0.35, 0.5, 0.3)
 		_attractor_mat.emission_energy_multiplier = 2.0 if res else 0.4
-	# rebuild attractor points for current sigil
-	if _attractor_mesh and _attractor_mesh.multimesh:
+	# rebuild attractor points only when sigil or resolution state changes
+	var dirty := (_sigil_target != _last_sigil) or (res != _last_resolved)
+	if dirty and _attractor_mesh and _attractor_mesh.multimesh:
+		_last_sigil = _sigil_target
+		_last_resolved = res
 		var pts := Math.attractor_points(s.shape)
-		# trail history
 		_pt_history.push_front(pts)
 		if _pt_history.size() > 4:
 			_pt_history.pop_back()
-		# update trail meshes with older history
 		var trails := [_trail_mesh, _trail_mesh2, _trail_mesh3]
 		for ti in trails.size():
 			var tmesh: MultiMeshInstance3D = trails[ti]
