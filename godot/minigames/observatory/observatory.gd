@@ -66,8 +66,11 @@ var _controls := [
 var _control_nodes := {}
 var _attractor_mesh: MultiMeshInstance3D
 var _attractor_mat: StandardMaterial3D
+var _trail_mesh: MultiMeshInstance3D
+var _trail_mat: StandardMaterial3D
+var _prev_pts: PackedVector3Array
 var _plate_mesh: MeshInstance3D
-var _plate_mat: StandardMaterial3D
+var _plate_mat: ShaderMaterial
 var _lever_node: Node3D
 var _lever_mat: StandardMaterial3D
 var _crank_node: Node3D
@@ -81,6 +84,8 @@ var _gauge_needle: Node3D
 var _mold_mat: StandardMaterial3D
 var _void_mat: StandardMaterial3D
 var _flow_particles: GPUParticles3D
+var _flow_dots: Array = []
+var _flow_dot_progress: Array = []
 var _vp_container: SubViewportContainer
 var _vp: SubViewport
 var _world: Node3D
@@ -197,6 +202,7 @@ func _process(delta: float) -> void:
 			_theta -= steer * ORBIT_SPEED * delta
 	_update_camera(delta)
 	_sync_visuals_from_state()
+	_update_flow_dots(delta)
 	_refresh_visuals()
 	if not _solved and _all_collected():
 		_solved = true
@@ -432,9 +438,8 @@ func _build_world() -> void:
 		_void_window.material_override = _void_mat
 	_plate_mesh = _model.get_node_or_null("InscriptionPlate") as MeshInstance3D
 	if _plate_mesh:
-		_plate_mat = _mat_brass.duplicate()
-		_plate_mat.albedo_color = Color(0.85, 0.7, 0.3, 0.4)
-		_plate_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_plate_mat = ShaderMaterial.new()
+		_plate_mat.shader = preload("res://shaders/observatory_plate.gdshader")
 		_plate_mesh.material_override = _plate_mat
 	_gauge_needle = _model.get_node_or_null("FlowGauge") as MeshInstance3D
 	# map controls to nodes
@@ -473,16 +478,37 @@ func _build_world() -> void:
 	_attractor_mesh.multimesh = mm
 	_world.add_child(_attractor_mesh)
 
-	# flow particles
-	_flow_particles = GPUParticles3D.new()
-	_flow_particles.amount = 60
-	_flow_particles.lifetime = 1.2
-	_flow_particles.process_material = _make_flow_material()
-	var pmesh := SphereMesh.new()
-	pmesh.radius = 0.025; pmesh.height = 0.05
-	_flow_particles.draw_pass_1 = pmesh
-	_flow_particles.position = Vector3(0, 0.15, 0)
-	_world.add_child(_flow_particles)
+	# trail ghost (lagging copy)
+	_trail_mesh = MultiMeshInstance3D.new()
+	var tmm := MultiMesh.new()
+	tmm.transform_format = MultiMesh.TRANSFORM_3D
+	tmm.mesh = SphereMesh.new()
+	(tmm.mesh as SphereMesh).radius = 0.025
+	(tmm.mesh as SphereMesh).height = 0.05
+	_trail_mat = _mat_aether.duplicate()
+	_trail_mat.albedo_color = Color(0.3, 0.6, 1.0, 0.25)
+	_trail_mat.emission_energy_multiplier = 0.6
+	tmm.mesh.surface_set_material(0, _trail_mat)
+	tmm.instance_count = pts.size()
+	for i in pts.size():
+		tmm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)))
+	_trail_mesh.multimesh = tmm
+	_world.add_child(_trail_mesh)
+	_prev_pts = pts
+
+	# flow dots along pipes (animated in _process)
+	for i in 12:
+		var d := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = 0.03; sm.height = 0.06
+		d.mesh = sm
+		var m := _mat_aether.duplicate()
+		m.albedo_color = Color(0.3, 0.6, 1.0, 0.85)
+		d.material_override = m
+		d.position = Vector3(0, 0.15, 0)
+		_world.add_child(d)
+		_flow_dots.append(d)
+		_flow_dot_progress.append(randf())
 
 	# camera
 	_camera = Camera3D.new()
@@ -601,6 +627,30 @@ func _build_control(c: Dictionary) -> Node3D:
 	return root
 
 
+func _update_flow_dots(delta: float) -> void:
+	if _flow_dots.is_empty():
+		return
+	var s = Math.sigil(_sigil_target)
+	var clean := Math.layer_clean(_v1, _v2, s)
+	var speed := 0.6 if clean else 1.2
+	var valve_a := _valve_a_node.position if _valve_a_node else Vector3(2.0, 0.12, 0.0)
+	var valve_b := _valve_b_node.position if _valve_b_node else Vector3(-2.0, 0.12, 0.0)
+	var mold := Vector3(0, 0.1, 1.4)
+	for i in _flow_dots.size():
+		_flow_dot_progress[i] = float(_flow_dot_progress[i]) + delta * speed * (0.7 + 0.3 * randf())
+		if _flow_dot_progress[i] > 1.0:
+			_flow_dot_progress[i] = 0.0
+		var t: float = float(_flow_dot_progress[i])
+		var start: Vector3 = valve_a if (i % 2 == 0) else valve_b
+		var pos := start.lerp(mold, t)
+		pos.y += sin(t * PI) * 0.15
+		_flow_dots[i].position = pos
+		var mat := _flow_dots[i].material_override as StandardMaterial3D
+		if mat:
+			mat.albedo_color.a = (1.0 - t) * 0.6 + 0.2
+			mat.emission_energy_multiplier = 1.0 + (0.0 if clean else 1.5)
+
+
 func _refresh_visuals() -> void:
 	var s = Math.sigil(_sigil_target)
 	var res := Math.resolved(_az, _el, _focusv, s)
@@ -611,21 +661,24 @@ func _refresh_visuals() -> void:
 	# rebuild attractor points for current sigil
 	if _attractor_mesh and _attractor_mesh.multimesh:
 		var pts := Math.attractor_points(s.shape)
+		# trail lags one frame
+		if _trail_mesh and _trail_mesh.multimesh and _prev_pts.size() > 0:
+			if _trail_mesh.multimesh.instance_count != _prev_pts.size():
+				_trail_mesh.multimesh.instance_count = _prev_pts.size()
+			for i in _prev_pts.size():
+				var tp: Vector3 = _prev_pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)
+				_trail_mesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, tp))
+		_prev_pts = pts
 		if _attractor_mesh.multimesh.instance_count != pts.size():
 			_attractor_mesh.multimesh.instance_count = pts.size()
 		for i in pts.size():
 			var p: Vector3 = pts[i] * 0.9 + Vector3(0, 1.6, VOID_Z + 0.6)
-			# focus scatter: when unresolved, scatter points
 			if not res:
 				p += Vector3(randf() - 0.5, randf() - 0.5, randf() - 0.5) * 0.15
 			_attractor_mesh.multimesh.set_instance_transform(i, Transform3D(Basis.IDENTITY, p))
-	# plate material
+	# plate shader
 	if _plate_mat:
-		var clean_count := 0
-		for c in _plate:
-			if bool(c): clean_count += 1
-		_plate_mat.albedo_color = Color(0.85, 0.7, 0.3, 0.35 + 0.16 * _layer)
-		_plate_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_plate_mat.set_shader_parameter("layer_count", float(_layer))
 	# mold
 	if _mold_mat:
 		_mold_mat.albedo_color = Color(0.22, 0.2, 0.18)
