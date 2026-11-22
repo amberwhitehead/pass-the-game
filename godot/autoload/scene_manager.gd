@@ -31,16 +31,14 @@ func is_busy() -> bool:
 	return _busy
 
 
-## Loads and shows a scene. Loading is threaded so the engine stays responsive;
-## the scene is rendered (invisibly) for a few frames first so its shaders compile
-## during the fade-in rather than mid-play.
+## Loads and shows a scene. Loading is interactive (polled in stages) so the engine
+## renders between steps and the loading message can cycle.
 func change_scene(path: String, fade_time := 0.4) -> void:
 	if _busy:
 		return
 	_busy = true
 	_fade.mouse_filter = Control.MOUSE_FILTER_STOP
 	await _fade_to(1.0, fade_time)
-	# show loading text
 	var tw := create_tween()
 	tw.tween_property(_loading_label, "modulate:a", 1.0, 0.15)
 	await tw.finished
@@ -49,11 +47,12 @@ func change_scene(path: String, fade_time := 0.4) -> void:
 	ResourceLoader.load_threaded_request(path)
 	var packed: PackedScene = null
 	var msg_index := 0
-	var start_ms := Time.get_ticks_msec()
+	var frame_count := 0
+	const FRAMES_PER_MSG := 120
 	_loading_label.text = LOADING_MESSAGES[0]
 	while true:
-		var elapsed := (Time.get_ticks_msec() - start_ms) / 1000.0
-		var new_index := int(elapsed / 2.0) % LOADING_MESSAGES.size()
+		frame_count += 1
+		var new_index := (frame_count / FRAMES_PER_MSG) % LOADING_MESSAGES.size()
 		if new_index != msg_index:
 			msg_index = new_index
 			_loading_label.text = LOADING_MESSAGES[msg_index]
@@ -64,13 +63,7 @@ func change_scene(path: String, fade_time := 0.4) -> void:
 		if status == ResourceLoader.THREAD_LOAD_FAILED:
 			break
 		await get_tree().process_frame
-	if packed == null:
-		_loading_label.modulate.a = 0.0
-		_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_busy = false
-		return
 
-	# instantiate once, keep invisible to warm shaders for a few frames, then show
 	var prev := get_tree().current_scene
 	var inst := packed.instantiate()
 	inst.visible = false

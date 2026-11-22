@@ -74,10 +74,13 @@ def build(godot: Path, output: Path) -> None:
 class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
     """Tell the browser not to cache, so a plain reload always loads the latest build.
 
-    Without this, browsers may reuse a cached index.pck after a rebuild."""
+    Without this, browsers may reuse a cached index.pck after a rebuild.
+    COOP/COEP headers enable SharedArrayBuffer, required for the threaded Web build."""
 
     def end_headers(self) -> None:
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+        self.send_header("Cross-Origin-Embedder-Policy", "require-corp")
         super().end_headers()
 
 
