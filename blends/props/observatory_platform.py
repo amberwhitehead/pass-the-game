@@ -1,25 +1,30 @@
-"""Observatory platform: the Aetheric Sigil Press instrument.
+"""Observatory platform: the Aetheric Engine, an integrated brass-and-stone instrument.
 
     blender -b -P blends/props/observatory_platform.py
 Output: blends/props/observatory_platform.blend and godot/assets/props/observatory_platform.glb
 
-Units: metres, GAME SCALE (table radius 2.4, display surface at z = 0).
-Blender Z is up (glTF/Godot Y). Game angles measured as Godot does.
+Units: metres, GAME SCALE (table radius 2.4, deck at z = 0). Blender Z is up.
+Game angles: point at game angle a is at (cos a, sin a) in Godot (x, z) =
+Blender (cos a, -sin a).
 
-Exported objects (all share the one palette material, per-face cell indices):
-  Platform            stone plinth + brass rim + wood deck + brass frame
-  TelescopeMount      brass azimuth ring, fork, tube, glass lens (pivot at base)
-  AzimuthKnob         large brass cylinder knob with knurled edge
-  ElevationKnob       brass knob
-  FocusRing           brass ring with glass lens centre
-  SigilSelector       enamel dial with 5 detent notches + pointer
-  ValveA, ValveB      brass wheel valves with spokes (copper accents)
-  Crank               brass axle + arm + wooden ball handle
-  InscribeLever       brass arm + wooden grip (pivot at base)
-  VoidWindow          brass frame + glass pane (north)
-  Mold                stone box with brass recess
-  InscriptionPlate    brass plate (hidden until inscribed)
-  FlowGauge           brass bezel + enamel face + needle
+The machine is one chassis: stone plinth, mahogany deck, brass gantry, copper
+aether duct, press frame and front console. Controls sit in functional groups.
+
+Exported objects:
+  Platform          plinth + deck + gantry + press frame + console + duct
+  VoidWindow        brass frame + glass pane (north)
+  TelescopeMount    equatorial mount, tube, lens (rear)
+  AzimuthKnob       large graduated wheel (left of pillar)
+  ElevationKnob     graduated wheel (right of pillar)
+  FocusRing         focus drum with scale (under tube)
+  SigilSelector     enamel dial with detents (top of pillar)
+  ValveA, ValveB    wheel valves with tell-tales (left manifold)
+  FlowGauge         pressure gauge (left manifold)
+  Mold              plate cradle / press bed (right)
+  InscriptionPlate  brass blank in the cradle
+  Crank             flywheel with wooden handle (front-right)
+  InscribeLever     long lever with mahogany grip (front-left)
+  ResetButton       guarded red plunger (front-centre)
 """
 import math
 import os
@@ -32,7 +37,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "lib"))
 import bl
-from blocks import (P, cylinder, rod, gear, prism)
+from blocks import P, cylinder, rod, prism
 
 pal = bl.pal
 TAU = 2 * math.pi
@@ -42,175 +47,252 @@ TABLE_R = 2.4
 VOID_Z = -4.0
 
 
-def finish_builder(b, name):
-    # legacy shim; callers should use b.finish directly
+def finish(b, name):
+    """Build the object with palette UVs and a material."""
     return b.finish(name)
-    mesh = bpy.data.meshes.new(name)
-    b.bm.to_mesh(mesh)
-    ob = bpy.data.objects.new(name, mesh)
-    bpy.context.scene.collection.objects.link(ob)
-    ob.data.materials.append(bl.make_material())
-    b.bm.free()
-    return ob
 
 
 def main():
     bl.reset_scene()
 
-    # ---- Platform: stone plinth + brass frame + wood deck ----
+    # =====================================================================
+    # 1. PLATFORM: stone plinth, mahogany deck, brass gantry, press frame
+    # =====================================================================
     b = bl.Builder()
-    # plinth
-    b.part("stone_deep", (0, 0, -0.22), (6.0, 6.0, 0.44))
-    b.part("stone_mid", (0, 0, 0.0), (5.0, 5.0, 0.14))
-    # wood deck disc (octagonal-ish via box)
-    b.part("wood", (0, 0, 0.07), (4.6, 4.6, 0.06))
-    # brass rim strip (4 sides)
-    b.part("brass", (0, 2.35, 0.09), (4.7, 0.18, 0.12))
-    b.part("brass", (0, -2.35, 0.09), (4.7, 0.18, 0.12))
-    b.part("brass", (2.35, 0, 0.09), (0.18, 4.7, 0.12))
-    b.part("brass", (-2.35, 0, 0.09), (0.18, 4.7, 0.12))
+    # stone plinth
+    b.part("stone_deep", (0, 0, -0.30), (6.4, 6.4, 0.50))
+    b.part("stone_mid", (0, 0, -0.04), (5.4, 5.4, 0.08))
+    # mahogany deck
+    b.part("wood", (0, 0, 0.04), (4.9, 4.9, 0.10))
+    b.part("wood_dark", (0, 0, 0.09), (4.7, 4.7, 0.02))
+    # brass edge trim
+    for sx in (1, -1):
+        b.part("brass", (sx * 2.42, 0, 0.08), (0.10, 4.9, 0.14))
+    for sy in (1, -1):
+        b.part("brass", (0, sy * 2.42, 0.08), (4.9, 0.10, 0.14))
+
+    # rear pillar (observation aperture)
+    b.part("brass", (0, 1.5, 0.45), (0.34, 0.34, 1.2))
+    b.part("bronze_dark", (0, 1.5, 1.02), (0.5, 0.5, 0.10))
+    # gantry: two posts + a beam spanning to the press side
+    b.part("brass", (-1.9, 0.2, 1.55), (0.18, 0.18, 3.0))
+    b.part("brass", (1.9, 0.2, 1.55), (0.18, 0.18, 3.0))
+    b.part("brass", (0, 0.2, 3.0), (4.0, 0.22, 0.22))
+    # gantry cross braces
+    b.part("bronze_dark", (-1.9, 0.2, 2.7), (1.6, 0.10, 0.10))
+    b.part("bronze_dark", (1.9, 0.2, 2.7), (1.6, 0.10, 0.10))
+
+    # press frame (right side)
+    b.part("brass", (1.3, -1.0, 0.7), (0.10, 0.10, 1.4))
+    b.part("brass", (1.3, -0.2, 0.7), (0.10, 0.10, 1.4))
+    b.part("brass", (1.3, -0.6, 1.4), (0.10, 0.9, 0.10))
+    b.part("brass", (1.3, -0.6, 1.45), (0.5, 0.5, 0.12))  # press head
+
+    # console fascia (front)
+    b.part("wood_dark", (0, -2.3, 0.55), (3.6, 0.10, 0.9))
+    b.part("brass", (0, -2.25, 0.95), (3.6, 0.06, 0.08))
+    # nameplate
+    b.part("enamel_cream", (0, -2.2, 0.72), (1.4, 0.04, 0.18))
+
     platform = b.finish("Platform")
 
-    # ---- Void window (north): brass frame + glass pane ----
+    # =====================================================================
+    # 2. VOID WINDOW (north): brass frame + glass pane
+    # =====================================================================
     b = bl.Builder()
-    b.part("brass", (0, 1.6, VOID_Z - 0.08), (3.9, 0.16, 2.9))   # frame outer
-    b.part("brass", (0, 1.6, VOID_Z - 0.08), (3.5, 0.2, 2.5))    # frame inner (cutout feel)
-    b.part("enamel_cream", (0, 1.6, VOID_Z), (3.4, 0.06, 2.4))    # glass pane
+    b.part("brass", (0, 1.62, VOID_Z - 0.08), (3.9, 0.16, 2.9))
+    b.part("bronze_dark", (0, 1.62, VOID_Z - 0.02), (3.5, 0.10, 2.5))
+    b.part("enamel_cream", (0, 1.6, VOID_Z), (3.4, 0.06, 2.4))
+    # frame bolts
+    for sx in (1, -1):
+        for sz in (1, -1):
+            b.part("brass", (sx * 1.7, 1.55, VOID_Z + 0.9 * sz), (0.12, 0.12, 0.12))
     voidw = b.finish("VoidWindow")
-    voidw.location = (0, 0, 0)
 
-    # ---- Telescope mount (center, pointing north) ----
+    # =====================================================================
+    # 3. TELESCOPE MOUNT (rear): pedestal, fork, tube, lens
+    # =====================================================================
     b = bl.Builder()
-    b.part("brass", (0, 0, 0.06), (0.9, 0.9, 0.14))              # base
-    b.part("brass", (0, 0, 0.2), (0.12, 0.9, 0.08))               # fork left
-    b.part("brass", (0, 0, 0.2), (0.12, 0.9, 0.08))               # fork right (will offset via second part)
-    # fork arms offset manually as separate boxes
-    b.part("brass", (-0.22, 0, 0.35), (0.08, 0.08, 0.6))
-    b.part("brass", (0.22, 0, 0.35), (0.08, 0.08, 0.6))
-    b.part("gunmetal", (0, 0, 0.7), (0.16, 0.16, 1.0))            # tube
-    b.part("enamel_cream", (0, 0, 1.25), (0.2, 0.06, 0.2))        # lens
-    # azimuth ring (cylinder)
-    cylinder(b, "brass", 0.5, 0.16, 0.2, n=16)
+    # pedestal
+    b.part("brass", (0, 1.5, 0.55), (0.5, 0.5, 0.9))
+    b.part("bronze_dark", (0, 1.5, 1.0), (0.7, 0.7, 0.10))
+    # azimuth ring
+    cylinder(b, "brass", 0.36, 1.05, 1.10, n=24)
+    # fork arms
+    b.part("brass", (-0.28, 1.5, 1.25), (0.08, 0.08, 0.5))
+    b.part("brass", (0.28, 1.5, 1.25), (0.08, 0.08, 0.5))
+    # tube (pointing north/up)
+    b.part("bronze_dark", (0, 1.15, 1.45), (0.20, 0.20, 1.0))
+    b.part("brass", (0, 0.85, 1.45), (0.24, 0.24, 0.12))
+    # lens
+    b.part("enamel_cream", (0, 0.70, 1.45), (0.22, 0.08, 0.22))
+    # counterweight
+    b.part("bronze_dark", (0, 1.9, 1.2), (0.3, 0.3, 0.3))
     telescope = b.finish("TelescopeMount")
 
-    # ---- Mold (south side) ----
+    # =====================================================================
+    # 4. AZIMUTH / ELEVATION WHEELS, FOCUS DRUM, SIGIL DIAL
+    # =====================================================================
+    # Azimuth wheel (large graduated wheel)
     b = bl.Builder()
-    b.part("stone_mid", (0, 0, 0.06), (1.1, 1.1, 0.14))
-    b.part("stone_deep", (0, 0, 0.14), (0.95, 0.95, 0.08))
-    b.part("brass", (0, 0, 0.18), (0.9, 0.9, 0.04))               # recess rim
-    mold = b.finish("Mold")
-    mold.location = (0, 1.4, 0)
+    cylinder(b, "brass", 0.14, -0.04, 0.04, n=24)  # boss
+    cylinder(b, "bronze_dark", 0.18, -0.05, 0.05, n=24)  # rim
+    for k in range(12):
+        a = k * TAU / 12
+        b.part("brass", (0.15 * math.cos(a), 0.15 * math.sin(a), 0), (0.06, 0.02, 0.02))
+    b.part("enamel_cream", (0, 0.17, 0.05), (0.02, 0.06, 0.02))  # index pointer
+    az = b.finish("AzimuthKnob")
+    az.location = P(TABLE_R, 4.6, 0.55)
+    az.rotation_euler = (0, 0, -4.6)
 
-    # ---- InscriptionPlate ----
+    # Elevation wheel
     b = bl.Builder()
-    b.part("brass", (0, 0, 0), (0.85, 0.85, 0.06))
-    b.part("glow_amber", (0, 0, 0.04), (0.6, 0.6, 0.02))          # sigil etch
-    plate = b.finish("InscriptionPlate")
-    plate.location = (0, 1.4, 0.16)
+    cylinder(b, "brass", 0.12, -0.04, 0.04, n=24)
+    cylinder(b, "bronze_dark", 0.15, -0.05, 0.05, n=24)
+    for k in range(10):
+        a = k * TAU / 10
+        b.part("brass", (0.13 * math.cos(a), 0.13 * math.sin(a), 0), (0.05, 0.02, 0.02))
+    el = b.finish("ElevationKnob")
+    el.location = P(TABLE_R, 3.9, 0.7)
+    el.rotation_euler = (0, 0, -3.9)
 
-    # ---- FlowGauge ----
+    # Focus drum
     b = bl.Builder()
-    b.part("brass", (0, 0, 0), (0.36, 0.06, 0.36))
-    b.part("enamel_cream", (0, 0, 0.03), (0.3, 0.02, 0.3))
-    b.part("enamel_red", (0.1, 0, 0.05), (0.02, 0.02, 0.2))       # needle
-    gauge = b.finish("FlowGauge")
-    gauge.location = (0.9, 1.6, 0.12)
-    gauge.rotation_euler = (PI / 2, 0, 0)
+    cylinder(b, "brass", 0.14, -0.06, 0.06, n=20)
+    for k in range(10):
+        a = k * TAU / 10
+        b.part("bronze_dark", (0.15 * math.cos(a), 0.15 * math.sin(a), 0), (0.03, 0.02, 0.03))
+    b.part("enamel_cream", (0, 0, 0.07), (0.06, 0.03, 0.02))  # diopter dot
+    focus = b.finish("FocusRing")
+    focus.location = P(TABLE_R, 3.2, 0.75)
+    focus.rotation_euler = (0, 0, -3.2)
 
-    # ---- rim controls ----
-    rim_items = [
-        ("SigilSelector", 5.6, "dial"),
-        ("AzimuthKnob", 4.6, "knob"),
-        ("ElevationKnob", 3.9, "knob"),
-        ("FocusRing", 3.2, "ring"),
-        ("ValveA", 2.4, "valve"),
-        ("ValveB", 1.7, "valve"),
-        ("Crank", 1.0, "crank"),
-        ("InscribeLever", 0.3, "lever"),
-    ]
-    for name, angle, kind in rim_items:
+    # Sigil selector dial (enamel with detents)
+    b = bl.Builder()
+    b.part("enamel_teal", (0, 0, 0), (0.40, 0.40, 0.10))
+    for k in range(5):
+        a = k * TAU / 5
+        b.part("brass", (0.28 * math.cos(a), 0.28 * math.sin(a), 0.06), (0.05, 0.05, 0.05))
+    b.part("brass", (0.24, 0, 0.07), (0.04, 0.04, 0.06))  # pointer
+    sig = b.finish("SigilSelector")
+    sig.location = P(TABLE_R, 5.6, 0.55)
+    sig.rotation_euler = (0, 0, -5.6)
+
+    # =====================================================================
+    # 5. VALVES + GAUGE (left manifold)
+    # =====================================================================
+    for name, angle in (("ValveA", 2.4), ("ValveB", 1.7)):
         b = bl.Builder()
-        if kind == "valve":
-            # hub
-            b.part("brass", (0, 0, 0), (0.12, 0.12, 0.2))
-            # wheel rim (torus via cylinder hollow? use 4 box spokes + outer ring boxes)
-            for k in range(6):
-                a = k * PI / 3.0
-                b.part("brass", (0.22 * math.cos(a), 0.22 * math.sin(a), 0), (0.08, 0.04, 0.04))
-            # outer ring
-            cylinder(b, "brass", 0.26, -0.02, 0.02, n=12)
-            # copper accent
-            b.part("enamel_teal", (0, 0, 0.06), (0.08, 0.08, 0.04))
-        elif kind == "crank":
-            b.part("brass", (0, 0, 0), (0.1, 0.1, 0.4))             # axle
-            b.part("brass", (0.22, 0, 0.18), (0.06, 0.06, 0.28))   # arm
-            b.part("wood", (0.38, 0, 0.18), (0.1, 0.1, 0.1))        # ball handle
-            b.part("enamel_yellow", (0.12, 0, 0.32), (0.04, 0.04, 0.04))  # direction arrow
-        elif kind == "lever":
-            b.part("brass", (0, 0, 0), (0.06, 0.4, 0.06))           # arm
-            b.part("wood", (0, 0.22, 0), (0.08, 0.08, 0.08))        # grip
-            b.part("stone_mid", (0, -0.05, -0.02), (0.14, 0.14, 0.1))  # base
-        elif kind == "ring":
-            cylinder(b, "brass", 0.28, -0.04, 0.04, n=16)
-            b.part("enamel_cream", (0, 0, 0.05), (0.18, 0.18, 0.04))  # glass centre
-            b.part("glow_cyan", (0.18, 0, 0.06), (0.03, 0.03, 0.03))  # focus dot
-        elif kind == "dial":
-            b.part("enamel_teal", (0, 0, 0), (0.34, 0.34, 0.1))
-            for k in range(5):
-                a = k * TAU / 5.0
-                b.part("brass", (0.3 * math.cos(a), 0.3 * math.sin(a), 0.06), (0.04, 0.04, 0.04))
-            b.part("brass", (0.26, 0, 0.06), (0.04, 0.04, 0.06))    # pointer
-        else:  # knob
-            cylinder(b, "brass", 0.18, -0.1, 0.1, n=12)
-            # knurling (grip ridges)
-            for k in range(8):
-                a = k * TAU / 8.0
-                b.part("brass", (0.19 * math.cos(a), 0.19 * math.sin(a), 0), (0.02, 0.02, 0.18))
-            b.part("brass", (0, 0, 0.12), (0.04, 0.16, 0.04))        # pointer mark
-            b.part("enamel_cream", (0.18, 0, 0.1), (0.02, 0.02, 0.04))  # direction arrow
-        ob = b.finish(name)
-        ob.location = P(TABLE_R, angle, 0.12)
-        ob.rotation_euler = (0, 0, -angle)
+        # hub + threaded stem
+        cylinder(b, "brass", 0.09, -0.08, 0.08, n=12)
+        cylinder(b, "bronze_dark", 0.04, 0.08, 0.16, n=8)
+        # wheel rim + spokes
+        cylinder(b, "brass", 0.22, -0.02, 0.02, n=20)
+        for k in range(6):
+            a = k * PI / 3
+            b.part("brass", (0.13 * math.cos(a), 0.13 * math.sin(a), 0), (0.18, 0.025, 0.03))
+        # tell-tale disc (red/green)
+        b.part("enamel_red", (0, 0, 0.10), (0.10, 0.10, 0.02))
+        # travel indicator
+        b.part("enamel_cream", (0.20, 0, 0.04), (0.02, 0.05, 0.02))
+        v = b.finish(name)
+        v.location = P(TABLE_R, angle, 0.55)
+        v.rotation_euler = (0, 0, -angle)
 
-    # ---- Pipes from valves to mold (copper) ----
+    # Flow gauge (pressure gauge)
     b = bl.Builder()
-    import math as _m
-    valve_angles = [2.4, 1.7]
-    mold_loc = (0.0, 1.4, 0.06)
-    for va in valve_angles:
-        vx = TABLE_R * _m.cos(va)
-        vy = -TABLE_R * _m.sin(va)
-        vz = 0.12
-        # approximate pipe as a series of boxes along the path
-        steps = 8
-        for i in range(steps):
-            t0 = i / steps
-            t1 = (i + 1) / steps
-            x0 = vx * (1 - t0) + mold_loc[0] * t0
-            y0 = vy * (1 - t0) + (-mold_loc[1]) * t0  # blender y = -game y
-            z0 = vz * (1 - t0) + mold_loc[2] * t0
-            x1 = vx * (1 - t1) + mold_loc[0] * t1
-            y1 = vy * (1 - t1) + (-mold_loc[1]) * t1
-            z1 = vz * (1 - t1) + mold_loc[2] * t1
-            rod(b, "enamel_teal", Matrix.Identity(4),
-                Vector((x0, y0, z0)), Vector((x1, y1, z1)), 0.06, 0.06)
-    # finish properly
-    mesh = bpy.data.meshes.new("Pipes")
-    b.bm.to_mesh(mesh)
-    pipes = bpy.data.objects.new("Pipes", mesh)
-    bpy.context.scene.collection.objects.link(pipes)
-    pipes.data.materials.append(bl.make_material())
-    b.bm.free()
+    cylinder(b, "brass", 0.20, -0.03, 0.03, n=24)
+    b.part("enamel_cream", (0, 0, 0.04), (0.30, 0.30, 0.02))
+    b.part("enamel_teal", (0.08, 0, 0.05), (0.10, 0.03, 0.02))  # green (laminar) arc
+    b.part("enamel_red", (-0.10, 0, 0.05), (0.08, 0.03, 0.02))
+    b.part("bronze_dark", (0.06, 0.08, 0.06), (0.02, 0.02, 0.14))  # needle
+    gauge = b.finish("FlowGauge")
+    gauge.location = P(TABLE_R, 2.05, 0.75)
+    gauge.rotation_euler = (0, 0, -2.05)
 
-    # ---- Reset button ----
+    # =====================================================================
+    # 6. MOLD / PRESS BED + PLATE
+    # =====================================================================
     b = bl.Builder()
-    b.part("brass", (0, 0, 0), (0.22, 0.22, 0.12))
-    b.part("enamel_red", (0, 0, 0.08), (0.16, 0.16, 0.08))
+    b.part("stone_mid", (0, 0, 0.08), (1.2, 1.2, 0.16))
+    b.part("stone_deep", (0, 0, 0.17), (1.05, 1.05, 0.06))
+    b.part("brass", (0, 0, 0.21), (0.95, 0.95, 0.03))  # cradle rim
+    # corner clamps
+    for sx in (1, -1):
+        for sz in (1, -1):
+            b.part("bronze_dark", (sx * 0.45, 0, 0.24 + 0.45 * sz), (0.08, 0.08, 0.10))
+    mold = b.finish("Mold")
+    mold.location = (1.2, -0.6, 0.0)
+
+    b = bl.Builder()
+    b.part("brass", (0, 0, 0), (0.85, 0.85, 0.05))
+    b.part("glow_amber", (0, 0, 0.035), (0.6, 0.6, 0.015))  # sigil etch
+    plate = b.finish("InscriptionPlate")
+    plate.location = (1.2, -0.6, 0.22)
+
+    # =====================================================================
+    # 7. FLYWHEEL CRANK (front-right)
+    # =====================================================================
+    b = bl.Builder()
+    cylinder(b, "brass", 0.28, -0.04, 0.04, n=24)  # flywheel
+    cylinder(b, "bronze_dark", 0.31, -0.05, 0.05, n=24)
+    # spokes
+    for k in range(6):
+        a = k * PI / 3
+        b.part("brass", (0.16 * math.cos(a), 0.16 * math.sin(a), 0), (0.22, 0.03, 0.03))
+    # wooden ball handle
+    b.part("wood", (0.36, 0, 0.04), (0.10, 0.10, 0.10))
+    # direction arrow
+    b.part("enamel_yellow", (0.10, 0.26, 0.06), (0.04, 0.04, 0.02))
+    crank = b.finish("Crank")
+    crank.location = P(TABLE_R, 1.0, 0.7)
+    crank.rotation_euler = (0, 0, -1.0)
+
+    # =====================================================================
+    # 8. INSCRIBE LEVER (front-left)
+    # =====================================================================
+    b = bl.Builder()
+    b.part("brass", (0, 0, 0.35), (0.08, 0.08, 0.7))       # arm
+    b.part("wood", (0, 0, 0.70), (0.12, 0.12, 0.14))        # grip
+    b.part("bronze_dark", (0, 0, 0.0), (0.22, 0.22, 0.10))   # pivot base
+    lever = b.finish("InscribeLever")
+    lever.location = P(TABLE_R, 0.35, 0.30)
+    lever.rotation_euler = (0, 0, -0.35)
+
+    # =====================================================================
+    # 9. RESET PLUNGER (guarded)
+    # =====================================================================
+    b = bl.Builder()
+    cylinder(b, "bronze_dark", 0.16, -0.02, 0.02, n=16)      # guard ring
+    cylinder(b, "brass", 0.10, 0.02, 0.08, n=12)            # plunger
+    b.part("enamel_red", (0, 0, 0.10), (0.14, 0.14, 0.04))  # red cap
     resetb = b.finish("ResetButton")
-    resetb.location = P(TABLE_R, 0.0, 0.06)
+    resetb.location = P(TABLE_R, 0.0, 0.12)
     resetb.rotation_euler = (0, 0, 0)
 
-    # ---- export ----
+    # =====================================================================
+    # 10. AETHER DUCT + SIGHT GLASSES (continuous path)
+    # =====================================================================
+    b = bl.Builder()
+    # main duct from aperture pillar to press, via the left manifold
+    path = [
+        Vector((0, 1.5, 1.0)),
+        Vector((-1.2, 1.0, 0.8)),
+        Vector((-1.7, 0.3, 0.7)),
+        Vector((-1.4, -0.6, 0.7)),
+        Vector((0.2, -0.9, 0.7)),
+        Vector((1.2, -0.9, 0.7)),
+    ]
+    for i in range(len(path) - 1):
+        rod(b, "enamel_teal", Matrix.Identity(4), path[i], path[i + 1], 0.07, 0.07)
+    # sight-glass collars at two points
+    for p in (path[1], path[3]):
+        b.part("brass", (p.x, p.y, p.z), (0.18, 0.08, 0.08))
+    duct = b.finish("Pipes")
+
+    # =====================================================================
+    # Export
+    # =====================================================================
     out_blend = os.path.join(HERE, "observatory_platform.blend")
     out_glb = os.path.join(os.path.dirname(ROOT), "godot", "assets", "props", "observatory_platform.glb")
     os.makedirs(os.path.dirname(out_glb), exist_ok=True)
