@@ -75,8 +75,8 @@ var _controls := [
 	{"id": "v2", "label": "Valve B", "min": 0.0, "max": 1.0, "def": 0.5, "angle": 2.35, "radius": 1.8, "type": "knob"},
 	{"id": "crank", "label": "Crank", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 1.15, "radius": 2.1, "type": "knob", "wrap": true},
 	{"id": "inscribe", "label": "Inscribe", "min": 0.0, "max": 1.0, "def": 0.0, "angle": 0.65, "radius": 2.1, "type": "button"},
-	{"id": "reset_a", "label": "Reset A", "angle": 1.9, "radius": 2.1, "type": "button"},
-	{"id": "reset_b", "label": "Reset B", "angle": 2.15, "radius": 2.1, "type": "button"},
+	{"id": "reset_a", "label": "Reset A", "angle": 3.0, "radius": 2.2, "type": "button"},
+	{"id": "reset_b", "label": "Reset B", "angle": 3.25, "radius": 2.2, "type": "button"},
 ]
 
 var _control_nodes := {}
