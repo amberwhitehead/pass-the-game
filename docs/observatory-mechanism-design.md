@@ -1,252 +1,300 @@
-# Observatory mechanism: integrated design
+# Observatory mechanism: the Aetheric Engine (integrated design)
 
-A detailed design for the Aetheric Sigil Press as one coherent machine rather than a
-circle of independent controls on a plinth. Every element has a physical role in a
-single flow: **observe → channel → forge → inscribe**.
+A detailed design for the Aetheric Sigil Press as **one continuous, extravagant
+Victorian instrument** — not a circle of controls on a plinth. Every element is
+physically connected, every control has a real mechanical role, and the whole
+machine reads as a single purposeful engine: **observe → condense → forge →
+inscribe**.
 
-## 1. Concept: the Aetheric Engine
+## 1. The form
 
-The instrument is a **brass and stone engine** that converts the void's strange
-attractors into solid sigil plates. It has four physical stages arranged along a
-clear flow path:
-
-```
-   [VOID WINDOW]  →  [TELESCOPE]  →  [VALVES]  →  [PIPES]  →  [MOLD/PRINTER]
-        ↑                ↑               ↑            ↑            ↑
-   attractor         aim/focus        flow rate    channeling    solidify
-   source            resolve          control      delivery      + inscribe
-```
-
-The player orbits the machine and operates each stage in order. The machine's
-physical layout mirrors the data flow: left-to-right / back-to-front.
-
-## 2. Physical layout (top-down)
+The engine is a **brass-and-stone astronomical printer**: a heavy stone plinth
+with a mahogany deck, wrapped in a brass frame, carrying a gantry that spans
+from a rear observation aperture to a front sigil press. It looks like an
+instrument built by a 19th-century clockmaker who had read too much about the
+aether.
 
 ```
-                        ┌─────────────────────┐
-                        │     VOID WINDOW     │  (north wall, 3.4×2.4 glass)
-                        │   [attractor field] │
-                        └──────────┬──────────┘
-                                   │
-                        ┌──────────┴──────────┐
-                        │   TELESCOPE MOUNT   │  (center-back, on a raised
-                        │  (az/el/focus knobs)│   brass pedestal)
-                        └──────────┬──────────┘
-                                   │ (beam/aether path)
-              ┌────────────────────┼────────────────────┐
-              │                    │                    │
-   ┌──────────┴──────────┐  ┌─────┴─────┐  ┌──────────┴──────────┐
-   │     VALVE A         │  │ SIGIL     │  │     VALVE B         │
-   │  (wheel + gauge)    │  │ SELECTOR  │  │  (wheel + gauge)    │
-   └──────────┬──────────┘  │  (dial)   │  └──────────┬──────────┘
-              │             └───────────┘              │
-              │                                        │
-              └──────────────┬─────────────────────────┘
-                             │
-                    ┌────────┴────────┐
-                    │   MOLD / PRINTER │  (front-center, stone box)
-                    │  ┌────────────┐  │
-                    │  │  PLATE     │  │  ← solidifies layer by layer
-                    │  └────────────┘  │
-                    │   [layer ring]   │  ← progress indicator
-                    └────────┬────────┘
-                             │
-                    ┌────────┴────────┐
-                    │  INSCRIPTION     │  (lever, pulls down to stamp)
-                    │     LEVER       │
-                    └────────────────┘
-   [CRANK] (side) ── drives the printer's layer mechanism
-   [RESET] (corner) ── clears the plate
+                    ┌──────────────────────────────────────────┐
+                    │              BRASS GANTRY                │
+                    │   ╔══════════════════════════════════╗   │
+   VOID WINDOW ────►│   ║   OBSERVATION APERTURE           ║   │
+   (north wall)     │   ║   telescope + equatorial mount   ║   │
+                    │   ╚══════════════╤═══════════════════╝   │
+                    │                  │ beam / aether duct    │
+                    │   ╔══════════════╧═══════════════════╗   │
+                    │   ║   AETHER CONDENSER               ║   │
+                    │   ║   valves · regulators · gauges   ║   │
+                    │   ╚══════════════╤═══════════════════╝   │
+                    │                  │ copper delivery pipes │
+                    │   ╔══════════════╧═══════════════════╗   │
+                    │   ║   SIGIL PRESS                    ║   │
+                    │   ║   platen · layer drum · stamp    ║   │
+                    │   ╚══════════════╤═══════════════════╝   │
+                    │   ╔══════════════╧═══════════════════╗   │
+                    │   ║   CONTROL CONSOLE                ║   │
+                    │   ║   crank · lever · selector · reset║  │
+                    │   ╚══════════════════════════════════╝   │
+                    └──────────────────────────────────────────┘
 ```
 
-### Positions (game coords, table radius 2.4)
+The player stands at the **south face** (control console). Everything is within
+reach from one comfortable standing position; the machine is operated like a
+lathe or a printing press, not by orbiting a table.
 
-| Component | Position (x, y, z) | Role |
-|---|---|---|
-| Void window | (0, 1.6, -4.0) | Attractor source |
-| Telescope mount | (0, 0.3, -1.2) | Aim/focus (on a raised pedestal) |
-| Azimuth knob | (1.2, 0.12, -1.8) | Horizontal aim |
-| Elevation knob | (0.6, 0.12, -1.8) | Vertical aim |
-| Focus ring | (-0.6, 0.12, -1.8) | Sharpness |
-| Sigil selector | (-1.2, 0.12, -1.8) | Choose target sigil |
-| Valve A | (-2.0, 0.12, 0.0) | Flow rate (left) |
-| Valve B | (2.0, 0.12, 0.0) | Flow rate (right) |
-| Flow gauge A | (-2.0, 0.12, 0.6) | Pressure (left) |
-| Flow gauge B | (2.0, 0.12, 0.6) | Pressure (right) |
-| Mold/printer | (0, 0.06, 1.4) | Solidification bed |
-| Layer ring | (0, 0.18, 1.4) | Progress indicator |
-| Crank | (1.6, 0.12, 1.8) | Drive layers |
-| Inscribe lever | (-1.6, 0.12, 1.8) | Stamp sigil |
-| Reset button | (0, 0.06, 2.2) | Clear plate |
+## 2. Zones and flow
 
-The controls are **grouped by stage** (telescope group, valve group, forge group)
-rather than evenly spaced around a circle. Related controls cluster together.
+The engine has four zones, stacked back-to-front along the aether path:
 
-## 3. Component roles and affordances
-
-### Stage 1: Void Window + Telescope
-- **Void window**: a brass-framed glass pane on the north wall. The attractor
-  renders on it as a glowing particle field. When unresolved, it's a dim,
-  scattered cloud. When resolved, it sharpens into a bright sigil shape.
-- **Telescope mount**: a brass pedestal with an azimuth ring, elevation fork,
-  and focus tube with a glass lens. The mount physically rotates/tilts to
-  reflect the aim. The lens glows when resolved.
-- **Azimuth knob**: large brass cylinder (coarse adjustment). Turns the mount
-  left/right. Pointer mark shows current angle.
-- **Elevation knob**: medium brass cylinder. Tilts the mount up/down.
-- **Focus ring**: a collar with grip ridges around the tube. Turning it
-  sharpens the view; a glow dot appears when resolved.
-- **Sigil selector**: an enamel dial with 5 detent notches and a pointer.
-  Each detent corresponds to a sigil. Uncollected sigils are dimmed;
-  collected ones glow.
-
-### Stage 2: Valves + Flow Gauges
-- **Valve A/B**: classic wheel valves with spokes. Turning them (clockwise
-  closes, counter-clockwise opens) controls aether flow rate. The wheel
-  physically rotates. A red/green indicator on the hub shows flow state.
-- **Flow gauge A/B**: brass bezel with a white face and needle. Green zone
-  (laminar/clean), red zone (turbulent). The needle position shows current
-  flow. Instant feedback.
-- **Pipes**: copper cylinders with flanges connecting each valve to the mold.
-  Aether particles flow through them (visible when valves are open). The
-  pipes curve organically from valve to mold.
-
-### Stage 3: Mold / Printer
-- **Mold**: a stone box with a brass recess. The plate sits inside. The mold
-  has a glass lid (translucent) so the solidification is visible.
-- **Plate**: a brass plate that starts transparent/empty. As layers solidify,
-  it gains opacity and color (brass → gold). When complete and clean, the
-  sigil is etched into it (emissive lines).
-- **Layer ring**: a ring around the mold's rim with 4 segments. Each segment
-  lights up (gold) when its layer is solidified. Void layers stay dark/cracked.
-- **Progress indicator**: a small counter showing "LAYER X/4".
-
-### Stage 4: Crank + Inscribe Lever
-- **Crank**: a brass axle with an arm and wooden ball handle. Turning it
-  clockwise one full revolution solidifies the current layer. A ratchet click
-  per layer. The crank has a direction arrow on its base. When all layers are
-  done, the crank locks (greyed) and shrugs on interact.
-- **Inscribe lever**: a brass arm with a wooden grip, pivoted at the base.
-  Pulling it down (animated) stamps the sigil into the plate. Only enabled
-  when the plate is complete and all layers are clean. Otherwise greyed +
-  shrug. On success: stamp flash, particle burst, chime.
-- **Reset button**: a red enamel button in the corner. Clears the plate and
-  resets to layer 0.
-
-## 4. The flow (data + physical)
-
-```
-1. OBSERVE: Aim telescope at void window → attractor resolves into sigil ghost.
-            Sigil selector picks which sigil to seek.
-            Focus ring sharpens the view.
-
-2. CHANNEL: Open valves → aether flows through pipes to mold.
-            Flow gauges show laminar (clean) vs turbulent.
-            Valves must be within tolerance of the sigil's target flow.
-
-3. FORGE:   Turn crank → solidify current layer.
-            Layer is clean if flow was in tolerance during the turn.
-            Layer ring lights up for clean layers.
-            Repeat for 4 layers.
-
-4. INSCRIBE: When all 4 layers clean → pull lever → sigil stamps into plate.
-             Plate collected → bonus card granted, board piece appears.
-             Mold resets for next sigil.
-```
-
-## 5. Visual identity per component
-
-| Component | Shape | Material | Affordance |
+| Zone | Position | Function | Controls |
 |---|---|---|---|
-| Void window | Rectangular frame + glass | Brass frame, glass pane | "Look through me" |
-| Telescope mount | Pedestal + ring + fork + tube + lens | Brass, glass lens | "Aim me" |
-| Azimuth knob | Large knurled cylinder | Brass | "Turn me (coarse)" |
-| Elevation knob | Medium knurled cylinder | Brass | "Turn me (vertical)" |
-| Focus ring | Collar with grip ridges | Brass + glass dot | "Turn to focus" |
-| Sigil selector | Enamel dial with detents | Enamel teal + brass pointer | "Pick a sigil" |
-| Valve A/B | Wheel with spokes + hub | Brass + copper accent | "Turn to open/close flow" |
-| Flow gauge | Bezel + white face + needle | Brass + enamel | "Read pressure" |
-| Mold | Stone box with brass recess | Stone + brass | "Place plate here" |
-| Plate | Brass plate with etch | Brass + glow | "Collect me" |
-| Layer ring | 4 segments around mold | Brass + glow | "Progress" |
-| Crank | Axle + arm + ball handle | Brass + wood | "Turn to forge" |
-| Inscribe lever | Arm + grip + base | Brass + wood | "Pull to stamp" |
-| Reset button | Small red button | Enamel red | "Clear" |
+| **Observation Aperture** | rear (north), raised 1.2 m | Collect the void's attractor | Azimuth wheel, elevation wheel, focus drum, sigil selector |
+| **Aether Condenser** | middle-left, 0.8 m | Regulate and condition aether | Valve A, Valve B, regulator levers, pressure gauges, sight glasses |
+| **Sigil Press** | middle-right, 0.6 m | Solidify and stamp the plate | Platen, layer drum, impression screw, plate cradle |
+| **Control Console** | front (south), 0.9 m | Drive the press and inscribe | Layer crank, inscribe lever, reset plunger, counter dials |
 
-## 6. Color coding
+The **aether path** is a continuous copper duct: void window → aperture lens →
+condenser manifold → delivery pipes → press platen. Aether is visible flowing
+through glass sight-glasses and copper pipes.
 
-- **Brass** (#d1a93a): structural, mechanical, permanent.
-- **Copper** (#b87333 or enamel_teal as proxy): flow, aether, energy.
-- **Stone** (#b89a6c): base, plinth, mold body.
-- **Wood** (#7a5230): grips, handles, organic touch points.
-- **Enamel cream** (#eae2c8): glass, lenses, gauge faces.
-- **Enamel teal** (#2c8c8e): sigil selector, accents, aether.
-- **Enamel red** (#c23a2b): reset, danger, closed state.
-- **Glow cyan/amber**: active, emissive, resolved, collected.
-- **Grey**: disabled/locked state.
+## 3. Component-by-component
 
-## 7. Feedback and state communication
+### 3.1 Observation Aperture
 
-- **No floating labels**: all text is on the object or in the HUD caption.
-- **Prompt caption** under the crosshair names the focused control and action.
-- **White silhouette outline** on the focused control.
-- **Shrug** (palms-up hands) when an action can't do anything.
-- **Sound**: ratchet (crank), hiss (valve), clunk (limit), chime (success),
-  rising tone (focus), rumble (turbulence).
-- **Disabled state**: greyed material + shrug on interact.
-- **Progress**: layer ring segments light up; HUD shows "LAYER X/4".
+A **heavy equatorial-style mount** on a brass pillar, carrying a long brass
+telescope tube with a glass objective lens. The mount has:
 
-## 8. Grouping and spatial logic
+- **Azimuth wheel** (right side of the pillar): a large knurled brass wheel,
+  ~28 cm diameter, with a **graduated scale ring** (0–360°, engraved every 10°,
+  labelled every 30°). A fixed **index pointer** on the pillar shows the current
+  bearing. The wheel has a **lock lever** that clamps it; pressing interact
+  releases it for fine adjustment. Turning is geared 3:1 for fine control.
+- **Elevation wheel** (left side): a similar wheel, ~22 cm, with a scale
+  −30°…+90°. A **counterweight** on the opposite side of the fork balances the
+  tube, so it moves with a satisfying inertia.
+- **Focus drum** (under the tube): a knurled drum with a **diopter scale**
+  (0–100). A **rack-and-pinion** moves the eyepiece; each click is one tooth.
+- **Sigil selector** (top of the pillar): an **enamel dial** with five
+  **engraved sigil symbols** and detent notches. A brass **pointer** snaps into
+  each detent with a click. The selected sigil's symbol rises slightly and glows.
+- **Sight**: a small **spirit level** (green bubble) and a **plumb line** —
+  decorative but reinforcing the instrument feel.
 
-Controls are grouped by function, not evenly spaced:
-- **Telescope group** (north-back): azimuth, elevation, focus, sigil selector.
-  These are all about observation and are clustered around the telescope.
-- **Valve group** (east and west): valve A, valve B, flow gauges. These are
-  about channeling and are placed where the pipes begin.
-- **Forge group** (south-front): mold, plate, layer ring, crank, lever, reset.
-  These are about solidification and inscription, clustered where the player
-  stands to watch the plate form.
+**Realistic usability**: the two aim wheels are on opposite sides of the pillar
+so the player can brace with one hand and fine-tune with the other. The scale
+rings and index pointers mean the player can *read* the aim, not just guess.
+The counterweight makes elevation feel physical. The lock lever prevents drift.
 
-The player orbits the table and naturally encounters groups in flow order:
-telescope → valves → forge.
+### 3.2 Aether Condenser
 
-## 9. Implementation plan
+A **manifold** of copper pipes and brass fittings on the left of the deck,
+between the aperture and the press. It has:
 
-### Phase A: Layout (Blender + code)
-1. Update `observatory_platform.py` to place controls in the new grouped layout.
-2. Update `observatory.gd` control angles to match the new positions.
-3. Move attractor to center (already done) or keep in void window.
-4. Add pipes (already added) connecting valves to mold.
+- **Two large valve wheels** (Valve A and Valve B), ~20 cm, classic six-spoke
+  brass wheels on **threaded stems**. Clockwise closes, counter-clockwise
+  opens. Each has a **red/green tell-tale disc** on the hub that rotates with
+  the stem (red = closed, green = open). A **travel indicator** (a small brass
+  pointer on a scale) shows 0–100% open.
+- **Pressure gauges** (two): brass bezels, ivory faces, black needles, with a
+  **green arc** (laminar, 40–60%) and a **red arc** (turbulent, outside). A
+  small **red tell-tale lamp** lights above the red arc.
+- **Sight glasses**: short glass cylinders in the pipes where aether is visible
+  as a glowing flow. Laminar = smooth blue stream; turbulent = swirling,
+  sparking, darker.
+- **Regulator levers** (two small brass levers): trim the flow in fine steps.
+  They spring back to centre; holding them nudges the flow.
+- **Aether reservoir**: a glass bulb with a glowing blue liquid that drains as
+  aether is consumed and refills from the aperture. Gives a visible "fuel" read.
 
-### Phase B: Visual identity (Blender)
-1. Ensure each control has a distinct, recognizable shape.
-2. Apply appropriate materials (already using palette cells).
-3. Add knurling, spokes, grip ridges, detents, pointers, arrows.
-4. Add layer ring segments around the mold.
+**Realistic usability**: valves are large enough to grip; the tell-tale discs
+let the player see state at a glance; the gauges are readable from the standing
+position; the sight glasses show the *actual* flow, not just a number.
 
-### Phase C: Interaction (GDScript)
-1. Fix rotation axes (done).
-2. Add disabled-state greying (done).
-3. Add sound cues for all interactions.
-4. Add on-screen prompt naming the focused control.
+### 3.3 Sigil Press
 
-### Phase D: Flow visualization (GDScript + shaders)
-1. Aether particles flowing through pipes.
-2. Mold solidification with layer-mask shader (done).
-3. Attractor sharpening on focus (done).
+A **screw press** on the right of the deck, modeled on a bookbinding/coining
+press. It has:
 
-### Phase E: Polish
-1. Stamp animation + burst (done).
-2. Web performance profiling (done).
-3. Full test suite green (done).
+- **Platen**: a heavy brass plate on a vertical **impression screw** with a
+  **capstan handle** on top (turned to apply pressure). The platen lowers onto
+  the plate cradle.
+- **Plate cradle**: a stone-and-brass recess that holds the sigil plate. The
+  cradle has **four spring-loaded corner clamps** that snap over the plate.
+- **Layer drum**: a brass **indexing drum** beside the cradle with four
+  **engraved segments** (I–II–III–IV). Each solidified layer advances the drum
+  by one click; the active segment glows. A **locking pawl** prevents
+  back-rotation (no undo), matching the design rule.
+- **Counter dials**: two small brass odometer dials showing "LAYER 0/4" and
+  "SIGILS 0/5", readable at a glance.
+- **Plate**: a brass blank that fills with layered aether, then receives the
+  etched sigil. The plate sits in the cradle under the platen.
 
-## 10. Success criteria
-- Every control is a recognizable, distinct mechanism part.
-- The physical layout mirrors the data flow (observe → channel → forge → inscribe).
-- Controls are grouped by function, not evenly spaced.
-- Materials are appropriate and varied (brass, stone, wood, copper, glass, enamel).
-- The attractor is centered and clearly visible.
-- Pipes connect valves to mold, forming a continuous flow path.
-- All interactions have clear affordances and feedback.
-- 60fps on Web at 1280×720.
-- Full test suite green.
+**Realistic usability**: the press is operated by turning the capstan and
+pulling a lever — no abstract buttons. The layer drum gives physical, countable
+progress. The clamps make the plate feel *held*.
+
+### 3.4 Control Console
+
+The front face of the machine, where the player stands. It has:
+
+- **Layer crank**: a large **crank wheel** (flywheel) on the right, ~30 cm,
+  with a **wooden ball handle**. Turning it clockwise one full revolution
+  drives the press's indexing mechanism one layer. A **ratchet** clicks at each
+  quarter turn; a full turn advances the drum. The crank is **interlocked**:
+  it locks (and a red lamp lights) unless the telescope is resolved and the
+  flow is clean. A **direction arrow** is engraved on the flywheel.
+- **Inscribe lever**: a long **brass lever** with a **mahogany grip**, pivoted
+  at the base of the console. Pulling it down drives the **impression screw**
+  and stamps the plate. It is **spring-loaded** and returns to rest. An
+  **interlock** prevents it moving unless the plate is complete and clean; a
+  **green lamp** lights when it is ready. Pulling it when locked gives a
+  **clunk** and the lever refuses (shrug).
+- **Sigil counter**: a mechanical **counter window** showing collected sigils.
+- **Reset plunger**: a guarded **red mushroom plunger** under a brass flip
+  guard. Flip the guard, press the plunger to clear the plate.
+- **Nameplate**: an engraved brass plate reading "THE AETHERIC SIGIL PRESS ·
+  No. 6 · OBSERVATORY" and a small **maker's mark**.
+- **Aether lamp**: a glass globe on the console that glows brighter as the
+  aether reservoir fills; it pulses when a sigil is ready.
+
+**Realistic usability**: the console is laid out like a real machine's control
+panel: crank on the right (dominant hand), lever on the left, reset safely
+guarded and offset, counters at eye level. Interlocks prevent damage and teach
+the correct order. Every state has a lamp or gauge.
+
+## 4. The operating sequence (one sigil)
+
+1. **Select** the sigil on the enamel dial (detent click).
+2. **Aim** with the azimuth and elevation wheels until the index pointers sit
+   on the sigil's bearing; **focus** the drum until the aperture image sharpens.
+   The aether lamp brightens.
+3. **Open** both valves; watch the sight glasses and pressure gauges. Trim with
+   the regulator levers until both gauges sit in the green arcs and the flow is
+   smooth and blue.
+4. **Crank** the flywheel one full revolution to solidify a layer; the drum
+   indexes, the layer segment lights. Repeat four times. Each clean layer is
+   gold; a turbulent layer is dark and cracks.
+5. When the drum shows all four segments gold and the green lamp is lit, **pull
+   the inscribe lever**. The press stamps, the plate flashes, the sigil is
+   etched and collected. The plate ejects into a small **delivery tray** with a
+   chime; the counter increments.
+6. The drum resets; the next uncollected sigil is selected automatically.
+
+## 5. Materials and finish
+
+- **Stone**: dark basalt plinth and cradle, with a chamfered edge and a carved
+  border.
+- **Mahogany**: deck and grips, with a warm varnish and brass stringing.
+- **Brass**: frames, wheels, scales, gauges, platen, pipes' fittings. Polished
+  with a subtle patina in the recesses.
+- **Copper**: aether pipes and reservoir plumbing, with verdigris in the joints.
+- **Glass**: objective lens, sight glasses, reservoir bulb, gauge faces
+  (ivory), aether lamp globe.
+- **Enamel**: sigil dial (deep teal), gauge faces (ivory), tell-tales (red/
+  green), nameplate (cream with black engraving).
+- **Glow**: cyan aether, amber/gold sigil, green ready-lamps, red warning-lamps.
+
+## 6. Realistic usability principles (applied)
+
+1. **Readable state, not hidden state.** Every variable has a physical readout:
+   scales, gauges, counters, tell-tales, sight glasses, lamps.
+2. **Consistent conventions.** Clockwise = increase/close (per control, labelled);
+   left-to-right = flow; red = stop/danger; green = ready/safe.
+3. **Interlocks teach order.** The crank locks until observation + flow are
+   correct; the lever locks until the plate is complete. A red lamp says why.
+4. **Two-handed operation.** Aim wheels on opposite sides; crank right, lever
+   left; the player naturally braces and works the machine.
+5. **Ergonomic reach.** All controls are within a comfortable arc at the south
+   face; no control is behind the player or below knee height.
+6. **Tactile feedback.** Detents, ratchets, spring returns, limit stops,
+   counterweights, and a clunk when locked.
+7. **No floating labels.** Text is engraved on the machine (scales, nameplate,
+   dial symbols) or in the HUD caption.
+8. **Graceful failure.** Wrong flow → turbulent (visible), void layer (dark);
+   wrong order → interlock clunk + lamp; nothing is silent.
+9. **Progressive disclosure.** First visit: the machine is legible. Later:
+   subtle details (maker's mark, plumb line, reservoir) reward looking.
+10. **One continuous instrument.** Everything is mounted on the same chassis;
+    pipes connect, the gantry spans, the flow is visible end to end.
+
+## 7. Spatial layout (game coordinates)
+
+The machine faces south (the player). Table radius 2.4 m; console at z ≈ +2.0.
+
+| Element | Position (x, y, z) | Notes |
+|---|---|---|
+| Void window | (0, 1.6, −4.0) | North wall, glass pane |
+| Aperture pillar | (0, 0.3, −1.6) | Brass pillar, 1.2 m tall |
+| Telescope tube | (0, 1.3, −1.6) | Points north/up |
+| Azimuth wheel | (−0.7, 0.9, −1.6) | Left of pillar |
+| Elevation wheel | (0.7, 0.9, −1.6) | Right of pillar |
+| Focus drum | (0, 1.5, −1.3) | Under tube |
+| Sigil dial | (0, 1.45, −1.9) | Top of pillar |
+| Valve A | (−1.7, 0.5, 0.0) | Left manifold |
+| Valve B | (−1.2, 0.5, 0.5) | Left manifold |
+| Gauges | (−1.5, 0.75, 0.3) | Left manifold |
+| Sight glasses | (−1.4, 0.4, 0.8) | In pipes |
+| Press platen | (1.3, 0.6, 0.6) | Right of deck |
+| Layer drum | (1.7, 0.5, 1.0) | Beside cradle |
+| Plate cradle | (1.3, 0.2, 1.0) | Under platen |
+| Layer crank | (1.8, 0.5, 1.7) | Front-right |
+| Inscribe lever | (−0.6, 0.5, 1.8) | Front-left |
+| Reset plunger | (0.4, 0.2, 2.0) | Front-centre, guarded |
+| Counters | (0, 0.75, 1.9) | Eye level |
+| Nameplate | (0, 0.9, 2.05) | Front face |
+
+(The exact numbers are a starting point; the Blender build will refine them.)
+
+## 8. Implementation plan
+
+### Phase A — Chassis and layout
+1. Rebuild `observatory_platform.py`: stone plinth, mahogany deck, brass gantry,
+   copper duct, press frame, console face.
+2. Place all controls per §7; remove the evenly-spaced circle.
+3. Add the continuous aether duct and sight glasses.
+
+### Phase B — Controls
+1. Azimuth/elevation wheels with scale rings and index pointers.
+2. Focus drum with diopter scale.
+3. Enamel sigil dial with engraved symbols and detents.
+4. Valve wheels with tell-tale discs and travel indicators.
+5. Pressure gauges with green/red arcs and needles.
+6. Flywheel crank with wooden handle and ratchet.
+7. Long inscribe lever with mahogany grip and spring return.
+8. Guarded reset plunger.
+9. Counter dials, nameplate, aether lamp.
+
+### Phase C — Game logic
+1. Map controls to the existing state (`_az`, `_el`, `_focusv`, `_v1`, `_v2`,
+   `_layer`, `_sigil_target`).
+2. Implement interlocks (crank locked until resolved+clean; lever locked until
+   complete).
+3. Implement the layer drum indexing and segments.
+4. Implement the press stamp animation.
+5. Add lamps/gauges driven by state.
+
+### Phase D — Flow and finish
+1. Aether flow particles through the duct and sight glasses.
+2. Reservoir drain/refill.
+3. Plate solidification shader (done).
+4. Attractor sharpening (done).
+
+### Phase E — Polish and verification
+1. Sound pass (ratchet, hiss, clunk, chime, clink).
+2. HUD caption naming the focused control and its state.
+3. Controller support (any pad, device −1).
+4. Real-testing exploration and regression capture.
+5. Web performance profiling.
+6. Full test suite green.
+
+## 9. Success criteria
+
+- The engine reads as **one machine**, not a collection of props.
+- Every control has a **physical readout** and a **clear affordance**.
+- The **flow path** (void → aperture → condenser → press → plate) is visible
+  and continuous.
+- **Interlocks** teach the correct order and explain failures.
+- The player can operate everything from the **south face** with two hands.
+- It is **extravagant**: polished brass, mahogany, copper, glass, engraved
+  scales, gauges, lamps, a nameplate, a maker's mark.
+- 60 fps on Web at 1280×720; full test suite green.
