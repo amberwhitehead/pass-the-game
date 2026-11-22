@@ -366,7 +366,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if Sound.settings_open:
 		return
 	super(event)
-	if not event.is_action_pressed("interact"):
+	var is_interact := event.is_action_pressed("interact")
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		is_interact = true
+	if not is_interact:
 		return
 	get_viewport().set_input_as_handled()
 	if _grabbed >= 0:
@@ -876,7 +879,11 @@ func _refresh_visuals() -> void:
 		var plate_str := "LAYER %d/%d" % [_layer, LAYERS]
 		var res_str := "RESOLVED" if res else "tune telescope"
 		var flow_str := "CLEAN" if Math.layer_clean(_v1, _v2, s) else "turbulent"
-		_hud_text.text = "%s\n%s\n%s | %s\nsigil: %s" % [status, plate_str, res_str, flow_str, s.name]
+		var focus_name := ""
+		if _focus >= 0:
+			focus_name = _controls[_focus].label
+		var grab_hint := "GRABBED — A/D (or drag) to turn, E or click to release" if _grabbed >= 0 else "A/D or arrows: orbit   |   E or click: grab focused control   |   focus: %s" % (focus_name if focus_name != "" else "—")
+		_hud_text.text = "%s\n%s\n%s | %s\nsigil: %s\n%s" % [status, plate_str, res_str, flow_str, s.name, grab_hint]
 
 
 func _count_collected() -> int:
@@ -893,6 +900,6 @@ func _build_hud() -> void:
 	add_child(_hud)
 	_hud_text = Label.new()
 	_hud_text.position = Vector2(16, 16)
-	_hud_text.add_theme_font_size_override("font_size", 16)
+	_hud_text.add_theme_font_size_override("font_size", 18)
 	_hud_text.text = ""
 	_hud.add_child(_hud_text)
