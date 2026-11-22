@@ -43,6 +43,8 @@ VOID_Z = -4.0
 
 
 def finish_builder(b, name):
+    # legacy shim; callers should use b.finish directly
+    return b.finish(name)
     mesh = bpy.data.meshes.new(name)
     b.bm.to_mesh(mesh)
     ob = bpy.data.objects.new(name, mesh)
@@ -67,14 +69,14 @@ def main():
     b.part("brass", (0, -2.35, 0.09), (4.7, 0.18, 0.12))
     b.part("brass", (2.35, 0, 0.09), (0.18, 4.7, 0.12))
     b.part("brass", (-2.35, 0, 0.09), (0.18, 4.7, 0.12))
-    platform = finish_builder(b, "Platform")
+    platform = b.finish("Platform")
 
     # ---- Void window (north): brass frame + glass pane ----
     b = bl.Builder()
     b.part("brass", (0, 1.6, VOID_Z - 0.08), (3.9, 0.16, 2.9))   # frame outer
     b.part("brass", (0, 1.6, VOID_Z - 0.08), (3.5, 0.2, 2.5))    # frame inner (cutout feel)
     b.part("enamel_cream", (0, 1.6, VOID_Z), (3.4, 0.06, 2.4))    # glass pane
-    voidw = finish_builder(b, "VoidWindow")
+    voidw = b.finish("VoidWindow")
     voidw.location = (0, 0, 0)
 
     # ---- Telescope mount (center, pointing north) ----
@@ -89,21 +91,21 @@ def main():
     b.part("enamel_cream", (0, 0, 1.25), (0.2, 0.06, 0.2))        # lens
     # azimuth ring (cylinder)
     cylinder(b, "brass", 0.5, 0.16, 0.2, n=16)
-    telescope = finish_builder(b, "TelescopeMount")
+    telescope = b.finish("TelescopeMount")
 
     # ---- Mold (south side) ----
     b = bl.Builder()
     b.part("stone_mid", (0, 0, 0.06), (1.1, 1.1, 0.14))
     b.part("stone_deep", (0, 0, 0.14), (0.95, 0.95, 0.08))
     b.part("brass", (0, 0, 0.18), (0.9, 0.9, 0.04))               # recess rim
-    mold = finish_builder(b, "Mold")
+    mold = b.finish("Mold")
     mold.location = (0, 1.4, 0)
 
     # ---- InscriptionPlate ----
     b = bl.Builder()
     b.part("brass", (0, 0, 0), (0.85, 0.85, 0.06))
     b.part("glow_amber", (0, 0, 0.04), (0.6, 0.6, 0.02))          # sigil etch
-    plate = finish_builder(b, "InscriptionPlate")
+    plate = b.finish("InscriptionPlate")
     plate.location = (0, 1.4, 0.16)
 
     # ---- FlowGauge ----
@@ -111,7 +113,7 @@ def main():
     b.part("brass", (0, 0, 0), (0.36, 0.06, 0.36))
     b.part("enamel_cream", (0, 0, 0.03), (0.3, 0.02, 0.3))
     b.part("enamel_red", (0.1, 0, 0.05), (0.02, 0.02, 0.2))       # needle
-    gauge = finish_builder(b, "FlowGauge")
+    gauge = b.finish("FlowGauge")
     gauge.location = (0.9, 1.6, 0.12)
     gauge.rotation_euler = (PI / 2, 0, 0)
 
@@ -166,7 +168,7 @@ def main():
                 b.part("brass", (0.19 * math.cos(a), 0.19 * math.sin(a), 0), (0.02, 0.02, 0.18))
             b.part("brass", (0, 0, 0.12), (0.04, 0.16, 0.04))        # pointer mark
             b.part("enamel_cream", (0.18, 0, 0.1), (0.02, 0.02, 0.04))  # direction arrow
-        ob = finish_builder(b, name)
+        ob = b.finish(name)
         ob.location = P(TABLE_R, angle, 0.12)
         ob.rotation_euler = (0, 0, -angle)
 
@@ -174,7 +176,7 @@ def main():
     b = bl.Builder()
     b.part("brass", (0, 0, 0), (0.22, 0.22, 0.12))
     b.part("enamel_red", (0, 0, 0.08), (0.16, 0.16, 0.08))
-    resetb = finish_builder(b, "ResetButton")
+    resetb = b.finish("ResetButton")
     resetb.location = P(TABLE_R, 0.0, 0.06)
     resetb.rotation_euler = (0, 0, 0)
 
