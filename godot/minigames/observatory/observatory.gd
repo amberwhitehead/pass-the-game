@@ -95,6 +95,8 @@ var _valve_b_node: Node3D
 var _sigil_node: Node3D
 var _gauge_needle: Node3D
 var _layer_drum: Node3D
+var _aether_reservoir: Node3D
+var _aether_liquid: Node3D
 var _aether_lamp: MeshInstance3D
 var _ready_lamp: MeshInstance3D
 var _warning_lamp: MeshInstance3D
@@ -254,6 +256,15 @@ func _sync_visuals_from_state() -> void:
 		_el_node.rotation.y = _el
 	if _layer_drum:
 		_layer_drum.rotation.y = float(_layer) * (TAU / 4.0)
+	# aether reservoir level: rises with focus/flow quality
+	if _aether_liquid:
+		var sr = Math.sigil(_sigil_target)
+		var resr := Math.resolved(_az, _el, _focusv, sr)
+		var flow_ok := Math.layer_clean(_v1, _v2, sr)
+		var level := 0.25
+		if resr: level += 0.35
+		if flow_ok: level += 0.35
+		_aether_liquid.scale = Vector3(1.0, level, 1.0)
 	# gauge needle points to flow quality
 	if _gauge_needle:
 		var s = Math.sigil(_sigil_target)
@@ -507,6 +518,8 @@ func _build_world() -> void:
 		_plate_mesh.material_override = _plate_mat
 	_gauge_needle = _model.get_node_or_null("GaugeNeedle") as Node3D
 	_layer_drum = _model.get_node_or_null("LayerDrum") as Node3D
+	_aether_reservoir = _model.get_node_or_null("AetherReservoir") as Node3D
+	_aether_liquid = _model.get_node_or_null("AetherLiquid") as Node3D
 	_aether_lamp = _model.get_node_or_null("AetherLamp") as MeshInstance3D
 	_ready_lamp = _model.get_node_or_null("ReadyLamp") as MeshInstance3D
 	_warning_lamp = _model.get_node_or_null("WarningLamp") as MeshInstance3D
@@ -848,23 +861,37 @@ func _build_control(c: Dictionary) -> Node3D:
 	return root
 
 
+## The copper duct path in Godot coordinates (mirrors the Blender duct).
+const DUCT_PATH := [
+	Vector3(0.0, 1.0, -1.5),
+	Vector3(-1.2, 0.8, -1.0),
+	Vector3(-1.7, 0.7, -0.3),
+	Vector3(-1.4, 0.7, 0.6),
+	Vector3(0.2, 0.7, 0.9),
+	Vector3(1.2, 0.7, 0.9),
+]
+
+
+func _path_point(t: float) -> Vector3:
+	var seg := t * float(DUCT_PATH.size() - 1)
+	var i := clampi(int(seg), 0, DUCT_PATH.size() - 2)
+	var f := seg - float(i)
+	return DUCT_PATH[i].lerp(DUCT_PATH[i + 1], f)
+
+
 func _update_flow_dots(delta: float) -> void:
 	if _flow_dots.is_empty():
 		return
 	var s = Math.sigil(_sigil_target)
 	var clean := Math.layer_clean(_v1, _v2, s)
-	var speed := 0.6 if clean else 1.2
-	var valve_a := _valve_a_node.position if _valve_a_node else Vector3(2.0, 0.12, 0.0)
-	var valve_b := _valve_b_node.position if _valve_b_node else Vector3(-2.0, 0.12, 0.0)
-	var mold := Vector3(0, 0.1, 1.4)
+	var speed := 0.10 if clean else 0.18
 	for i in _flow_dots.size():
 		_flow_dot_progress[i] = float(_flow_dot_progress[i]) + delta * speed * (0.7 + 0.3 * randf())
 		if _flow_dot_progress[i] > 1.0:
 			_flow_dot_progress[i] = 0.0
 		var t: float = float(_flow_dot_progress[i])
-		var start: Vector3 = valve_a if (i % 2 == 0) else valve_b
-		var pos := start.lerp(mold, t)
-		pos.y += sin(t * PI) * 0.15
+		var pos := _path_point(t)
+		pos.y += sin(t * PI) * 0.05
 		_flow_dots[i].position = pos
 		var mat := _flow_dots[i].material_override as StandardMaterial3D
 		if mat:

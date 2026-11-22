@@ -299,6 +299,17 @@ def main():
     lamp = b.finish("AetherLamp")
     lamp.location = (0, -2.2, 1.05)
 
+    # aether reservoir: glass bulb + inner liquid
+    b = bl.Builder()
+    cylinder(b, "brass", 0.14, 0.0, 0.06, n=16)
+    b.part("enamel_cream", (0, 0, 0.18), (0.28, 0.28, 0.30))
+    res = b.finish("AetherReservoir")
+    res.location = (-0.9, -2.0, 1.0)
+    b = bl.Builder()
+    b.part("glow_cyan", (0, 0, 0.10), (0.20, 0.20, 0.20))
+    liquid = b.finish("AetherLiquid")
+    liquid.location = (-0.9, -2.0, 1.0)
+
     # ready / warning lamps
     b = bl.Builder()
     b.part("bronze_dark", (0, 0, 0), (0.10, 0.10, 0.06))
